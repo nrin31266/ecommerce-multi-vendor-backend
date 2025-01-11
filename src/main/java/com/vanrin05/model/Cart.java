@@ -4,39 +4,40 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
-@Entity(name = "coupons")
+@Entity(name = "carts")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Coupon {
+public class Cart {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    String code;
+    @OneToOne
+    User user;
 
-    double discountPercentage;
+    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
+    Set<CartItem> cartItems;
 
-    LocalDateTime validityStartDate;
+    double totalSellingPrice;
 
-    LocalDateTime validityEndDate;
+    int totalItems;
 
-    double minimumOrderValue;
+    int totalMrpPrice;
 
-    boolean isActive;
+    int discount;
 
-    @ManyToMany(mappedBy = "usedCoupons")
-    Set<User> usedByUsers;
+    String couponCode;
+
+
 
     @PrePersist
     protected void prePersist() {
-        this.isActive = true;
-        this.usedByUsers = new HashSet<>();
+        this.cartItems = new HashSet<>();
     }
 }

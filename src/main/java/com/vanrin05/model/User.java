@@ -42,7 +42,7 @@ public class User {
     Set<Coupon> usedCoupons;
 
     @PrePersist
-    public void prePersist() {
+    protected void prePersist() {
         this.role = USER_ROLE.ROLE_CUSTOMER;
         this.addresses = new HashSet<>();
         this.usedCoupons = new HashSet<>();
