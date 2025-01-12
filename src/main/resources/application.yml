@@ -18,3 +18,8 @@ server:
   servlet:
     context-path: /
   port: 8080
+
+security:
+  jwt:
+    secretKey: ${SECURITY_JWT_SECRET_KEY}
+    header: "Authorization"

@@ -1,6 +1,7 @@
 package com.vanrin05.controller;
 
 import com.vanrin05.dto.request.SignupRequest;
+import com.vanrin05.dto.response.AuthResponse;
 import com.vanrin05.model.User;
 import com.vanrin05.service.AuthService;
 import lombok.AccessLevel;
@@ -20,7 +21,7 @@ public class AuthController {
     AuthService authService;
 
     @PostMapping("/signup")
-    public ResponseEntity<User> createUserHandler(@RequestBody SignupRequest req) {
+    public ResponseEntity<AuthResponse> createUserHandler(@RequestBody SignupRequest req) {
         return ResponseEntity.ok(authService.signup(req));
 
     }
