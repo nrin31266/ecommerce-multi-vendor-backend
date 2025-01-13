@@ -38,14 +38,16 @@ public class CustomUserServiceImpl implements UserDetailsService {
                 Seller seller = optionalSeller.get();
                 return  buildUserDetail(seller.getEmail(), seller.getPassword(), seller.getRole());
             }
+            throw new UsernameNotFoundException("Seller not found with email: " + username);
         }else{
             Optional<User> optionalUser = userRepository.findByEmail(username);
             if(optionalUser.isPresent()) {
                 User user = optionalUser.get();
                 return buildUserDetail(user.getEmail(), user.getPassword(), user.getRole());
             }
+            throw new UsernameNotFoundException("User not found with email: " + username);
         }
-        throw new UsernameNotFoundException("User or Seller not found with email: " + username);
+
     }
 
     private UserDetails buildUserDetail(String email, String password, USER_ROLE role) {
@@ -55,7 +57,7 @@ public class CustomUserServiceImpl implements UserDetailsService {
 
         List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
 
-        grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_"+role));
+        grantedAuthorities.add(new SimpleGrantedAuthority(role.toString()));
 
         return new org.springframework.security.core.userdetails.User(email, password, grantedAuthorities);
     }

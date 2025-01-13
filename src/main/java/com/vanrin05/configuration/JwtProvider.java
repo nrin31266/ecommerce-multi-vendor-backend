@@ -4,6 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -16,6 +17,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 @Service
+@Slf4j
 public class JwtProvider {
     @Value("${security.jwt.secretKey}")
     private String SECRET_KEY;
@@ -25,6 +27,7 @@ public class JwtProvider {
     }
 
     public String generateToken(Authentication auth){
+
         Collection<? extends GrantedAuthority> authorities = auth.getAuthorities();
         String roles = populateAuthorities(authorities);
 

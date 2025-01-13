@@ -2,6 +2,7 @@ package com.vanrin05.service;
 
 import com.vanrin05.configuration.JwtProvider;
 import com.vanrin05.domain.USER_ROLE;
+import com.vanrin05.dto.request.SigningRequest;
 import com.vanrin05.dto.request.SignupRequest;
 import com.vanrin05.dto.response.AuthResponse;
 import com.vanrin05.mapper.UserMapper;
@@ -16,15 +17,18 @@ import jakarta.mail.MessagingException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,6 +44,7 @@ public class AuthService {
     VerificationCodeRepository verificationCodeRepository;
     OtpUtil otpUtil;
     EmailService emailService;
+    CustomUserServiceImpl customUserService;
 
     public void sendLoginOtp (String email) throws MessagingException {
 
@@ -56,10 +61,13 @@ public class AuthService {
             }
         }
 
-        Optional<VerificationCode> verificationCodeOptional = verificationCodeRepository.findByEmail(email);
-        verificationCodeOptional.ifPresent(verificationCodeRepository::delete);
-
         VerificationCode verificationCode = new VerificationCode();
+        Optional<VerificationCode> verificationCodeOptional = verificationCodeRepository.findByEmail(email);
+        if(verificationCodeOptional.isPresent()){
+            verificationCode = verificationCodeOptional.get();
+        }
+
+
         verificationCode.setEmail(email);
         verificationCode.setOtp(otpUtil.generateOtp(6));
         verificationCodeRepository.save(verificationCode);
@@ -78,7 +86,7 @@ public class AuthService {
 
         Optional<VerificationCode> verificationCodeOptional = verificationCodeRepository.findByEmail(req.getEmail());
 
-        if (verificationCodeOptional.isEmpty() || !verificationCodeOptional.get().equals(req.getOtp())) {
+        if (verificationCodeOptional.isEmpty() || !verificationCodeOptional.get().getOtp().equals(req.getOtp())) {
             throw new RuntimeException("Wrong otp...");
 
         }
@@ -107,4 +115,37 @@ public class AuthService {
     }
 
 
+    public AuthResponse signing(SigningRequest req) {
+
+
+        Authentication authentication = getAuthentication(req.getEmail(), req.getOtp());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+        String roleName = authorities.isEmpty()?null:authorities.iterator().next().getAuthority();
+
+
+
+        return AuthResponse.builder()
+                .role(USER_ROLE.valueOf(roleName))
+                .message("Signed Successfully")
+                .jwt(jwtProvider.generateToken(authentication))
+                .build();
+
+    }
+
+    private Authentication getAuthentication(String username, String otp) {
+        UserDetails userDetails = customUserService.loadUserByUsername(username);
+
+        if(userDetails == null){
+            throw new BadCredentialsException("Invalid username");
+        }
+
+        VerificationCode verificationCode = verificationCodeRepository.findByEmail(userDetails.getUsername()).orElse(null);
+
+        if(verificationCode == null || !verificationCode.getOtp().equals(otp)){
+            throw new BadCredentialsException("Wrong verification otp");
+        }
+        return new UsernamePasswordAuthenticationToken(userDetails, null,  userDetails.getAuthorities());
+    }
 }

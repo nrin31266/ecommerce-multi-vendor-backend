@@ -1,5 +1,6 @@
 package com.vanrin05.controller;
 
+import com.vanrin05.dto.request.SigningRequest;
 import com.vanrin05.dto.request.SignupRequest;
 import com.vanrin05.dto.response.ApiResponse;
 import com.vanrin05.dto.response.AuthResponse;
@@ -31,6 +32,12 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.builder()
                         .message("Sent otp successfully")
                 .build());
+
+    }
+
+    @PostMapping("/signing")
+    public ResponseEntity<AuthResponse> signingHandler(@RequestBody SigningRequest req) {
+        return ResponseEntity.ok(authService.signing(req));
 
     }
 }
