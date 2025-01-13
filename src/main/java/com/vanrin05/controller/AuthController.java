@@ -62,4 +62,6 @@ public class AuthController {
     public ResponseEntity<List<Seller>> getAllSellerHandler(@RequestParam ACCOUNT_STATUS status) {
         return ResponseEntity.ok(sellerService.getAllSellers(status));
     }
+
+    // Sleep
 }
