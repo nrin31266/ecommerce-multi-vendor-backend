@@ -7,9 +7,11 @@ import com.vanrin05.dto.request.SignupRequest;
 import com.vanrin05.dto.response.AuthResponse;
 import com.vanrin05.mapper.UserMapper;
 import com.vanrin05.model.Cart;
+import com.vanrin05.model.Seller;
 import com.vanrin05.model.User;
 import com.vanrin05.model.VerificationCode;
 import com.vanrin05.repository.CartRepository;
+import com.vanrin05.repository.SellerRepository;
 import com.vanrin05.repository.UserRepository;
 import com.vanrin05.repository.VerificationCodeRepository;
 import com.vanrin05.utils.OtpUtil;
@@ -17,6 +19,7 @@ import jakarta.mail.MessagingException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -32,6 +35,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -45,15 +49,24 @@ public class AuthService {
     OtpUtil otpUtil;
     EmailService emailService;
     CustomUserServiceImpl customUserService;
+    SellerRepository sellerRepository;
 
-    public void sendLoginOtp (String email) throws MessagingException {
+    public void sendLoginOtp (String email, USER_ROLE role) throws MessagingException {
 
 
-        String SINGING_PREFIX = "singing_";
+        String SINGING_PREFIX = "signing_";
+
         if(email.startsWith(SINGING_PREFIX)){
             email = email.substring(SINGING_PREFIX.length());
-            if(userRepository.findByEmail(email).isEmpty()){
-                throw new RuntimeException(("User not exist with email: " + email));
+            log.info("Email: "+email);
+            if(role.equals(USER_ROLE.ROLE_SELLER)){
+                if(sellerRepository.findByEmail(email).isEmpty()){
+                    throw new BadCredentialsException("Seller not found with email: " + email);
+                }
+            }else{
+                if(userRepository.findByEmail(email).isEmpty()){
+                    throw new RuntimeException(("User not found with email: " + email));
+                }
             }
         }else{
             if(userRepository.findByEmail(email).isPresent()){

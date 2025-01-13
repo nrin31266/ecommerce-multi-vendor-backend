@@ -23,31 +23,30 @@ import java.util.List;
 @EnableWebSecurity
 public class AppConfig {
     @Value("${security.jwt.secretKey}")
-    private String secretKey;
+    private String SECRET_KEY;
 
     @Value("${security.jwt.header}")
-    private String header;
-
-
+    private String HEADER;
 
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.sessionManagement(management->management.sessionCreationPolicy(
-                SessionCreationPolicy.STATELESS
-        )).authorizeHttpRequests(
-                authorizeRequests ->
-                        authorizeRequests.requestMatchers("/api/**").authenticated()
-                                .requestMatchers("api/products/*/reviews").permitAll()
-                                .anyRequest().permitAll()
-        ).addFilterBefore(new JwtTokenValidator(secretKey, header), BasicAuthenticationFilter.class)
+        http.sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(authorizeRequests -> authorizeRequests
+                        .requestMatchers("/api/**")
+                        .authenticated()
+                        .requestMatchers("api/products/*/reviews").permitAll()
+                        .anyRequest()
+                        .permitAll()
+                )
+                .addFilterBefore(new JwtTokenValidator(SECRET_KEY, HEADER), BasicAuthenticationFilter.class)
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors->cors.configurationSource(corsConfigurationSource()))
-        ;
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()));
 
 
         return http.build();
     }
+
 
     private CorsConfigurationSource corsConfigurationSource() {
         return new CorsConfigurationSource() {
@@ -66,13 +65,13 @@ public class AppConfig {
     }
 
     @Bean
-    PasswordEncoder passwordEncoder(){
+    PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
 
     @Bean
-    public RestTemplate restTemplate(){
+    public RestTemplate restTemplate() {
         return new RestTemplate();
     }
 }

@@ -37,6 +37,11 @@ public class Seller {
 
     ACCOUNT_STATUS accountStatus;
 
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    Address pickupAddress;
+
+    String GSTIN;
+
     @PrePersist
     protected void onCreate() {
         this.businessDetails = new BusinessDetails();

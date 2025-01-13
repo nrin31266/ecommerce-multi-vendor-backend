@@ -10,7 +10,7 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class SigningRequest {
+public class SigningOtpRequest {
     String email;
-    String otp;
+    USER_ROLE role;
 }
