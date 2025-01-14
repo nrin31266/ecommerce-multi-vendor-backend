@@ -1,7 +1,9 @@
 package com.vanrin05.controller;
 
+import com.vanrin05.domain.ACCOUNT_STATUS;
 import com.vanrin05.dto.request.CreateSellerRequest;
 import com.vanrin05.dto.request.SigningRequest;
+import com.vanrin05.dto.request.UpdateSellerRequest;
 import com.vanrin05.dto.response.ApiResponse;
 import com.vanrin05.dto.response.AuthResponse;
 import com.vanrin05.model.Seller;
@@ -11,8 +13,11 @@ import jakarta.mail.MessagingException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -23,7 +28,7 @@ public class SellerController {
     AuthService authService;
     String SELLER_PREFIX = "seller_";
 
-    @PostMapping("/login")
+    @PostMapping("/signing")
     public ResponseEntity<AuthResponse> loginHandler(
             @RequestBody SigningRequest requestBody
     ) {
@@ -40,5 +45,32 @@ public class SellerController {
     @GetMapping("/{id}")
     public ResponseEntity<Seller> getSellerById(@PathVariable("id") Long id) {
         return ResponseEntity.ok(sellerService.getSellerById(id));
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<Seller> getProfileHandler(@RequestHeader("Authorization") String jwt) {
+        return ResponseEntity.ok(sellerService.getSellerProfile(jwt));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<Seller>> getAllSellerHandler(@RequestParam ACCOUNT_STATUS status) {
+        return ResponseEntity.ok(sellerService.getAllSellers(status));
+    }
+
+    @PutMapping
+    public ResponseEntity<Seller> updateSellerHandler(@RequestHeader("Authorization") String jwt, @RequestBody UpdateSellerRequest req) {
+        return ResponseEntity.ok(sellerService.updateSeller(jwt, req));
+    }
+
+    @PutMapping("/verify/{otp}")
+    public ResponseEntity<Seller> verifySellerEmail(@PathVariable String otp, @RequestHeader("Authorization") String jwt ) {
+        return ResponseEntity.ok(sellerService.verifyEmail(jwt, otp));
+    }
+
+
+    @DeleteMapping("/{sellerId}")
+    public ResponseEntity<Void> deleteSellerHandler(@PathVariable("sellerId") Long sellerId) {
+        sellerService.deleteSeller(sellerId);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

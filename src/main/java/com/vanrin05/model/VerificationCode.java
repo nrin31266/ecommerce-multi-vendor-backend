@@ -17,6 +17,7 @@ public class VerificationCode {
 
     String otp;
 
+    @Column(unique = true, nullable = false)
     String email;
 
     @OneToOne
