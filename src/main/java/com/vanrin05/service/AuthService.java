@@ -111,6 +111,7 @@ public class AuthService {
         user.setMobile("0321312321");
         user.setPassword(passwordEncoder.encode(req.getOtp()));
         user = userRepository.save(user);
+
         cartRepository.save(Cart.builder()
                         .user(user)
                 .build());

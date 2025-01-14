@@ -5,6 +5,8 @@ import com.vanrin05.domain.ACCOUNT_STATUS;
 import com.vanrin05.domain.USER_ROLE;
 import com.vanrin05.dto.request.CreateSellerRequest;
 import com.vanrin05.dto.request.UpdateSellerRequest;
+import com.vanrin05.exception.AppException;
+import com.vanrin05.exception.ErrorCode;
 import com.vanrin05.mapper.SellerMapper;
 import com.vanrin05.model.Address;
 import com.vanrin05.model.Seller;
@@ -67,11 +69,13 @@ public class SellerService {
     }
 
     public Seller getSellerById(Long sellerId){
-        return sellerRepository.findById(sellerId).orElseThrow(() -> new RuntimeException("Seller not found with id: " + sellerId));
+        return sellerRepository.findById(sellerId).orElseThrow(() ->
+                new AppException(ErrorCode.SELLER_NOT_FOUND, ErrorCode.SELLER_NOT_FOUND.getFormattedMessage("id " + sellerId)));
     }
 
     public Seller getSellerByEmail(String email){
-        return sellerRepository.findByEmail(email).orElseThrow(()-> new RuntimeException("Seller not found with email: " + email));
+        return sellerRepository.findByEmail(email).orElseThrow(() ->
+                new AppException(ErrorCode.SELLER_NOT_FOUND, ErrorCode.SELLER_NOT_FOUND.getFormattedMessage("email " + email)));
     }
 
     public List<Seller> getAllSellers(ACCOUNT_STATUS accountStatus){
