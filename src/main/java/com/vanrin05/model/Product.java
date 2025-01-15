@@ -28,7 +28,7 @@ public class Product {
     String color;
 
     @ElementCollection
-    List<String> images;
+    List<String> images = new ArrayList<>();
 
     int numberRating;
 
@@ -49,7 +49,6 @@ public class Product {
 
     @PrePersist
     protected void prePersist() {
-        this.images = new ArrayList<>();
         this.createdAt = LocalDateTime.now();
         this.reviews = new ArrayList<>();
     }
