@@ -33,6 +33,7 @@ public class ProductService {
     ProductMapper productMapper;
     CategoryRepository categoryRepository;
     CategoryService categoryService;
+    SellerService sellerService;
 
     public Product createProduct(CreateProductReq req, String jwt) {
 
@@ -44,14 +45,14 @@ public class ProductService {
         Product product = productMapper.toProduct(req);
         product.setCategory(category3);
         product.setDiscountPercentage(discountPercentage(product.getMrpPrice(), product.getSellingPrice()));
-
+        product.setSeller(sellerService.getSellerProfile(jwt));
 
 
         return productRepository.save(product);
     }
 
 
-    private int discountPercentage  (double mrpPrice, double sellingPrice) {
+    private int discountPercentage(double mrpPrice, double sellingPrice) {
         if (mrpPrice < sellingPrice || mrpPrice <= 0) {
             throw new AppException("Mrp price is invalid. Mrp: " + mrpPrice + ", Selling price: " + sellingPrice);
         }
@@ -80,9 +81,8 @@ public class ProductService {
         return productRepository.save(product);
     }
 
-    public List<Product> searchProduct(String productName) {
-
-        return null;
+    public List<Product> searchProduct(String query) {
+        return productRepository.searchProduct(query);
     }
 
     public Page<Product> getAllProduct(
@@ -94,7 +94,7 @@ public class ProductService {
             String stock,
             Integer pageNumber
     ) {
-        Specification<Product> specification = (root, query, criteriaBuilder)->{
+        Specification<Product> specification = (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
             if (category != null) {
@@ -103,6 +103,10 @@ public class ProductService {
             }
             if (brand != null && !brand.isEmpty()) {
                 predicates.add(criteriaBuilder.equal(root.get("brand"), brand));
+            }
+
+            if (stock != null && !stock.isEmpty()) {
+                predicates.add(criteriaBuilder.equal(root.get("stock"), stock));
             }
 
             if (colors != null && !colors.isEmpty()) {
@@ -127,9 +131,7 @@ public class ProductService {
                 predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("discountPercentage"), minimumDiscount));
             }
 
-//            if (stock != null && !stock.isEmpty()) {
-//                predicates.add(criteriaBuilder.equal(root.get("stock"), stock));
-//            }
+
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
 
@@ -140,7 +142,7 @@ public class ProductService {
                 "discount_high", Sort.by("discountPercentage").descending()
         );
         Sort sortOption = sort != null && sortMap.containsKey(sort) ? sortMap.get(sort) : Sort.unsorted();
-        pageable = PageRequest.of(pageNumber != null ? pageNumber : 0, 10, sortOption);
+        pageable = PageRequest.of(pageNumber != null ? (pageNumber - 1) : 0, 10, sortOption);
 
         return productRepository.findAll(specification, pageable);
     }

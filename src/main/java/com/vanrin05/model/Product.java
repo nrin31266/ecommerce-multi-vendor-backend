@@ -3,6 +3,7 @@ package com.vanrin05.model;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.Cascade;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -28,17 +29,17 @@ public class Product {
     String color;
 
     @ElementCollection
+    @CollectionTable(name = "product_images", joinColumns = @JoinColumn(name = "product_id"))
+    @Column(name = "image_url")
     List<String> images = new ArrayList<>();
 
     int numberRating;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     Category category;
 
     @ManyToOne
     Seller seller;
-
-
 
     LocalDateTime createdAt;
 
