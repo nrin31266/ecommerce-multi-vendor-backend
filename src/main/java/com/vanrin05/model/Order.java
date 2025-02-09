@@ -29,19 +29,21 @@ public class Order {
     Long sellerId;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    List<OrderItem> orderItems;
+    List<OrderItem> orderItems = new ArrayList<>();
 
     @ManyToOne
     Address shippingAddress;
 
     @Embedded
-    PaymentDetails paymentDetails;
+    PaymentDetails paymentDetails = new PaymentDetails();
 
     double totalMrpPrice;
 
     Integer totalSellingPrice;
 
     Integer discount;
+
+    Integer totalItem;
 
     @Enumerated(EnumType.STRING)
     ORDER_STATUS orderStatus;
@@ -53,10 +55,6 @@ public class Order {
 
     @PrePersist
     protected void onCreate() {
-        this.orderItems = new ArrayList<>();
-        this.paymentDetails = new PaymentDetails();
-        this.paymentStatus = PAYMENT_STATUS.PENDING;
-        this.orderDate = LocalDateTime.now();
         this.deliveryDate = this.orderDate.plusDays(7);
     }
 }
