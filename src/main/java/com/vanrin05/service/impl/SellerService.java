@@ -1,14 +1,12 @@
-package com.vanrin05.service;
+package com.vanrin05.service.impl;
 
 import com.vanrin05.configuration.JwtProvider;
 import com.vanrin05.domain.ACCOUNT_STATUS;
-import com.vanrin05.domain.USER_ROLE;
 import com.vanrin05.dto.request.CreateSellerRequest;
 import com.vanrin05.dto.request.UpdateSellerRequest;
 import com.vanrin05.exception.AppException;
 import com.vanrin05.exception.ErrorCode;
 import com.vanrin05.mapper.SellerMapper;
-import com.vanrin05.model.Address;
 import com.vanrin05.model.Seller;
 import com.vanrin05.model.VerificationCode;
 import com.vanrin05.repository.AddressRepository;

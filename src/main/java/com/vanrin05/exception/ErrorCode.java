@@ -22,6 +22,8 @@ public enum ErrorCode {
     CUSTOMER_NOT_FOUND(9007, "Customer not found", HttpStatus.NOT_FOUND),
     CUSTOMER_ALREADY_EXISTS(9008, "Customer already exists", HttpStatus.BAD_REQUEST),
 
+    // Cart
+    CART_NOT_FOUND(9009, "Cart not found", HttpStatus.NOT_FOUND),
     ;
 
 

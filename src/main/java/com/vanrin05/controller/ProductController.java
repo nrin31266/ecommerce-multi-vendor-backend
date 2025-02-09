@@ -1,7 +1,7 @@
 package com.vanrin05.controller;
 
 import com.vanrin05.model.Product;
-import com.vanrin05.service.ProductService;
+import com.vanrin05.service.impl.ProductService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;

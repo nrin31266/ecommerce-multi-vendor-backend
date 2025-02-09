@@ -1,4 +1,4 @@
-package com.vanrin05.service;
+package com.vanrin05.service.impl;
 
 import com.vanrin05.model.Category;
 import com.vanrin05.repository.CategoryRepository;

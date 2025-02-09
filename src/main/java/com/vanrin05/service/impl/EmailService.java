@@ -1,4 +1,4 @@
-package com.vanrin05.service;
+package com.vanrin05.service.impl;
 
 
 import jakarta.mail.MessagingException;

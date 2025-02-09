@@ -1,4 +1,4 @@
-package com.vanrin05.service;
+package com.vanrin05.service.impl;
 
 import com.vanrin05.dto.request.CreateProductReq;
 import com.vanrin05.dto.request.UpdateProductReq;
@@ -13,6 +13,7 @@ import jakarta.persistence.criteria.Predicate;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,6 +26,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Service
@@ -53,11 +55,12 @@ public class ProductService {
 
 
     private int discountPercentage(double mrpPrice, double sellingPrice) {
+
         if (mrpPrice < sellingPrice || mrpPrice <= 0) {
             throw new AppException("Mrp price is invalid. Mrp: " + mrpPrice + ", Selling price: " + sellingPrice);
         }
-        double discount = mrpPrice - sellingPrice;
-        double percentage = discount / 100;
+        double discount = (mrpPrice - sellingPrice);
+        double percentage = discount / sellingPrice * 100;
         return (int) percentage;
     }
 

@@ -1,26 +1,17 @@
 package com.vanrin05.controller;
 
-import com.vanrin05.domain.ACCOUNT_STATUS;
 import com.vanrin05.dto.request.SigningOtpRequest;
 import com.vanrin05.dto.request.SigningRequest;
 import com.vanrin05.dto.request.SignupRequest;
-import com.vanrin05.dto.request.UpdateSellerRequest;
 import com.vanrin05.dto.response.ApiResponse;
 import com.vanrin05.dto.response.AuthResponse;
-import com.vanrin05.model.Seller;
-import com.vanrin05.model.User;
-import com.vanrin05.service.AuthService;
-import com.vanrin05.service.SellerService;
+import com.vanrin05.service.impl.AuthService;
 import jakarta.mail.MessagingException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor

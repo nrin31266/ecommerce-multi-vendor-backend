@@ -7,7 +7,8 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 @Entity(name = "cart-items")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -26,18 +27,11 @@ public class CartItem {
 
     String size;
 
-    int quantity;
+    int quantity = 0;
 
     Integer mrpPrice;
 
     Integer sellingPrice;
 
     Long userId;
-
-    @PrePersist
-    protected void prePersist() {
-        this.quantity = 0;
-    }
-
-
 }

@@ -1,4 +1,4 @@
-package com.vanrin05.service;
+package com.vanrin05.service.impl;
 
 import com.vanrin05.configuration.JwtProvider;
 import com.vanrin05.domain.USER_ROLE;
@@ -7,7 +7,6 @@ import com.vanrin05.dto.request.SignupRequest;
 import com.vanrin05.dto.response.AuthResponse;
 import com.vanrin05.mapper.UserMapper;
 import com.vanrin05.model.Cart;
-import com.vanrin05.model.Seller;
 import com.vanrin05.model.User;
 import com.vanrin05.model.VerificationCode;
 import com.vanrin05.repository.CartRepository;

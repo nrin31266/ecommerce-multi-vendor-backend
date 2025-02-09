@@ -1,4 +1,4 @@
-package com.vanrin05.service;
+package com.vanrin05.service.impl;
 
 import com.vanrin05.domain.USER_ROLE;
 import com.vanrin05.model.Seller;

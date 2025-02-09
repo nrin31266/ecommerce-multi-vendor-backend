@@ -1,4 +1,4 @@
-package com.vanrin05.service;
+package com.vanrin05.service.impl;
 
 import com.vanrin05.configuration.JwtProvider;
 import com.vanrin05.model.User;
@@ -19,14 +19,11 @@ public class UserService {
     public User findUserByJwtToken (String jwtToken) {
         String email = jwtProvider.getEmailFromJwtToken(jwtToken);
         User user = this.findUserByEmail(email);
-
-
         return user;
     }
 
     public User findUserByEmail(String email){
         User user = userRepository.findByEmail(email).orElseThrow(()->new RuntimeException("User not found with email " + email));
-
         return user;
     }
 
