@@ -2,10 +2,13 @@ package com.vanrin05.controller;
 
 
 import com.vanrin05.domain.PAYMENT_METHOD;
+import com.vanrin05.dto.request.UpdateSellerReportRequest;
 import com.vanrin05.dto.response.PaymentLinkResponse;
 import com.vanrin05.model.*;
 import com.vanrin05.service.CartService;
 import com.vanrin05.service.OrderService;
+import com.vanrin05.service.SellerReportService;
+import com.vanrin05.service.impl.SellerService;
 import com.vanrin05.service.impl.UserService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +27,8 @@ public class OrderController {
     OrderService orderService;
     UserService userService;
     CartService cartService;
+    SellerService sellerService;
+    SellerReportService sellerReportService;
 
     @PostMapping
     public ResponseEntity<PaymentLinkResponse> createOrder(
@@ -56,4 +61,21 @@ public class OrderController {
         OrderItem orderItem = orderService.findOrderItemById(orderItemId);
         return ResponseEntity.ok(orderItem);
     }
+
+    @PutMapping("/{orderId}/cancel")
+    public ResponseEntity<Order> cancelOrder(@PathVariable("orderId") Long orderId, @RequestHeader("Authorization") String jwt) {
+        User user = userService.findUserByJwtToken(jwt);
+        Order order = orderService.findOrderById(orderId);
+        Seller seller = sellerService.getSellerById(order.getSellerId());
+        SellerReport sellerReport = sellerReportService.getSellerReport(seller);
+
+        sellerReport.setCanceledOrders(sellerReport.getCanceledOrders() + 1);
+        sellerReport.setTotalRefunds(sellerReport.getTotalRefunds() + order.getTotalSellingPrice());
+        sellerReportService.updateSellerReport(sellerReport);
+
+
+        return ResponseEntity.ok(orderService.cancelOrder(orderId, user));
+    }
+
+
 }

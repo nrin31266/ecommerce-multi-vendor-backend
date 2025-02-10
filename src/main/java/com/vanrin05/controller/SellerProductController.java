@@ -24,24 +24,24 @@ public class SellerProductController {
     SellerService sellerService;
 
     @GetMapping
-    public ResponseEntity<List<Product>> getProductsBySellerId(@RequestHeader("Authorization") String jwt){
+    public ResponseEntity<List<Product>> getProductsBySellerId(@RequestHeader("Authorization") String jwt) {
         return ResponseEntity.ok(productService.getProductsBySellerId(sellerService.getSellerProfile(jwt).getId()));
     }
 
     @PostMapping
-    public ResponseEntity<Product> createProduct(@RequestHeader("Authorization") String jwt, @RequestBody CreateProductReq req){
+    public ResponseEntity<Product> createProduct(@RequestHeader("Authorization") String jwt, @RequestBody CreateProductReq req) {
         return ResponseEntity.ok(productService.createProduct(req, jwt));
     }
 
     @DeleteMapping("/{productId}")
-    public ResponseEntity<Void> deleteProduct(@RequestHeader("Authorization") String jwt, @PathVariable("productId") Long productId){
+    public ResponseEntity<Void> deleteProduct(@RequestHeader("Authorization") String jwt, @PathVariable("productId") Long productId) {
         productService.deleteProduct(productId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PutMapping("/{productId}")
     public ResponseEntity<Product> updateProduct(@PathVariable("productId") Long productId,
-                                                 @RequestBody UpdateProductReq req){
+                                                 @RequestBody UpdateProductReq req) {
         return ResponseEntity.ok(productService.updateProduct(productId, req));
     }
 

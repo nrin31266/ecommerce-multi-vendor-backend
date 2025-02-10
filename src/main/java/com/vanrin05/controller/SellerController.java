@@ -6,6 +6,8 @@ import com.vanrin05.dto.request.SigningRequest;
 import com.vanrin05.dto.request.UpdateSellerRequest;
 import com.vanrin05.dto.response.AuthResponse;
 import com.vanrin05.model.Seller;
+import com.vanrin05.model.SellerReport;
+import com.vanrin05.service.SellerReportService;
 import com.vanrin05.service.impl.AuthService;
 import com.vanrin05.service.impl.SellerService;
 import jakarta.mail.MessagingException;
@@ -25,7 +27,10 @@ import java.util.List;
 public class SellerController {
     SellerService sellerService;
     AuthService authService;
+    SellerReportService sellerReportService;
     String SELLER_PREFIX = "seller_";
+
+
 
     @PostMapping("/signing")
     public ResponseEntity<AuthResponse> loginHandler(
@@ -71,5 +76,10 @@ public class SellerController {
     public ResponseEntity<Void> deleteSellerHandler(@PathVariable("sellerId") Long sellerId) {
         sellerService.deleteSeller(sellerId);
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @GetMapping("/report")
+    public ResponseEntity<SellerReport> getSellerReportHandler(@RequestHeader("Authorization") String jwt) {
+        return ResponseEntity.ok(sellerReportService.getSellerReport(sellerService.getSellerProfile(jwt)));
     }
 }
