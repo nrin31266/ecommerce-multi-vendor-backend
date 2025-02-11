@@ -1,5 +1,6 @@
 package com.vanrin05.utils;
 
+import com.vanrin05.exception.AppException;
 import com.vanrin05.repository.httpclient.VNPayClient;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AccessLevel;
@@ -39,9 +40,6 @@ public class VNPayService {
     @NonFinal
     @Value("${vnpay.return-url}")
     String vnp_ReturnUrl;
-    @NonFinal
-    @Value("${vnpay.ipn-url}")
-    String vnp_IpnUrl;
 
 
     private final String vnp_Version = "2.1.0";
@@ -110,6 +108,8 @@ public class VNPayService {
         }
     }
 
+
+
     public Object queryTransaction(String orderId){
         String vnp_RequestId =  System.currentTimeMillis() + "_" + UUID.randomUUID();
         String vnp_Command = "querydr";
@@ -136,6 +136,37 @@ public class VNPayService {
         var res = vnPayClient.querydr(vnp_Params.toString());
         return res;
     }
+
+    public void handlerInp(Map<String, String> params) {
+        boolean isChecksum = checksum(params);
+        log.info("Checksum: {}", isChecksum);
+        if (!isChecksum){
+            throw new AppException("Checksum vnpay is false");
+        }
+    }
+
+    private boolean checksum(Map<String, String> params) {
+        String receivedSecureHash = params.get("vnp_SecureHash");
+        params.remove("vnp_SecureHash");
+        List<String> fieldNames = new ArrayList<>(params.keySet());
+        Collections.sort(fieldNames);
+        StringBuilder hashData = new StringBuilder();
+        Iterator itr = fieldNames.iterator();
+        while (itr.hasNext()) {
+            String fieldName = (String) itr.next();
+            String fieldValue = params.get(fieldName);
+            if(fieldValue != null && !fieldValue.isEmpty()) {
+                hashData.append(fieldName).append("=");
+                hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.UTF_8));
+                if(itr.hasNext()) {
+                    hashData.append("&");
+                }
+            }
+        }
+        return receivedSecureHash.equals(hmacSHA512(vnp_HashSecret, hashData.toString()));
+    }
+
+
 
 
     public static String hmacSHA512(final String key, final String data) {

@@ -42,14 +42,15 @@ public class VNPayController {
 
     @GetMapping("/ipn")
     public ResponseEntity<VNPayInpResponse> ipn(@RequestParam Map<String, String> params) {
+
+        vnPayService.handlerInp(params);
+
         String vnp_ResponseCode = params.get("vnp_ResponseCode");
         VNPayInpResponse res = VNPayInpResponse.builder()
                 .RspCode(vnp_ResponseCode)
                 .Message(vnp_ResponseCode.equals("00") ? "Success" : "Fail")
                 .build();
-
         log.info(res.toString());
-
         return ResponseEntity.ok(res);
     }
 
