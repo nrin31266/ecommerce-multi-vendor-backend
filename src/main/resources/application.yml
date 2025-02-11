@@ -38,7 +38,7 @@ security:
 
 vnpay:
   tmn-code: PBR8SGZ0
-  hash-secret: 38M103D05N307NJIPAH8JO5IBC8QNRKB
+  hash-secret: ${VNP_HASH_SECRET}
   url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
   return-url: http://localhost:8080/vnpay/return
   ipn-url: http://localhost:8080/vnpay/ipn

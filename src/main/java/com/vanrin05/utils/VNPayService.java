@@ -1,16 +1,20 @@
-package com.vanrin05.service.impl;
+package com.vanrin05.utils;
 
+import com.vanrin05.repository.httpclient.VNPayClient;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -18,29 +22,39 @@ import java.util.*;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class VNPayService {
+    VNPayClient vnPayClient;
+
+    @NonFinal
     @Value("${vnpay.tmn-code}")
-    private String vnp_TmnCode;
-
+    String vnp_TmnCode;
+    @NonFinal
     @Value("${vnpay.hash-secret}")
-    private String vnp_HashSecret;
-
+    String vnp_HashSecret;
+    @NonFinal
     @Value("${vnpay.url}")
-    private String vnp_Url;
-
+    String vnp_Url;
+    @NonFinal
     @Value("${vnpay.return-url}")
-    private String vnp_ReturnUrl;
-
+    String vnp_ReturnUrl;
+    @NonFinal
     @Value("${vnpay.ipn-url}")
-    private String vnp_IpnUrl;
+    String vnp_IpnUrl;
+
+
+    private final String vnp_Version = "2.1.0";
+
+    private final String vnp_Command = "pay";
 
     public String createPaymentUrl(long amount, String orderInfo, String orderType, String bankCode) {
-
-
+        log.info(vnp_HashSecret);
+        log.info(vnp_TmnCode);
         try {
             Map<String, String> params = new HashMap<>();
-            params.put("vnp_Version", "2.1.0");
-            params.put("vnp_Command", "pay");
+            params.put("vnp_Version", vnp_Version);
+            params.put("vnp_Command", vnp_Command);
             params.put("vnp_TmnCode", vnp_TmnCode);
             params.put("vnp_Amount", String.valueOf(amount * 100));
             if (bankCode != null && !bankCode.isEmpty()) {
@@ -56,7 +70,7 @@ public class VNPayService {
             params.put("vnp_ExpireDate", new SimpleDateFormat("yyyyMMddHHmmss")
                     .format(new Date(Instant.now().plus(15, ChronoUnit.MINUTES)
                             .toEpochMilli())));
-            params.put("vnp_TxnRef", String.valueOf(System.currentTimeMillis()));
+            params.put("vnp_TxnRef", System.currentTimeMillis() + "_" + UUID.randomUUID());
 
             List<String> fieldNames = new ArrayList<>(params.keySet());
             Collections.sort(fieldNames);
@@ -71,17 +85,19 @@ public class VNPayService {
                 if(fieldValue != null && !fieldValue.isEmpty()) {
                     // Build hash data
                     hashData.append(fieldName).append("=");
-                    hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII));
+                    hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.UTF_8));
                     // Build query
-                    query.append(URLEncoder.encode(fieldName, StandardCharsets.US_ASCII));
+                    query.append(URLEncoder.encode(fieldName, StandardCharsets.UTF_8));
                     query.append("=");
-                    query.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII));
+                    query.append(URLEncoder.encode(fieldValue, StandardCharsets.UTF_8));
                     if(itr.hasNext()) {
                         query.append("&");
                         hashData.append("&");
                     }
                 }
             }
+
+            log.warn(hashData.toString());
 
             String queryUrl = query.toString();
             String vnp_SecureHash = hmacSHA512(vnp_HashSecret, hashData.toString());
@@ -92,6 +108,33 @@ public class VNPayService {
             e.printStackTrace();
             return null;
         }
+    }
+
+    public Object queryTransaction(String orderId){
+        String vnp_RequestId =  System.currentTimeMillis() + "_" + UUID.randomUUID();
+        String vnp_Command = "querydr";
+        String vnp_TxnRef = orderId;
+        String vnp_OrderInfo = "Check GD OrderId:" + vnp_TxnRef;
+        //String vnp_TransactionNo = req.getParameter("transactionNo");
+        String vnp_TransDate = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
+        String vnp_CreateDate = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
+        String vnp_IpAddr = "127.0.0.1";
+        JSONObject vnp_Params = new JSONObject();
+        vnp_Params.put("vnp_RequestId", vnp_RequestId);
+        vnp_Params.put("vnp_Version", vnp_Version);
+        vnp_Params.put("vnp_Command", vnp_Command);
+        vnp_Params.put("vnp_TmnCode", vnp_TmnCode);
+        vnp_Params.put("vnp_TxnRef", vnp_TxnRef);
+        vnp_Params.put("vnp_OrderInfo", vnp_OrderInfo);
+        //vnp_Params.put("vnp_TransactionNo", vnp_TransactionNo);
+        vnp_Params.put("vnp_TransactionDate", vnp_TransDate);
+        vnp_Params.put("vnp_CreateDate", vnp_CreateDate);
+        vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
+        String hash_Data= String.join("|", vnp_RequestId, vnp_Version, vnp_Command, vnp_TmnCode, vnp_TxnRef, vnp_TransDate, vnp_CreateDate, vnp_IpAddr, vnp_OrderInfo);
+        String vnp_SecureHash = hmacSHA512(vnp_HashSecret, hash_Data);
+        vnp_Params.put("vnp_SecureHash", vnp_SecureHash);
+        var res = vnPayClient.querydr(vnp_Params.toString());
+        return res;
     }
 
 
