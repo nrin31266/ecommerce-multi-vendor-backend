@@ -7,11 +7,13 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
 
@@ -55,8 +57,10 @@ public class VNPayController {
     }
 
     @GetMapping("/querydr")
-    public ResponseEntity<Object> querydr(@RequestParam String orderId) {
-        return ResponseEntity.ok(vnPayService.queryTransaction(orderId));
+    public ResponseEntity<Object> querydr(@RequestParam String orderId,
+                                          @RequestParam("transDate")
+                                          @DateTimeFormat(pattern = "dd/MM/yyyy HH:mm:ss") Date transDate) {
+        return ResponseEntity.ok(vnPayService.queryTransaction(orderId, transDate));
 
     }
 

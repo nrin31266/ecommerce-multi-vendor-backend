@@ -108,15 +108,13 @@ public class VNPayService {
         }
     }
 
-
-
-    public Object queryTransaction(String orderId){
+    public Object queryTransaction(String orderId, Date transDate){
         String vnp_RequestId =  System.currentTimeMillis() + "_" + UUID.randomUUID();
         String vnp_Command = "querydr";
         String vnp_TxnRef = orderId;
         String vnp_OrderInfo = "Check GD OrderId:" + vnp_TxnRef;
         //String vnp_TransactionNo = req.getParameter("transactionNo");
-        String vnp_TransDate = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
+        String vnp_TransDate = DateUtil.formatDate(transDate, "yyyyMMddHHmmss");
         String vnp_CreateDate = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
         String vnp_IpAddr = "127.0.0.1";
         JSONObject vnp_Params = new JSONObject();
@@ -167,9 +165,7 @@ public class VNPayService {
     }
 
 
-
-
-    public static String hmacSHA512(final String key, final String data) {
+    private static String hmacSHA512(final String key, final String data) {
         try {
 
             if (key == null || data == null) {
