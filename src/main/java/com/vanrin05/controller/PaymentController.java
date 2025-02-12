@@ -5,6 +5,7 @@ import com.vanrin05.dto.response.ApiResponse;
 import com.vanrin05.model.*;
 import com.vanrin05.service.PaymentService;
 import com.vanrin05.service.SellerReportService;
+import com.vanrin05.service.TransactionService;
 import com.vanrin05.service.impl.SellerService;
 import com.vanrin05.service.impl.UserService;
 import lombok.AccessLevel;
@@ -22,6 +23,7 @@ public class PaymentController {
     UserService userService;
     SellerService sellerService;
     SellerReportService sellerReportService;
+    TransactionService transactionService;
 
     @GetMapping("/{paymentId}")
     public ResponseEntity<ApiResponse> paymentSuccessHandle(@PathVariable String paymentId,
@@ -36,7 +38,7 @@ public class PaymentController {
 
         if (paymentSuccess) {
             for(Order order : paymentOrder.getOrders()) {
-                //
+                transactionService.createTransaction(order);
                 Seller seller = sellerService.getSellerById(order.getSellerId());
                 SellerReport sellerReport= sellerReportService.getSellerReport(seller);
                 sellerReport.setTotalOrders(sellerReport.getTotalOrders() + 1);
