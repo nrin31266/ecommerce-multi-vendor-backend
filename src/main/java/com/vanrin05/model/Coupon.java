@@ -1,5 +1,6 @@
 package com.vanrin05.model;
 
+import com.vanrin05.domain.COUPON_TYPE;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -21,7 +22,7 @@ public class Coupon {
 
     String code;
 
-    double discountPercentage;
+    double discountValue;
 
     LocalDateTime validityStartDate;
 
@@ -31,12 +32,14 @@ public class Coupon {
 
     boolean isActive;
 
+    @Enumerated(EnumType.STRING)
+    COUPON_TYPE couponType;
+
     @ManyToMany(mappedBy = "usedCoupons")
     Set<User> usedByUsers;
 
     @PrePersist
     protected void prePersist() {
-        this.isActive = true;
         this.usedByUsers = new HashSet<>();
     }
 }
