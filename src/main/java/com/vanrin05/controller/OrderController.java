@@ -1,12 +1,18 @@
 package com.vanrin05.controller;
 
 
+import com.razorpay.PaymentLink;
+import com.razorpay.RazorpayException;
+import com.stripe.exception.StripeException;
 import com.vanrin05.domain.PAYMENT_METHOD;
 import com.vanrin05.dto.request.UpdateSellerReportRequest;
 import com.vanrin05.dto.response.PaymentLinkResponse;
+import com.vanrin05.exception.AppException;
 import com.vanrin05.model.*;
+import com.vanrin05.repository.PaymentOrderRepository;
 import com.vanrin05.service.CartService;
 import com.vanrin05.service.OrderService;
+import com.vanrin05.service.PaymentService;
 import com.vanrin05.service.SellerReportService;
 import com.vanrin05.service.impl.SellerService;
 import com.vanrin05.service.impl.UserService;
@@ -16,7 +22,9 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @RestController
@@ -29,18 +37,49 @@ public class OrderController {
     CartService cartService;
     SellerService sellerService;
     SellerReportService sellerReportService;
+    PaymentService paymentService;
+    PaymentOrderRepository paymentOrderRepository;
+
 
     @PostMapping
     public ResponseEntity<PaymentLinkResponse> createOrder(
             @RequestBody Address shippingAddress,
             @RequestParam PAYMENT_METHOD paymentMethod,
             @RequestHeader("Authorization") String jwt
-            ){
+            ) throws RazorpayException, StripeException {
         User user = userService.findUserByJwtToken(jwt);
         Cart cart = cartService.findUserCart(user);
         Set<Order> orders = orderService.createOrders(user, shippingAddress, cart);
+        PaymentOrder paymentOrder = paymentService.createPaymentOrder(user, orders);
+        PaymentLinkResponse paymentLinkResponse = new PaymentLinkResponse();
 
-        return ResponseEntity.ok(new PaymentLinkResponse());
+        if(paymentMethod.equals(PAYMENT_METHOD.RAZORPAY)){
+            PaymentLink paymentLink = paymentService.createRazorpayPaymentLink(user, paymentOrder.getAmount(), paymentOrder.getId());
+            String paymentLinkUrl = paymentLink.get("short_url");
+            String paymentLinkId = paymentLink.get("id");
+
+            paymentLinkResponse.setPayment_link_url(paymentLinkUrl);
+
+            paymentOrder.setPaymentLinkId(paymentLinkId);
+            paymentOrderRepository.save(paymentOrder);
+        }else if(paymentMethod.equals(PAYMENT_METHOD.VNPAY)){
+            Map<String, String> params = new HashMap<>();
+            params.put("orderInfo", "Payment order with id: " + paymentOrder.getId());
+            params.put("orderType", "other");
+//            params.put("bankCode", null);
+            String linkUrl = paymentService.createVNPaymentLink(user, paymentOrder.getAmount(), paymentOrder.getId(), params);
+
+            paymentLinkResponse.setPayment_link_url(linkUrl);
+
+        }else if(paymentMethod.equals(PAYMENT_METHOD.STRIPE)){
+            String linkUrl = paymentService.createStripePaymentLink(user, paymentOrder.getAmount() ,paymentOrder.getId());
+            paymentLinkResponse.setPayment_link_url(linkUrl);
+        }else{
+            throw new AppException("Invalid payment method: " + paymentMethod);
+        }
+
+
+        return ResponseEntity.ok(paymentLinkResponse);
     }
 
     @GetMapping("/user")
