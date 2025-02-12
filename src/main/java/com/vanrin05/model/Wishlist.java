@@ -13,7 +13,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class WishList {
+public class Wishlist {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
