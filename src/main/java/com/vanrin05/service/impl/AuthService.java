@@ -5,6 +5,8 @@ import com.vanrin05.domain.USER_ROLE;
 import com.vanrin05.dto.request.SigningRequest;
 import com.vanrin05.dto.request.SignupRequest;
 import com.vanrin05.dto.response.AuthResponse;
+import com.vanrin05.exception.AppException;
+import com.vanrin05.exception.ErrorCode;
 import com.vanrin05.mapper.UserMapper;
 import com.vanrin05.model.Cart;
 import com.vanrin05.model.User;
@@ -150,14 +152,21 @@ public class AuthService {
     private Authentication getAuthentication(String username, String otp) {
         UserDetails userDetails = customUserService.loadUserByUsername(username);
 
+        System.out.println("Username: "+username + " , otp: "+otp);
+
         if(userDetails == null){
             throw new BadCredentialsException("Invalid username");
         }
 
+        log.info("User detail: " + userDetails.toString());
+
         VerificationCode verificationCode = verificationCodeRepository.findByEmail(userDetails.getUsername()).orElse(null);
 
+        log.info("Verification code: " + verificationCode);
+
         if(verificationCode == null || !verificationCode.getOtp().equals(otp)){
-            throw new BadCredentialsException("Wrong verification otp");
+            log.error("Invalid verification code");
+            throw new AppException(ErrorCode.WRONG_OTP);
         }
         return new UsernamePasswordAuthenticationToken(userDetails, null,  userDetails.getAuthorities());
     }

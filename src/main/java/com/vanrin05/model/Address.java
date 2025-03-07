@@ -31,4 +31,8 @@ public class Address {
     String pinCode;
 
     String mobile;
+
+
+    // :))
+    String zipCode;
 }

@@ -37,6 +37,7 @@ public class Seller {
 
     @Enumerated(EnumType.STRING)
     ACCOUNT_STATUS accountStatus;
+    String taxCode;
 
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     Address pickupAddress;

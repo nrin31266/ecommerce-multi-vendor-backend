@@ -12,6 +12,7 @@ public enum ErrorCode {
     TOKEN_MISSING(9002, "Token is missing", HttpStatus.UNAUTHORIZED),
     UNAUTHORIZED(9003, "Unauthorized. You don't have permission", HttpStatus.UNAUTHORIZED),
     TOKEN_EXPIRED(9004, "Token has expired", HttpStatus.UNAUTHORIZED),
+    WRONG_OTP(9005, "Wrong otp", HttpStatus.UNAUTHORIZED),
     // Authentication User
 
     // Seller

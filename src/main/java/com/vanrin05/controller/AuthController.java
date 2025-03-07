@@ -34,7 +34,6 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.builder()
                         .message("Sent otp successfully")
                 .build());
-
     }
 
     @PostMapping("/signing")

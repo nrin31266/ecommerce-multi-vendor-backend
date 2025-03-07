@@ -16,4 +16,6 @@ public class BankDetails {
     String accountNumber;
     String accountHolderName;
     String ifscCode;
+
+    String swiftCode;
 }

@@ -48,13 +48,14 @@ public class AppConfig {
     }
 
 
-    private CorsConfigurationSource corsConfigurationSource() {
+    @Bean
+    CorsConfigurationSource corsConfigurationSource() {
         return new CorsConfigurationSource() {
             @Override
             public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
                 CorsConfiguration config = new CorsConfiguration();
-                config.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
-                config.setAllowedMethods(Collections.singletonList("*"));
+                config.setAllowedOrigins(Collections.singletonList("http://localhost:5173"));
+                config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
                 config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
                 config.setAllowCredentials(true);
                 config.setExposedHeaders(Collections.singletonList("Authorization"));
