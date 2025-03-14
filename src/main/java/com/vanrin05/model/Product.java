@@ -21,6 +21,7 @@ public class Product {
     Long id;
 
     String title;
+    @Column(length = 9999)
     String description;
     int mrpPrice;
     int sellingPrice;
