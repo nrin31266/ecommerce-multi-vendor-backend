@@ -17,21 +17,14 @@ public class CartItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
-
     @ManyToOne
     @JsonIgnore
     Cart cart;
-
     @ManyToOne
     Product product;
-
     String size;
-
-    int quantity = 0;
-
+    int quantity;
     Integer mrpPrice;
-
     Integer sellingPrice;
-
     Long userId;
 }

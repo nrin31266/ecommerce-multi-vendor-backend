@@ -34,12 +34,19 @@ public class User {
     @Enumerated(EnumType.STRING)
     USER_ROLE role;
 
+    @JsonIgnore
     @OneToMany
     Set<Address> addresses;
 
     @ManyToMany
     @JsonIgnore
     Set<Coupon> usedCoupons;
+
+    public User(String email,String fullName, String mobile) {
+        this.email = email;
+        this.fullName = fullName;
+        this.mobile = mobile;
+    }
 
     @PrePersist
     protected void prePersist() {

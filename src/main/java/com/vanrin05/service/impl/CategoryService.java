@@ -24,7 +24,7 @@ public class CategoryService {
         Category newCategory = new Category();
         newCategory.setLevel(level);
         newCategory.setCategoryId(categoryId);
-        newCategory.setParentCategory(parentCategory);
+        newCategory.setParentCategory(parentCategory.getCategoryId());
         return categoryRepository.save(newCategory);
     }
 }

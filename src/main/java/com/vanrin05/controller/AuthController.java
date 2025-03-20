@@ -7,6 +7,7 @@ import com.vanrin05.dto.response.ApiResponse;
 import com.vanrin05.dto.response.AuthResponse;
 import com.vanrin05.service.impl.AuthService;
 import jakarta.mail.MessagingException;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -22,7 +23,7 @@ public class AuthController {
 
 
     @PostMapping("/signup")
-    public ResponseEntity<AuthResponse> createUserHandler(@RequestBody SignupRequest req) {
+    public ResponseEntity<AuthResponse> createUserHandler(@RequestBody @Valid SignupRequest req) {
         return ResponseEntity.ok(authService.signup(req));
 
     }

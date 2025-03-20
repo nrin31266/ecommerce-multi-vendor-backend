@@ -12,18 +12,28 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Category {
+
+    public Category(String name, String categoryId, Integer level, String parentCategory) {
+        this.name = name;
+        this.categoryId = categoryId;
+        this.parentCategory = parentCategory;
+        this.level = level;
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
     String name;
 
+
+
     @NotNull
     @Column(unique = true, nullable = false)
     String categoryId;
 
-    @ManyToOne
-    Category parentCategory;
+
+    String parentCategory;
 
     @NotNull
     Integer level;

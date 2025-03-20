@@ -14,15 +14,11 @@ public class VerificationCode {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
-
     String otp;
-
     @Column(unique = true, nullable = false)
     String email;
-
     @OneToOne
     User user;
-
     @OneToOne
     Seller seller;
 }

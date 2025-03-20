@@ -5,6 +5,7 @@ import com.vanrin05.service.impl.ProductService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/products")
@@ -42,6 +44,7 @@ public class ProductController {
             @RequestParam(required = false) String stock,
             @RequestParam(defaultValue = "1", required = false) Integer pageNumber
     ) {
+        log.info("Received request with params: category={}, brand={}, colors={}, sizes={}, minimumPrice={}, maximumPrice={}, minimumDiscount={}, sort={}, stock={}, pageNumber={}", category, brand, colors, sizes, minimumPrice, maximumPrice, minimumDiscount, sort, stock, pageNumber);
         return ResponseEntity.ok(productService.getAllProduct(category, brand, colors, sizes, minimumPrice, maximumPrice, minimumDiscount, sort, stock, pageNumber));
     }
 

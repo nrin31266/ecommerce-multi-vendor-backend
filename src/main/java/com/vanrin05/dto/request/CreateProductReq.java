@@ -27,5 +27,4 @@ public class CreateProductReq {
     String category2;
     String category3;
     String sizes;
-
 }

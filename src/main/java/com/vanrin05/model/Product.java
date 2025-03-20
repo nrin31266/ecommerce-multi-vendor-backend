@@ -1,5 +1,6 @@
 package com.vanrin05.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -16,10 +17,12 @@ import java.util.List;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Product {
+
+
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
-
     String title;
     @Column(length = 9999)
     String description;
@@ -28,27 +31,22 @@ public class Product {
     int discountPercentage;
     int quantity;
     String color;
+    String sizes;
 
     @ElementCollection
     @CollectionTable(name = "product_images", joinColumns = @JoinColumn(name = "product_id"))
     @Column(name = "image_url")
     List<String> images = new ArrayList<>();
-
     int numberRating;
-
     @ManyToOne(cascade = CascadeType.ALL)
     Category category;
-
     @ManyToOne
     Seller seller;
-
     LocalDateTime createdAt;
 
-    String sizes;
-
+    @JsonIgnore
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     List<Review> reviews;
-
     @PrePersist
     protected void prePersist() {
         this.createdAt = LocalDateTime.now();

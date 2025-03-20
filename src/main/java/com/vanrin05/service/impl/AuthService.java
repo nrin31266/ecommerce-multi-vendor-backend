@@ -62,16 +62,16 @@ public class AuthService {
             log.info("Email: "+email);
             if(role.equals(USER_ROLE.ROLE_SELLER)){
                 if(sellerRepository.findByEmail(email).isEmpty()){
-                    throw new BadCredentialsException("Seller not found with email: " + email);
+                    throw new AppException("Seller not found with email: " + email);
                 }
             }else{
                 if(userRepository.findByEmail(email).isEmpty()){
-                    throw new RuntimeException(("User not found with email: " + email));
+                    throw new AppException(("User not found with email: " + email));
                 }
             }
         }else{
             if(userRepository.findByEmail(email).isPresent()){
-                throw new RuntimeException(("Email already in use: " + email));
+                throw new AppException(("Email already in use: " + email));
             }
         }
 
@@ -109,7 +109,7 @@ public class AuthService {
         User user = userMapper.toUser(req);
         user.setRole(USER_ROLE.ROLE_CUSTOMER);
         user.setMobile("0321312321");
-        user.setPassword(passwordEncoder.encode(req.getOtp()));
+
         user = userRepository.save(user);
 
         cartRepository.save(Cart.builder()
