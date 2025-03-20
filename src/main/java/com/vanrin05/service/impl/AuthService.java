@@ -59,7 +59,6 @@ public class AuthService {
 
         if(email.startsWith(SINGING_PREFIX)){
             email = email.substring(SINGING_PREFIX.length());
-            log.info("Email: "+email);
             if(role.equals(USER_ROLE.ROLE_SELLER)){
                 if(sellerRepository.findByEmail(email).isEmpty()){
                     throw new AppException("Seller not found with email: " + email);

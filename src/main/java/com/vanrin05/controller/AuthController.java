@@ -39,6 +39,7 @@ public class AuthController {
 
     @PostMapping("/signing")
     public ResponseEntity<AuthResponse> signingHandler(@RequestBody SigningRequest req) {
+
         return ResponseEntity.ok(authService.signing(req));
 
     }

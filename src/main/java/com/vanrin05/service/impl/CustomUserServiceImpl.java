@@ -1,6 +1,7 @@
 package com.vanrin05.service.impl;
 
 import com.vanrin05.domain.USER_ROLE;
+import com.vanrin05.exception.AppException;
 import com.vanrin05.model.Seller;
 import com.vanrin05.model.User;
 import com.vanrin05.repository.SellerRepository;
@@ -38,14 +39,14 @@ public class CustomUserServiceImpl implements UserDetailsService {
                 Seller seller = optionalSeller.get();
                 return  buildUserDetail(seller.getEmail(), seller.getPassword(), seller.getRole());
             }
-            throw new UsernameNotFoundException("Seller not found with email: " + username);
+            throw new AppException("Seller not found with email: " + username);
         }else{
             Optional<User> optionalUser = userRepository.findByEmail(username);
             if(optionalUser.isPresent()) {
                 User user = optionalUser.get();
                 return buildUserDetail(user.getEmail(), user.getPassword(), user.getRole());
             }
-            throw new UsernameNotFoundException("User not found with email: " + username);
+            throw new AppException("User not found with email: " + username);
         }
 
     }

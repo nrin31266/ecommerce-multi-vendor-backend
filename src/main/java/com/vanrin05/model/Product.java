@@ -33,12 +33,13 @@ public class Product {
     String color;
     String sizes;
 
+
     @ElementCollection
     @CollectionTable(name = "product_images", joinColumns = @JoinColumn(name = "product_id"))
     @Column(name = "image_url")
     List<String> images = new ArrayList<>();
     int numberRating;
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.PERSIST)
     Category category;
     @ManyToOne
     Seller seller;
@@ -51,5 +52,9 @@ public class Product {
     protected void prePersist() {
         this.createdAt = LocalDateTime.now();
         this.reviews = new ArrayList<>();
+    }
+    @PreRemove
+    private void preRemove() {
+        images.clear();
     }
 }
