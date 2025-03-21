@@ -7,9 +7,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.Date;
 import java.util.Map;
 
@@ -30,17 +33,23 @@ public class VNPayController {
     }
 
     @GetMapping("/return")
-    public String returnPayment(@RequestParam Map<String, String> params) {
-        if ("00".equals(params.get("vnp_ResponseCode"))) {
-            return "Thanh toán thành công!";
-        } else {
-            return "Thanh toán thất bại!";
+    public ResponseEntity<Void> returnPayment(@RequestParam Map<String, String> params) {
+        String orderId = params.get("vnp_TxnRef");
+        String redirectUrl = "http://localhost:5173/payment-success/" +orderId ;
+
+        if (!"00".equals(params.get("vnp_ResponseCode"))) {
+            redirectUrl = "http://localhost:5173/payment-cancel/" +orderId ;
         }
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setLocation(URI.create(redirectUrl));
+        return new ResponseEntity<>(headers, HttpStatus.FOUND); // 302 Redirect
     }
+
 
     @GetMapping("/ipn")
     public ResponseEntity<VNPayInpResponse> ipn(@RequestParam Map<String, String> params) {
-
+        String orderId = params.get("vnp_TxnRef");
         vnPayService.handlerInp(params);
 
         String vnp_ResponseCode = params.get("vnp_ResponseCode");

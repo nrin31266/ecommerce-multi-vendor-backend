@@ -41,6 +41,9 @@ vnpay:
   hash-secret: ${VNP_HASH_SECRET}
   url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
   return-url: http://localhost:8080/vnpay/return
-  ipn-url: http://localhost:8080/vnpay/ipn
+
+payment:
+  return_payment_success_url: http://localhost:5173/payment-success
+  return_payment_cancel_url: http://localhost:5173/payment-cancel
 
 
