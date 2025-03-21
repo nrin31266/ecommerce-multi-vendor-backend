@@ -29,7 +29,7 @@ public class VNPayController {
                       @RequestParam("orderInfo") String orderInfo,
                       @RequestParam("orderType") String orderType,
                       @RequestParam(value = "bankCode", required = false) String bankCode) {
-        return vnPayService.createPaymentUrl(amount, orderInfo, orderType, bankCode);
+        return vnPayService.createPaymentUrl(amount, orderInfo, orderType, bankCode, null);
     }
 
     @GetMapping("/return")

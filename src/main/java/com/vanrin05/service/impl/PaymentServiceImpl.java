@@ -109,7 +109,7 @@ public class PaymentServiceImpl implements PaymentService {
         String orderType = params.get("orderType");
         String bankCode = params.get("bankCode");
         String orderInfo = params.get("orderInfo");
-        return vnPayService.createPaymentUrl(amount, orderInfo, orderType, bankCode);
+        return vnPayService.createPaymentUrl(amount, orderInfo, orderType, bankCode, orderId);
     }
 
     @Override

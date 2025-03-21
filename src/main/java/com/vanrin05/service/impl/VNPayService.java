@@ -46,7 +46,7 @@ public class VNPayService {
 
     private final String vnp_Command = "pay";
 
-    public String createPaymentUrl(long amount, String orderInfo, String orderType, String bankCode) {
+    public String createPaymentUrl(long amount, String orderInfo, String orderType, String bankCode, Long orderId) {
         log.info(vnp_HashSecret);
         log.info(vnp_TmnCode);
         try {
@@ -68,7 +68,7 @@ public class VNPayService {
             params.put("vnp_ExpireDate", new SimpleDateFormat("yyyyMMddHHmmss")
                     .format(new Date(Instant.now().plus(15, ChronoUnit.MINUTES)
                             .toEpochMilli())));
-            params.put("vnp_TxnRef", System.currentTimeMillis() + "_" + UUID.randomUUID());
+            params.put("vnp_TxnRef", orderId.toString());
 
             List<String> fieldNames = new ArrayList<>(params.keySet());
             Collections.sort(fieldNames);
@@ -109,10 +109,9 @@ public class VNPayService {
     }
 
     public Object queryTransaction(String orderId, Date transDate){
-        String vnp_RequestId =  System.currentTimeMillis() + "_" + UUID.randomUUID();
+        String vnp_RequestId =  orderId +"_"+ System.currentTimeMillis();
         String vnp_Command = "querydr";
-        String vnp_TxnRef = orderId;
-        String vnp_OrderInfo = "Check GD OrderId:" + vnp_TxnRef;
+        String vnp_OrderInfo = "Check GD OrderId:" + orderId;
         //String vnp_TransactionNo = req.getParameter("transactionNo");
         String vnp_TransDate = DateUtil.formatDate(transDate, "yyyyMMddHHmmss");
         String vnp_CreateDate = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
@@ -122,13 +121,13 @@ public class VNPayService {
         vnp_Params.put("vnp_Version", vnp_Version);
         vnp_Params.put("vnp_Command", vnp_Command);
         vnp_Params.put("vnp_TmnCode", vnp_TmnCode);
-        vnp_Params.put("vnp_TxnRef", vnp_TxnRef);
+        vnp_Params.put("vnp_TxnRef", orderId);
         vnp_Params.put("vnp_OrderInfo", vnp_OrderInfo);
         //vnp_Params.put("vnp_TransactionNo", vnp_TransactionNo);
         vnp_Params.put("vnp_TransactionDate", vnp_TransDate);
         vnp_Params.put("vnp_CreateDate", vnp_CreateDate);
         vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
-        String hash_Data= String.join("|", vnp_RequestId, vnp_Version, vnp_Command, vnp_TmnCode, vnp_TxnRef, vnp_TransDate, vnp_CreateDate, vnp_IpAddr, vnp_OrderInfo);
+        String hash_Data= String.join("|", vnp_RequestId, vnp_Version, vnp_Command, vnp_TmnCode, orderId, vnp_TransDate, vnp_CreateDate, vnp_IpAddr, vnp_OrderInfo);
         String vnp_SecureHash = hmacSHA512(vnp_HashSecret, hash_Data);
         vnp_Params.put("vnp_SecureHash", vnp_SecureHash);
         var res = vnPayClient.querydr(vnp_Params.toString());
