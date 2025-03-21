@@ -46,20 +46,37 @@ public class AppConfig {
 //
 //        return http.build();
 //    }
+//    @Bean
+//    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+//        http.sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+//                .authorizeHttpRequests(authorizeRequests -> authorizeRequests
+//                        .requestMatchers("/vnpay/inp").permitAll()
+//                        .requestMatchers("/stripe/webhook").permitAll()
+//                        .requestMatchers("/api/products/*/reviews").permitAll()
+//                        .requestMatchers("/api/**").authenticated()
+//                        .anyRequest().permitAll()
+//                )
+//                .addFilterBefore(new JwtTokenValidator(SECRET_KEY, HEADER), BasicAuthenticationFilter.class)
+//                .csrf(AbstractHttpConfigurer::disable)
+//                .cors(cors -> cors.configurationSource(corsConfigurationSource()));
+//
+//        return http.build();
+//    }
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
-                        .requestMatchers("/api/products/*/reviews").permitAll()
+                        .requestMatchers("/vnpay/inp", "/stripe/webhook", "/api/products/*/reviews").permitAll()
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().permitAll()
                 )
-                .addFilterBefore(new JwtTokenValidator(SECRET_KEY, HEADER), BasicAuthenticationFilter.class)
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()));
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .addFilterBefore(new JwtTokenValidator(SECRET_KEY, HEADER), BasicAuthenticationFilter.class);
 
         return http.build();
     }
+
 
 
     @Bean

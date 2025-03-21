@@ -40,7 +40,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     private String apiKey = "";
     private String apiSecret = "";
-    private String stripeSecretKey = "";
+    private String stripeSecretKey = "sk_test_51R52WvPvjKDrWoaF1R2WPy4ivyRAlWcAYsPLO0t0A7ma3bTIPN8HQFbwpPyRwhR848Sem8oggdCyojGfLWgQSiMV00X4eCr53r";
 
 
     @Override
@@ -144,7 +144,6 @@ public class PaymentServiceImpl implements PaymentService {
             throw new RazorpayException(e.getMessage());
         }
     }
-
     @Override
     public String createStripePaymentLink(User user, Long amount, Long orderId) throws StripeException {
         Stripe.apiKey = stripeSecretKey;
@@ -152,24 +151,26 @@ public class PaymentServiceImpl implements PaymentService {
         SessionCreateParams sessionCreateParams = SessionCreateParams.builder()
                 .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
                 .setMode(SessionCreateParams.Mode.PAYMENT)
-                .setSuccessUrl("http://localhost:3000/payment-success/" + orderId)
-                .setCancelUrl("http://localhost:3000/payment-cancel/" + orderId)
+                .setSuccessUrl("http://localhost:5173/payment-success/" + orderId)
+                .setCancelUrl("http://localhost:5173/payment-cancel/" + orderId)
                 .addLineItem(SessionCreateParams.LineItem.builder()
                         .setQuantity(1L)
                         .setPriceData(SessionCreateParams.LineItem.PriceData.builder()
                                 .setCurrency("vnd")
-                                .setUnitAmount(amount * 100)
-                                .setProductData(SessionCreateParams.LineItem.PriceData.ProductData.builder().setName("rin payment").build())
+                                .setUnitAmount(amount)
+                                .setProductData(SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                                        .setName("Thanh toán đơn hàng " + orderId)
+                                        .build())
                                 .build())
                         .build())
+                .putMetadata("order_id", String.valueOf(orderId))
                 .build();
 
         Session session = Session.create(sessionCreateParams);
 
-
-
         return session.getUrl();
     }
+
 
 
 }

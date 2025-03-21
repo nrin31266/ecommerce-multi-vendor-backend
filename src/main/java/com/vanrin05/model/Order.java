@@ -55,6 +55,7 @@ public class Order {
 
     @PrePersist
     protected void onCreate() {
+        this.orderDate = LocalDateTime.now();
         this.deliveryDate = this.orderDate.plusDays(7);
     }
 }
