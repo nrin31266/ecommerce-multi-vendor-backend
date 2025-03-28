@@ -1,5 +1,7 @@
 package com.vanrin05.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.vanrin05.domain.ORDER_STATUS;
 import com.vanrin05.domain.PAYMENT_STATUS;
 import jakarta.persistence.*;
@@ -21,13 +23,13 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    String orderId;
 
     @ManyToOne
     User user;
 
     Long sellerId;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     List<OrderItem> orderItems = new ArrayList<>();
 
@@ -48,7 +50,9 @@ public class Order {
     @Enumerated(EnumType.STRING)
     ORDER_STATUS orderStatus;
 
-    PAYMENT_STATUS paymentStatus;
+    @ManyToOne
+    @JoinColumn(name = "payment_order_id")
+    PaymentOrder paymentOrder;
 
     LocalDateTime orderDate;
     LocalDateTime deliveryDate;

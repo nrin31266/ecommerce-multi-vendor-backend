@@ -25,33 +25,6 @@ public class PaymentController {
     SellerReportService sellerReportService;
     TransactionService transactionService;
 
-    @GetMapping("/{paymentId}")
-    public ResponseEntity<ApiResponse> paymentSuccessHandle(@PathVariable String paymentId,
-                                                            @RequestParam String paymentLinkId,
-                                                            @RequestHeader("Authorization") String jwtToken
-                                                            ) throws RazorpayException {
-        User user = userService.findUserByJwtToken(jwtToken);
 
-        PaymentOrder paymentOrder = paymentService.getPaymentOrderByPaymentId(paymentLinkId);
-
-        boolean paymentSuccess = paymentService.proceedPayment(paymentOrder, paymentId, paymentLinkId);
-
-        if (paymentSuccess) {
-            for(Order order : paymentOrder.getOrders()) {
-                transactionService.createTransaction(order);
-                Seller seller = sellerService.getSellerById(order.getSellerId());
-                SellerReport sellerReport= sellerReportService.getSellerReport(seller);
-                sellerReport.setTotalOrders(sellerReport.getTotalOrders() + 1);
-                sellerReport.setTotalEarnings(sellerReport.getTotalEarnings() + order.getTotalSellingPrice());
-                sellerReport.setTotalSales(sellerReport.getTotalSales() + order.getOrderItems().size());
-                sellerReportService.updateSellerReport(sellerReport);
-
-            }
-        }
-
-        return ResponseEntity.ok(ApiResponse.builder()
-                        .message("Payment successful")
-                .build());
-    }
 
 }

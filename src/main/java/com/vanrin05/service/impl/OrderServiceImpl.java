@@ -37,8 +37,7 @@ public class OrderServiceImpl implements OrderService {
 
         Address address = addressRepository.save(shippingAddress);
 
-        Map<Long, List<CartItem>> items = new HashMap<>();
-        items = cart.getCartItems().stream().collect(Collectors.groupingBy(item -> item.getProduct().getSeller().getId()));
+        Map<Long, List<CartItem>> items =  cart.getCartItems().stream().collect(Collectors.groupingBy(item -> item.getProduct().getSeller().getId()));
 
         Set<Order> orders = new HashSet<>();
 
@@ -50,18 +49,24 @@ public class OrderServiceImpl implements OrderService {
                     CartItem::getSellingPrice
             ).sum();
 
+            int totalMrpPrice = cartItems.stream().mapToInt(
+                    CartItem::getMrpPrice
+            ).sum();
+
             int totalItem = cartItems.stream().mapToInt(CartItem::getQuantity).sum();
 
             Order createdOrder = new Order();
             createdOrder.setUser(user);
             createdOrder.setSellerId(sellerId);
-            createdOrder.setTotalMrpPrice(totalOrderPrice);
+            createdOrder.setTotalMrpPrice(totalMrpPrice);
             createdOrder.setTotalSellingPrice(totalOrderPrice);
             createdOrder.setTotalItem(totalItem);
-
+            createdOrder.getPaymentDetails().setPaymentStatus(PAYMENT_STATUS.PENDING);
+            createdOrder.setShippingAddress(address);
             createdOrder.setOrderStatus(ORDER_STATUS.PENDING);
-            createdOrder.getPaymentDetails().setStatus(PAYMENT_STATUS.PENDING);
-            createdOrder = orderRepository.save(createdOrder);
+            createdOrder.setDiscount(discountPercentage(totalMrpPrice, totalOrderPrice));
+
+
 
 
             List<OrderItem> orderItems = new ArrayList<>();
@@ -74,12 +79,10 @@ public class OrderServiceImpl implements OrderService {
                 orderItem.setUserId(user.getId());
                 orderItem.setSellingPrice(cartItem.getSellingPrice());
                 orderItem.setMrpPrice(cartItem.getMrpPrice());
-
-                createdOrder.getOrderItems().add(orderItem);
                 orderItems.add(orderItem);
             }
-
-            orderItemRepository.saveAll(orderItems);
+            createdOrder.setOrderItems(orderItems);
+            createdOrder = orderRepository.save(createdOrder);
 
             createdOrder.setOrderItems(orderItems);
             orders.add(createdOrder);
@@ -87,6 +90,16 @@ public class OrderServiceImpl implements OrderService {
         }
 
         return orders;
+    }
+
+    private int discountPercentage(double mrpPrice, double sellingPrice) {
+
+        if (mrpPrice < sellingPrice || mrpPrice <= 0) {
+            throw new AppException("Mrp price is invalid. Mrp: " + mrpPrice + ", Selling price: " + sellingPrice);
+        }
+        double discount = (mrpPrice - sellingPrice);
+        double percentage = discount / sellingPrice * 100;
+        return (int) percentage;
     }
 
     @Override

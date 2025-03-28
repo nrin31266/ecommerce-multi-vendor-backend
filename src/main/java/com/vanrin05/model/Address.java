@@ -1,9 +1,6 @@
 package com.vanrin05.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -35,4 +32,8 @@ public class Address {
 
     // :))
     String zipCode;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    User user;
 }

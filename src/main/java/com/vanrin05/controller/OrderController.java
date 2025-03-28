@@ -38,7 +38,7 @@ public class OrderController {
     SellerService sellerService;
     SellerReportService sellerReportService;
     PaymentService paymentService;
-    PaymentOrderRepository paymentOrderRepository;
+
 
 
     @PostMapping
@@ -46,22 +46,15 @@ public class OrderController {
             @RequestBody Address shippingAddress,
             @RequestParam PAYMENT_METHOD paymentMethod,
             @RequestHeader("Authorization") String jwt
-            ) throws RazorpayException, StripeException {
+            ) throws StripeException {
         User user = userService.findUserByJwtToken(jwt);
         Cart cart = cartService.findUserCart(user);
         Set<Order> orders = orderService.createOrders(user, shippingAddress, cart);
-        PaymentOrder paymentOrder = paymentService.createPaymentOrder(user, orders);
+        PaymentOrder paymentOrder = paymentService.createPaymentOrder(user, orders, paymentMethod);
         PaymentLinkResponse paymentLinkResponse = new PaymentLinkResponse();
 
         if(paymentMethod.equals(PAYMENT_METHOD.RAZORPAY)){
-            PaymentLink paymentLink = paymentService.createRazorpayPaymentLink(user, paymentOrder.getAmount(), paymentOrder.getId());
-            String paymentLinkUrl = paymentLink.get("short_url");
-            String paymentLinkId = paymentLink.get("id");
-
-            paymentLinkResponse.setPayment_link_url(paymentLinkUrl);
-
-            paymentOrder.setPaymentLinkId(paymentLinkId);
-            paymentOrderRepository.save(paymentOrder);
+        	// TODO
         }else if(paymentMethod.equals(PAYMENT_METHOD.VNPAY)){
             Map<String, String> params = new HashMap<>();
             params.put("orderInfo", "Payment order with id: " + paymentOrder.getId());

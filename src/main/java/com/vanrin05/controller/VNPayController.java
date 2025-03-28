@@ -1,6 +1,12 @@
 package com.vanrin05.controller;
 
+import com.stripe.service.climate.OrderService;
 import com.vanrin05.dto.response.VNPayInpResponse;
+import com.vanrin05.service.PaymentService;
+import com.vanrin05.service.SellerReportService;
+import com.vanrin05.service.TransactionService;
+import com.vanrin05.service.impl.SellerService;
+import com.vanrin05.service.impl.UserService;
 import com.vanrin05.service.impl.VNPayService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +29,13 @@ import java.util.Map;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class VNPayController {
     VNPayService vnPayService;
+    PaymentService paymentService;
+    UserService userService;
+    SellerService sellerService;
+    SellerReportService sellerReportService;
+    TransactionService transactionService;
+
+
 
     @GetMapping("/pay")
     public String pay(@RequestParam("amount") long amount,
@@ -36,7 +49,7 @@ public class VNPayController {
     public ResponseEntity<Void> returnPayment(@RequestParam Map<String, String> params) {
         String orderId = params.get("vnp_TxnRef");
         String redirectUrl = "http://localhost:5173/payment-success/" +orderId ;
-
+        
         if (!"00".equals(params.get("vnp_ResponseCode"))) {
             redirectUrl = "http://localhost:5173/payment-cancel/" +orderId ;
         }
@@ -49,17 +62,44 @@ public class VNPayController {
 
     @GetMapping("/ipn")
     public ResponseEntity<VNPayInpResponse> ipn(@RequestParam Map<String, String> params) {
-        String orderId = params.get("vnp_TxnRef");
-        vnPayService.handlerInp(params);
-
+        String paymentId = params.get("vnp_TxnRef");
         String vnp_ResponseCode = params.get("vnp_ResponseCode");
-        VNPayInpResponse res = VNPayInpResponse.builder()
-                .RspCode(vnp_ResponseCode)
-                .Message(vnp_ResponseCode.equals("00") ? "Success" : "Fail")
-                .build();
-        log.info(res.toString());
+
+        VNPayInpResponse res = new VNPayInpResponse();
+
+        if (paymentId == null || !paymentId.matches("\\d+")) {
+            res.setRspCode("97"); // Transaction Not Found
+            res.setMessage("Invalid Payment ID");
+            return ResponseEntity.ok(res);
+        }
+
+        try {
+            vnPayService.handlerInp(params);
+
+            if ("00".equals(vnp_ResponseCode)) {
+                Boolean isSuccessPayment = paymentService.proceedPayment(Long.valueOf(paymentId));
+                if (isSuccessPayment) {
+
+
+
+                    res.setRspCode("00"); // Success
+                    res.setMessage("Payment successfully processed.");
+                } else {
+                    res.setRspCode("99"); // Unknown Error
+                    res.setMessage("Payment processing failed.");
+                }
+            } else {
+                res.setRspCode(vnp_ResponseCode);
+                res.setMessage("Payment failed with VNPAY Response Code: " + vnp_ResponseCode);
+            }
+        } catch (Exception e) {
+            res.setRspCode("99"); // Unknown Error
+            res.setMessage("Internal Server Error: " + e.getMessage());
+        }
+
         return ResponseEntity.ok(res);
     }
+
 
     @GetMapping("/querydr")
     public ResponseEntity<Object> querydr(@RequestParam String orderId,

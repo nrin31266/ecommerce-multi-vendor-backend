@@ -39,7 +39,7 @@ public class Product {
     @Column(name = "image_url")
     List<String> images = new ArrayList<>();
     int numberRating;
-    @ManyToOne(cascade = CascadeType.PERSIST)
+    @ManyToOne(cascade = CascadeType.MERGE)
     Category category;
     @ManyToOne
     Seller seller;

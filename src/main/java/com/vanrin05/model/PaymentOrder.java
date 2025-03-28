@@ -1,5 +1,7 @@
 package com.vanrin05.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.vanrin05.domain.PAYMENT_METHOD;
 import com.vanrin05.domain.PAYMENT_ORDER_STATUS;
 import jakarta.persistence.*;
@@ -21,18 +23,21 @@ public class PaymentOrder {
     Long id;
 
     Long amount;
-
+    @Enumerated(EnumType.STRING)
     PAYMENT_ORDER_STATUS paymentOrderStatus;
-
+    @Enumerated(EnumType.STRING)
     PAYMENT_METHOD paymentMethod;
 
-    String paymentLinkId;
+
 
     @ManyToOne
+    @JoinColumn(name = "user_id")
     User user;
 
-    @OneToMany
-    Set<Order> orders;
+
+    @OneToMany(mappedBy = "paymentOrder", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    Set<Order> orders = new HashSet<>();
+
 
     @PrePersist
     protected void onCreate() {

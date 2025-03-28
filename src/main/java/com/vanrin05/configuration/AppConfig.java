@@ -28,45 +28,11 @@ public class AppConfig {
     @Value("${security.jwt.header}")
     private String HEADER;
 
-
-    //    @Bean
-//    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-//        http.sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-//                .authorizeHttpRequests(authorizeRequests -> authorizeRequests
-//                        .requestMatchers("/api/**")
-//                        .authenticated()
-//                        .requestMatchers("api/products/*/reviews").permitAll()
-//                        .anyRequest()
-//                        .permitAll()
-//                )
-//                .addFilterBefore(new JwtTokenValidator(SECRET_KEY, HEADER), BasicAuthenticationFilter.class)
-//                .csrf(AbstractHttpConfigurer::disable)
-//                .cors(cors -> cors.configurationSource(corsConfigurationSource()));
-//
-//
-//        return http.build();
-//    }
-//    @Bean
-//    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-//        http.sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-//                .authorizeHttpRequests(authorizeRequests -> authorizeRequests
-//                        .requestMatchers("/vnpay/inp").permitAll()
-//                        .requestMatchers("/stripe/webhook").permitAll()
-//                        .requestMatchers("/api/products/*/reviews").permitAll()
-//                        .requestMatchers("/api/**").authenticated()
-//                        .anyRequest().permitAll()
-//                )
-//                .addFilterBefore(new JwtTokenValidator(SECRET_KEY, HEADER), BasicAuthenticationFilter.class)
-//                .csrf(AbstractHttpConfigurer::disable)
-//                .cors(cors -> cors.configurationSource(corsConfigurationSource()));
-//
-//        return http.build();
-//    }
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
-                        .requestMatchers("/vnpay/inp", "/stripe/webhook", "/api/products/*/reviews").permitAll()
+                        .requestMatchers("/api/products/*/reviews").permitAll()
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().permitAll()
                 )
@@ -103,7 +69,7 @@ public class AppConfig {
 
 
     @Bean
-    public RestTemplate restTemplate() {
+    RestTemplate restTemplate() {
         return new RestTemplate();
     }
 }

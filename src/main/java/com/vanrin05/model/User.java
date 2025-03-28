@@ -34,9 +34,10 @@ public class User {
     @Enumerated(EnumType.STRING)
     USER_ROLE role;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
-    @OneToMany
     Set<Address> addresses;
+
 
     @ManyToMany
     @JsonIgnore

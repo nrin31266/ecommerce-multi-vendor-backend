@@ -51,14 +51,13 @@ public class StripeController {
         }
     }
     private void handlePaymentIntentSucceeded(PaymentIntent paymentIntent) {
-//        log.info("✅ Payment successfully: {}", paymentIntent.getId());
-
+        //TODO
     }
 
     private void handleCheckoutSessionCompleted(Session session) {
 
-        Long orderId = Long.valueOf(session.getMetadata().get("order_id"));
-        log.info("✅ Checkout successfully: {}", orderId);
+        Long paymentId = Long.valueOf(session.getMetadata().get("payment_id"));
+
     }
 
     private void handleInvoicePaymentFailed(Invoice invoice) {

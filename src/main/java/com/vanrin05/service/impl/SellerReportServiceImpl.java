@@ -13,7 +13,10 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -23,6 +26,16 @@ public class SellerReportServiceImpl implements SellerReportService {
 
     SellerReportRepository sellerReportRepository;
     SellerReportMapper sellerReportMapper;
+    @Override
+    public List<SellerReport> findSellerReportBySellers(List<Seller> sellers) {
+        return sellerReportRepository.findBySellerIn(sellers);
+    }
+
+    @Override
+    public List<SellerReport> updateSellerReports(List<SellerReport> sellerReports) {
+        return sellerReportRepository.saveAll(sellerReports);
+    }
+
 
     @Override
     public SellerReport getSellerReport(Seller seller) {

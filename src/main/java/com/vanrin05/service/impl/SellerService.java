@@ -22,7 +22,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -38,7 +40,9 @@ public class SellerService {
     OtpUtil otpUtil;
     VerificationCodeRepository verificationCodeRepository;
 
-
+    public List<Seller> getSellersByIds(Set<Long> ids) {
+        return sellerRepository.findAllByIdIn(ids);
+    }
     public Seller getSellerProfile(String jwt){
         String email = jwtProvider.getEmailFromJwtToken(jwt);
 

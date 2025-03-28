@@ -46,7 +46,7 @@ public class VNPayService {
 
     private final String vnp_Command = "pay";
 
-    public String createPaymentUrl(long amount, String orderInfo, String orderType, String bankCode, Long orderId) {
+    public String createPaymentUrl(long amount, String orderInfo, String orderType, String bankCode, Long paymentId) {
         log.info(vnp_HashSecret);
         log.info(vnp_TmnCode);
         try {
@@ -68,7 +68,7 @@ public class VNPayService {
             params.put("vnp_ExpireDate", new SimpleDateFormat("yyyyMMddHHmmss")
                     .format(new Date(Instant.now().plus(15, ChronoUnit.MINUTES)
                             .toEpochMilli())));
-            params.put("vnp_TxnRef", orderId.toString());
+            params.put("vnp_TxnRef", paymentId.toString());
 
             List<String> fieldNames = new ArrayList<>(params.keySet());
             Collections.sort(fieldNames);
@@ -136,7 +136,6 @@ public class VNPayService {
 
     public void handlerInp(Map<String, String> params) {
         boolean isChecksum = checksum(params);
-        log.info("Checksum: {}", isChecksum);
         if (!isChecksum){
             throw new AppException("Checksum vnpay is false");
         }
