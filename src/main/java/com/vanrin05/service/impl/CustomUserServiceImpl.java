@@ -42,6 +42,7 @@ public class CustomUserServiceImpl implements UserDetailsService {
             throw new AppException("Seller not found with email: " + username);
         }else{
             Optional<User> optionalUser = userRepository.findByEmail(username);
+
             if(optionalUser.isPresent()) {
                 User user = optionalUser.get();
                 return buildUserDetail(user.getEmail(), user.getPassword(), user.getRole());

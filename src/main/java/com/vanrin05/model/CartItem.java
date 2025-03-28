@@ -6,7 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-@Entity(name = "cart-items")
+@Entity(name = "cart_items")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -19,6 +19,7 @@ public class CartItem {
     Long id;
     @ManyToOne
     @JsonIgnore
+    @JoinColumn(name = "cart_id")
     Cart cart;
     @ManyToOne
     Product product;

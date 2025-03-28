@@ -1,5 +1,6 @@
 package com.vanrin05.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -33,7 +34,4 @@ public class Address {
     // :))
     String zipCode;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    User user;
 }

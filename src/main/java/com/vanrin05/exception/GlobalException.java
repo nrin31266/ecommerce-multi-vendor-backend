@@ -11,7 +11,15 @@ import java.time.LocalDateTime;
 
 @ControllerAdvice
 public class GlobalException {
-
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse> exception(Exception ex, WebRequest request) {
+        ErrorCode errorCode = ErrorCode.UNCATEGORIZED_EXCEPTION;
+        ex.printStackTrace();
+        return new  ResponseEntity<>(ApiResponse.builder()
+                .message(ex.getMessage() != null ? ex.getMessage() : errorCode.getMessage())
+                .code(errorCode.getCode())
+                .build(), errorCode.getStatusCode());
+    }
 
     @ExceptionHandler(AppException.class)
     public ResponseEntity<ApiResponse<Void>> sellerExceptionHandler(AppException appException, WebRequest webRequest) {

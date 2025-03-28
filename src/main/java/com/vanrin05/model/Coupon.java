@@ -35,7 +35,12 @@ public class Coupon {
     @Enumerated(EnumType.STRING)
     COUPON_TYPE couponType;
 
-    @ManyToMany(mappedBy = "usedCoupons")
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "user_coupons",
+            joinColumns = @JoinColumn(name = "coupon_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
     Set<User> usedByUsers;
 
     @PrePersist

@@ -26,7 +26,7 @@ public class CartItemServiceImpl implements CartItemService {
     public CartItem updateCartItem(Long userId, Long cartItemId, UpdateCartItemRequest updateCartItemRequest) {
         CartItem cartItem = cartItemRepository.findCartItemById(cartItemId);
         User cartItemUser = cartItem.getCart().getUser();
-        if (cartItem != null && cartItemUser.getId().equals(userId)) {
+        if (cartItemUser.getId().equals(userId)) {
             cartItem.setQuantity(updateCartItemRequest.getQuantity());
             cartItem.setMrpPrice(cartItem.getQuantity() * cartItem.getProduct().getMrpPrice());
             cartItem.setSellingPrice(cartItem.getQuantity() * cartItem.getProduct().getSellingPrice());

@@ -6,6 +6,7 @@ import com.stripe.model.Invoice;
 import com.stripe.model.PaymentIntent;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
+import com.vanrin05.service.PaymentService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/stripe")
 @Slf4j
 public class StripeController {
+    PaymentService paymentService;
     @PostMapping("/webhook")
     public ResponseEntity<String> handleStripeWebhook(@RequestBody String payload, @RequestHeader("Stripe-Signature") String signature) {
         try {
@@ -57,11 +59,11 @@ public class StripeController {
     private void handleCheckoutSessionCompleted(Session session) {
 
         Long paymentId = Long.valueOf(session.getMetadata().get("payment_id"));
-
+        paymentService.proceedPayment(paymentId);
     }
 
     private void handleInvoicePaymentFailed(Invoice invoice) {
-        log.info("❌ Error payment: {}", invoice.getId());
+
 
     }
 }

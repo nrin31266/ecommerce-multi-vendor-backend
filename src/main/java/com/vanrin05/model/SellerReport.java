@@ -40,5 +40,6 @@ public class SellerReport {
         this.totalOrders = 0;
         this.canceledOrders = 0;
         this.totalTransactions = 0;
+        this.totalSales = 0L;
     }
 }

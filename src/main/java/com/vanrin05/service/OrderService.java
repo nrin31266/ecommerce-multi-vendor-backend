@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 public interface OrderService {
-    Set<Order> createOrders(User user, Address shippingAddress, Cart cart);
+    List<Order> createOrders(User user, Address shippingAddress, Cart cart);
     Order findOrderById(Long orderId);
     List<Order> userOrdersHistory(Long userId);
     List<Order> sellerOrders(Long sellerId);

@@ -1,12 +1,14 @@
 package com.vanrin05.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-@Entity(name = "order-items")
-@Data
+@Entity(name = "order_items")
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -16,11 +18,16 @@ public class OrderItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
+
+
+    @JsonBackReference
     @ManyToOne
-    @JoinColumn(name = "order_id")
+    @JoinColumn(name = "order_id", nullable = false)
     Order order;
 
-    @ManyToOne
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "product_id")
     Product product;
 
     String size;

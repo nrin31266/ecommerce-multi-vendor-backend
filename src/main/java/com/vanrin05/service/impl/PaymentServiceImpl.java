@@ -1,10 +1,6 @@
 package com.vanrin05.service.impl;
 
 import com.event.SellerReportEvent;
-import com.razorpay.Payment;
-import com.razorpay.PaymentLink;
-import com.razorpay.RazorpayClient;
-import com.razorpay.RazorpayException;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.checkout.Session;
@@ -12,26 +8,24 @@ import com.stripe.param.checkout.SessionCreateParams;
 import com.vanrin05.domain.PAYMENT_METHOD;
 import com.vanrin05.domain.PAYMENT_ORDER_STATUS;
 import com.vanrin05.domain.PAYMENT_STATUS;
-import com.vanrin05.dto.response.PaymentLinkResponse;
 import com.vanrin05.exception.AppException;
 import com.vanrin05.model.*;
 import com.vanrin05.repository.OrderRepository;
 import com.vanrin05.repository.PaymentOrderRepository;
 import com.vanrin05.service.PaymentService;
-import com.vanrin05.service.SellerReportService;
-import com.vanrin05.service.TransactionService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.json.JSONObject;
+import org.hibernate.Hibernate;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -46,7 +40,7 @@ public class PaymentServiceImpl implements PaymentService {
     KafkaTemplate<String, Object> kafkaTemplate;
 
     @Override
-    public PaymentOrder createPaymentOrder(User user, Set<Order> orders, PAYMENT_METHOD paymentMethod) {
+    public PaymentOrder createPaymentOrder(User user, List<Order> orders, PAYMENT_METHOD paymentMethod) {
         Long amount = orders.stream().mapToLong(Order::getTotalSellingPrice).sum();
 
         PaymentOrder paymentOrder = new PaymentOrder();
@@ -63,17 +57,18 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
 
+
     @Transactional
     @Override
     public Boolean proceedPayment(Long paymentId)  {
 
-        PaymentOrder paymentOrder = paymentOrderRepository.findById(paymentId).orElseThrow(()->new AppException("Payment not found"));
+        PaymentOrder paymentOrder = findById(paymentId);
+        List<Order> orders = paymentOrder.getOrders();
 
-        log.info("PaymentOrder: {}", paymentOrder);
 
         if (paymentOrder.getPaymentOrderStatus().equals(PAYMENT_ORDER_STATUS.PENDING)) {
 
-            Set<Order> orders = paymentOrder.getOrders();
+
 
             for (Order order : orders) {
                 order.getPaymentDetails().setPaymentStatus(PAYMENT_STATUS.COMPLETED);
@@ -86,7 +81,7 @@ public class PaymentServiceImpl implements PaymentService {
 
 
             kafkaTemplate.send("update-seller-report", SellerReportEvent.builder()
-                            .orders(paymentOrder.getOrders())
+                            .orders(new HashSet<>(orders))
                             .paymentId(paymentId)
                     .build());
 
@@ -133,6 +128,27 @@ public class PaymentServiceImpl implements PaymentService {
         return session.getUrl();
     }
 
+    @Override
+    @Transactional
+    public PaymentOrder findById(Long paymentId) {
+        PaymentOrder paymentOrder= paymentOrderRepository.findById(paymentId).orElseThrow(()->new AppException("Payment not found"));
+        Hibernate.initialize(paymentOrder.getOrders());
+
+        return paymentOrder;
+    }
+
+
+    @Override
+    public List<Order> findAllOrdersInPaymentOrder(PaymentOrder paymentOrder) {
+        return orderRepository.findAllByPaymentOrder(paymentOrder);
+    }
+
+
+
+    @Override
+    public List<PaymentOrder> findUserPaymentOrders(User user) {
+        return paymentOrderRepository.findByUser(user);
+    }
 
 
 }

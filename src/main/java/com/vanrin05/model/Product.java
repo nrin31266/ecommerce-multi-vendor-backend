@@ -37,7 +37,7 @@ public class Product {
     @ElementCollection
     @CollectionTable(name = "product_images", joinColumns = @JoinColumn(name = "product_id"))
     @Column(name = "image_url")
-    List<String> images = new ArrayList<>();
+    List<String> images;
     int numberRating;
     @ManyToOne(cascade = CascadeType.MERGE)
     Category category;
@@ -49,6 +49,9 @@ public class Product {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     List<Review> reviews;
     @PrePersist
+
+
+
     protected void prePersist() {
         this.createdAt = LocalDateTime.now();
         this.reviews = new ArrayList<>();

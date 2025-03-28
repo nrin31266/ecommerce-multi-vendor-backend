@@ -8,10 +8,12 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
-@Entity(name = "payment-orders")
+@Entity(name = "payment_orders")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -35,13 +37,14 @@ public class PaymentOrder {
     User user;
 
 
-    @OneToMany(mappedBy = "paymentOrder", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    Set<Order> orders = new HashSet<>();
+    @JsonManagedReference
+    @OneToMany(mappedBy = "paymentOrder", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    List<Order> orders;
 
 
     @PrePersist
     protected void onCreate() {
-        this.orders = new HashSet<>();
+        this.orders = new ArrayList<>();
         this.paymentOrderStatus = PAYMENT_ORDER_STATUS.PENDING;
     }
 }

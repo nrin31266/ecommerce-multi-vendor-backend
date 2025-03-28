@@ -19,6 +19,7 @@ import com.vanrin05.service.impl.UserService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/orders")
@@ -49,7 +51,7 @@ public class OrderController {
             ) throws StripeException {
         User user = userService.findUserByJwtToken(jwt);
         Cart cart = cartService.findUserCart(user);
-        Set<Order> orders = orderService.createOrders(user, shippingAddress, cart);
+        List<Order> orders = orderService.createOrders(user, shippingAddress, cart);
         PaymentOrder paymentOrder = paymentService.createPaymentOrder(user, orders, paymentMethod);
         PaymentLinkResponse paymentLinkResponse = new PaymentLinkResponse();
 
@@ -89,7 +91,7 @@ public class OrderController {
 
     @GetMapping("/item/{orderItemId}")
     public ResponseEntity<OrderItem> getOrderItem(@PathVariable("orderItemId") Long orderItemId, @RequestHeader("Authorization") String jwt) {
-        User user = userService.findUserByJwtToken(jwt);
+        log.info("OrderItemId: {}", orderItemId);
         OrderItem orderItem = orderService.findOrderItemById(orderItemId);
         return ResponseEntity.ok(orderItem);
     }

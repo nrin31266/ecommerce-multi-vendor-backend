@@ -7,16 +7,19 @@ import com.vanrin05.model.*;
 import com.vanrin05.repository.AddressRepository;
 import com.vanrin05.repository.OrderItemRepository;
 import com.vanrin05.repository.OrderRepository;
+import com.vanrin05.repository.UserRepository;
 import com.vanrin05.service.OrderService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -25,24 +28,24 @@ public class OrderServiceImpl implements OrderService {
     OrderRepository orderRepository;
     AddressRepository addressRepository;
     OrderItemRepository orderItemRepository;
+    private final UserRepository userRepository;
 
 
-
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @Override
-    public Set<Order> createOrders(User user, Address shippingAddress, Cart cart) {
-        if(!user.getAddresses().contains(shippingAddress)) {
-            user.getAddresses().add(shippingAddress);
-        }
+    public List<Order> createOrders(User user, Address shippingAddress, Cart cart) {
+        shippingAddress = addressRepository.save(shippingAddress);
+        user.getAddresses().add(shippingAddress);
 
-        Address address = addressRepository.save(shippingAddress);
+
 
         Map<Long, List<CartItem>> items =  cart.getCartItems().stream().collect(Collectors.groupingBy(item -> item.getProduct().getSeller().getId()));
 
-        Set<Order> orders = new HashSet<>();
+        List<Order> orders = new ArrayList<>();
 
         for(Map.Entry<Long, List<CartItem>> entry : items.entrySet()) {
             Long sellerId = entry.getKey();
+
             List<CartItem> cartItems = entry.getValue();
 
             int totalOrderPrice = cartItems.stream().mapToInt(
@@ -62,15 +65,11 @@ public class OrderServiceImpl implements OrderService {
             createdOrder.setTotalSellingPrice(totalOrderPrice);
             createdOrder.setTotalItem(totalItem);
             createdOrder.getPaymentDetails().setPaymentStatus(PAYMENT_STATUS.PENDING);
-            createdOrder.setShippingAddress(address);
+            createdOrder.setShippingAddress(shippingAddress);
             createdOrder.setOrderStatus(ORDER_STATUS.PENDING);
             createdOrder.setDiscount(discountPercentage(totalMrpPrice, totalOrderPrice));
-
-
-
-
+            createdOrder = orderRepository.save(createdOrder);
             List<OrderItem> orderItems = new ArrayList<>();
-
             for (CartItem cartItem : cartItems) {
                 OrderItem orderItem = new OrderItem();
                 orderItem.setProduct(cartItem.getProduct());
@@ -79,26 +78,24 @@ public class OrderServiceImpl implements OrderService {
                 orderItem.setUserId(user.getId());
                 orderItem.setSellingPrice(cartItem.getSellingPrice());
                 orderItem.setMrpPrice(cartItem.getMrpPrice());
+                orderItem.setOrder(createdOrder);
                 orderItems.add(orderItem);
             }
-            createdOrder.setOrderItems(orderItems);
-            createdOrder = orderRepository.save(createdOrder);
-
+            orderItemRepository.saveAll(orderItems);
             createdOrder.setOrderItems(orderItems);
             orders.add(createdOrder);
-
         }
 
         return orders;
     }
 
     private int discountPercentage(double mrpPrice, double sellingPrice) {
-
+        log.info("Mrp: {}; Selling: {}", mrpPrice, sellingPrice);
         if (mrpPrice < sellingPrice || mrpPrice <= 0) {
             throw new AppException("Mrp price is invalid. Mrp: " + mrpPrice + ", Selling price: " + sellingPrice);
         }
         double discount = (mrpPrice - sellingPrice);
-        double percentage = discount / sellingPrice * 100;
+        double percentage = discount / mrpPrice * 100;
         return (int) percentage;
     }
 
@@ -136,7 +133,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderItem findOrderItemById(Long orderItemId) {
-
+        log.info("OrderItemId: {}", orderItemId);
         return orderItemRepository.findById(orderItemId).orElseThrow(()->new AppException("Order item not found"));
     }
 }

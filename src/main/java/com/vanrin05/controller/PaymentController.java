@@ -1,7 +1,5 @@
 package com.vanrin05.controller;
 
-import com.razorpay.RazorpayException;
-import com.vanrin05.dto.response.ApiResponse;
 import com.vanrin05.model.*;
 import com.vanrin05.service.PaymentService;
 import com.vanrin05.service.SellerReportService;
@@ -14,6 +12,8 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/payment")
@@ -25,6 +25,19 @@ public class PaymentController {
     SellerReportService sellerReportService;
     TransactionService transactionService;
 
+    @GetMapping("/{paymentId}")
+    public ResponseEntity<PaymentOrder> findPaymentById(@PathVariable("paymentId") Long paymentId) {
+        return ResponseEntity.ok(paymentService.findById(paymentId));
+    }
 
+    @GetMapping("/{paymentId}/orders")
+    public ResponseEntity<List<Order>> findPaymentHasOrders(@PathVariable("paymentId") Long paymentId) {
+        return ResponseEntity.ok(paymentService.findAllOrdersInPaymentOrder(paymentService.findById(paymentId)));
+    }
+    @GetMapping
+    public ResponseEntity<List<PaymentOrder>> findAllPayments(@RequestHeader("Authorization") String jwt) {
+        User user = userService.findUserByJwtToken(jwt);
+        return ResponseEntity.ok(paymentService.findUserPaymentOrders(user));
+    }
 
 }

@@ -34,19 +34,25 @@ public class User {
     @Enumerated(EnumType.STRING)
     USER_ROLE role;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
     Set<Address> addresses;
 
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JsonIgnore
+    @JoinTable(
+            name = "user_coupons",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "coupon_id")
+    )
     Set<Coupon> usedCoupons;
 
-    public User(String email,String fullName, String mobile) {
+    public User(String email,String fullName, String mobile, String password) {
         this.email = email;
         this.fullName = fullName;
         this.mobile = mobile;
+        this.password = password;
     }
 
     @PrePersist

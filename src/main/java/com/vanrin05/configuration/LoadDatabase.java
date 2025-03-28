@@ -30,16 +30,16 @@ public class LoadDatabase {
     private final PasswordEncoder encoder;
 
     private final List<User> initialUsers = List.of(
-            new User("rin001@yopmail.com", "John Doe", "0823743824"),
-            new User("rin002@yopmail.com", "Alice Smith", "0912837465"),
-            new User("rin003@yopmail.com", "Bob Johnson", "0812345678"),
-            new User("rin004@yopmail.com", "Charlie Brown", "0998765432"),
-            new User("rin005@yopmail.com", "David Williams", "0701234567"),
-            new User("rin006@yopmail.com", "Emma Taylor", "0698765432"),
-            new User("rin007@yopmail.com", "Frank Miller", "0612345678"),
-            new User("rin008@yopmail.com", "Grace Wilson", "0598765432"),
-            new User("rin009@yopmail.com", "Henry Moore", "0512345678"),
-            new User("rin010@yopmail.com", "Isla Davis", "0498765432")
+            new User("rin001@yopmail.com", "John Doe", "0823743824", "123"),
+            new User("rin002@yopmail.com", "Alice Smith", "0912837465","123"),
+            new User("rin003@yopmail.com", "Bob Johnson", "0812345678","123"),
+            new User("rin004@yopmail.com", "Charlie Brown", "0998765432","123"),
+            new User("rin005@yopmail.com", "David Williams", "0701234567","123"),
+            new User("rin006@yopmail.com", "Emma Taylor", "0698765432","123"),
+            new User("rin007@yopmail.com", "Frank Miller", "0612345678","123"),
+            new User("rin008@yopmail.com", "Grace Wilson", "0598765432","123"),
+            new User("rin009@yopmail.com", "Henry Moore", "0512345678","123"),
+            new User("rin010@yopmail.com", "Isla Davis", "0498765432","123")
     );
 
 
@@ -49,7 +49,7 @@ public class LoadDatabase {
                                    VerificationCodeRepository verificationCodeRepository, CartRepository cartRepository, ProductRepository productRepository, SellerReportRepository sellerReportRepository) {
         return args -> {
             if (userRepository.findByEmail("rin001@yopmail.com").isEmpty()) {
-                List<User> savedUsers = userRepository.saveAll(initialUsers);
+                List<User> savedUsers = userRepository.saveAll(initialUsers.stream().peek(user -> user.setPassword(encoder.encode(user.getPassword()))).toList());
                 List<VerificationCode> verificationUserCodes = new ArrayList<>();
                 List<Cart> userCarts = new ArrayList<>();
                 savedUsers.forEach(user -> {
@@ -63,7 +63,7 @@ public class LoadDatabase {
                 });
                 verificationCodeRepository.saveAll(verificationUserCodes);
                 cartRepository.saveAll(userCarts);
-                List<Seller> savedSellers = sellerRepository.saveAll(initialSellers);
+                List<Seller> savedSellers = sellerRepository.saveAll(initialSellers.stream().peek(seller -> seller.setPassword(encoder.encode(seller.getPassword()))).toList());
 
                 List<VerificationCode> verificationSellerCodes = new ArrayList<>();
                 List<SellerReport> sellerReports = new ArrayList<>();
@@ -114,6 +114,7 @@ public class LoadDatabase {
                     .taxCode("TAX123")
                     .role(USER_ROLE.ROLE_SELLER)
                     .mobile("0912345678")
+                    .password("123")
                     .isEmailVerified(true)
                     .bankDetails(
                             BankDetails.builder()
@@ -146,7 +147,7 @@ public class LoadDatabase {
             Seller.builder()
                     .email("rin0012@yopmail.com")
                     .sellerName("Alice Smith")
-                    .gstin("GSTIN654321")
+                    .gstin("GSTIN654321").password("123")
                     .accountStatus(ACCOUNT_STATUS.ACTIVE)
                     .taxCode("TAX456")
                     .role(USER_ROLE.ROLE_SELLER)
@@ -186,7 +187,7 @@ public class LoadDatabase {
                     .gstin("GSTIN789012")
                     .accountStatus(ACCOUNT_STATUS.ACTIVE)
                     .taxCode("TAX789")
-                    .role(USER_ROLE.ROLE_SELLER)
+                    .role(USER_ROLE.ROLE_SELLER).password("123")
                     .mobile("0934567890")
                     .isEmailVerified(true)
                     .bankDetails(
@@ -220,7 +221,7 @@ public class LoadDatabase {
 
             Seller.builder()
                     .email("rin0014@yopmail.com")
-                    .sellerName("Charlie Brown")
+                    .sellerName("Charlie Brown").password("123")
                     .gstin("GSTIN345678")
                     .accountStatus(ACCOUNT_STATUS.ACTIVE)
                     .taxCode("TAX234")
@@ -260,7 +261,7 @@ public class LoadDatabase {
                     .sellerName("David Williams")
                     .gstin("GSTIN567890")
                     .accountStatus(ACCOUNT_STATUS.ACTIVE)
-                    .taxCode("TAX567")
+                    .taxCode("TAX567").password("123")
                     .role(USER_ROLE.ROLE_SELLER)
                     .mobile("0956789012")
                     .isEmailVerified(true)
