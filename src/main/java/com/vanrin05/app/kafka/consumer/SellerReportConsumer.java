@@ -22,11 +22,11 @@ import java.util.stream.Collectors;
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
 public class SellerReportConsumer {
-    SellerService sellerService;
-    SellerReportService sellerReportService;
-    TransactionService transactionService;
+    private final SellerService sellerService;
+    private final SellerReportService sellerReportService;
+    private final TransactionService transactionService;
 
-    @KafkaListener(topics = "update-seller-report", groupId = "main")
+    @KafkaListener(topics = "update_seller_report", groupId = "main")
     @Transactional
     public void handleSellerReportUpdate(SellerReportEvent event, Acknowledgment ack) {
             Map<Long, Seller> sellers = sellerService.getSellersByIds(

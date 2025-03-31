@@ -16,11 +16,13 @@ import com.vanrin05.app.repository.SellerRepository;
 import com.vanrin05.app.repository.UserRepository;
 import com.vanrin05.app.repository.VerificationCodeRepository;
 import com.vanrin05.app.utils.OtpUtil;
+import com.vanrin05.event.SentLoginSignupEvent;
 import jakarta.mail.MessagingException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -31,10 +33,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -51,27 +50,35 @@ public class AuthService {
     EmailService emailService;
     CustomUserServiceImpl customUserService;
     SellerRepository sellerRepository;
+    KafkaTemplate<String, Object> kafkaTemplate;
 
     public void sendLoginOtp (String email, USER_ROLE role) throws MessagingException {
-
+        SentLoginSignupEvent sentLoginSignupEvent = new SentLoginSignupEvent();
+        Map<String, Object> variables = new HashMap<>();
 
         String SINGING_PREFIX = "signing_";
 
         if(email.startsWith(SINGING_PREFIX)){
             email = email.substring(SINGING_PREFIX.length());
+
             if(role.equals(USER_ROLE.ROLE_SELLER)){
                 if(sellerRepository.findByEmail(email).isEmpty()){
                     throw new AppException("Seller not found with email: " + email);
                 }
+
             }else{
                 if(userRepository.findByEmail(email).isEmpty()){
                     throw new AppException(("User not found with email: " + email));
                 }
             }
+            sentLoginSignupEvent.setSubject("Ecommerce MV: Login OTP");
+            variables.put("title", "Welcome back Ecommerce MV");
         }else{
             if(userRepository.findByEmail(email).isPresent()){
                 throw new AppException(("Email already in use: " + email));
             }
+            sentLoginSignupEvent.setSubject("Ecommerce MV: Signup OTP");
+            variables.put("title", "Welcome to to Ecommerce MV");
         }
 
         VerificationCode verificationCode = new VerificationCode();
@@ -85,10 +92,11 @@ public class AuthService {
         verificationCode.setOtp(otpUtil.generateOtp(6));
         verificationCodeRepository.save(verificationCode);
 
-        String subject = "Ecommerce multi vendor login/signup OTP";
-        String text = "Your login/signup OTP is " + verificationCode.getOtp();
+        variables.put("otp", verificationCode.getOtp());
+        sentLoginSignupEvent.setVariables(variables);
+        sentLoginSignupEvent.setEmail(email);
+        kafkaTemplate.send("sent_otp_to_login_signup", sentLoginSignupEvent);
 
-        emailService.sendVerificationOtpEmail(email, subject, text);
     }
 
 
