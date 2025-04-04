@@ -54,7 +54,7 @@ public class Order {
     @Enumerated(EnumType.STRING)
     ORDER_STATUS orderStatus;
 
-
+    String cancelReason;
 
     @JsonBackReference
     @ManyToOne

@@ -53,7 +53,7 @@ security:
     header: "Authorization"
 
 vnpay:
-  tmn-code: PBR8SGZ0
+  tmn-code: 7EAUWLX1
   hash-secret: ${VNP_HASH_SECRET}
   url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
   return-url: http://localhost:8080/vnpay/return

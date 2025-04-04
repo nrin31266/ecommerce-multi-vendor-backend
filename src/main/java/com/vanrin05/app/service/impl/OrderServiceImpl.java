@@ -1,18 +1,20 @@
 package com.vanrin05.app.service.impl;
 
 import com.vanrin05.app.domain.ORDER_STATUS;
+import com.vanrin05.app.domain.PAYMENT_METHOD;
 import com.vanrin05.app.domain.PAYMENT_STATUS;
 import com.vanrin05.app.exception.AppException;
 import com.vanrin05.app.model.*;
-import com.vanrin05.app.repository.AddressRepository;
-import com.vanrin05.app.repository.OrderItemRepository;
-import com.vanrin05.app.repository.OrderRepository;
-import com.vanrin05.app.repository.UserRepository;
+import com.vanrin05.app.repository.*;
 import com.vanrin05.app.service.OrderService;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Predicate;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.aspectj.weaver.ast.Or;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,24 +31,30 @@ public class OrderServiceImpl implements OrderService {
     AddressRepository addressRepository;
     OrderItemRepository orderItemRepository;
     private final UserRepository userRepository;
+    ProductRepository productRepository;
+    CartRepository cartRepository;
 
 
-    @Transactional(rollbackFor = Exception.class)
     @Override
-    public List<Order> createOrders(User user, Address shippingAddress, Cart cart) {
+    public List<Order> createOrders(User user, Address shippingAddress, Cart cart, PAYMENT_METHOD paymentMethod) {
         shippingAddress = addressRepository.save(shippingAddress);
         user.getAddresses().add(shippingAddress);
 
-
-
         Map<Long, List<CartItem>> items =  cart.getCartItems().stream().collect(Collectors.groupingBy(item -> item.getProduct().getSeller().getId()));
 
-        List<Order> orders = new ArrayList<>();
 
+
+        List<Order> orders = new ArrayList<>();
+        List<Product> products = new ArrayList<>();
         for(Map.Entry<Long, List<CartItem>> entry : items.entrySet()) {
+
+
+
             Long sellerId = entry.getKey();
 
             List<CartItem> cartItems = entry.getValue();
+
+
 
             int totalOrderPrice = cartItems.stream().mapToInt(
                     CartItem::getSellingPrice
@@ -59,6 +67,7 @@ public class OrderServiceImpl implements OrderService {
             int totalItem = cartItems.stream().mapToInt(CartItem::getQuantity).sum();
 
             Order createdOrder = new Order();
+            createdOrder.getPaymentDetails().setPaymentMethod(paymentMethod);
             createdOrder.setUser(user);
             createdOrder.setSellerId(sellerId);
             createdOrder.setTotalMrpPrice(totalMrpPrice);
@@ -66,11 +75,24 @@ public class OrderServiceImpl implements OrderService {
             createdOrder.setTotalItem(totalItem);
             createdOrder.getPaymentDetails().setPaymentStatus(PAYMENT_STATUS.PENDING);
             createdOrder.setShippingAddress(shippingAddress);
-            createdOrder.setOrderStatus(ORDER_STATUS.PENDING);
+            createdOrder.setOrderStatus((paymentMethod == PAYMENT_METHOD.CASH_ON_DELIVERY)? ORDER_STATUS.PLACED : ORDER_STATUS.PENDING);
             createdOrder.setDiscount(discountPercentage(totalMrpPrice, totalOrderPrice));
             createdOrder = orderRepository.save(createdOrder);
             List<OrderItem> orderItems = new ArrayList<>();
             for (CartItem cartItem : cartItems) {
+
+                if(cartItem.getQuantity() > cartItem.getProduct().getQuantity()){
+                    throw new AppException(cartItem.getProduct().getTitle() + ": stock unavailable");
+
+                }
+
+
+                Product product = cartItem.getProduct();
+                product.setQuantity(product.getQuantity() - cartItem.getQuantity());
+                products.add(product);
+
+
+
                 OrderItem orderItem = new OrderItem();
                 orderItem.setProduct(cartItem.getProduct());
                 orderItem.setQuantity(cartItem.getQuantity());
@@ -81,13 +103,29 @@ public class OrderServiceImpl implements OrderService {
                 orderItem.setOrder(createdOrder);
                 orderItems.add(orderItem);
             }
+
+            cart.setDiscount(0);
+            cart.getCartItems().clear();
+            cart.setTotalMrpPrice(0);
+            cart.setTotalSellingPrice(0);
+            cart.setTotalItems(0);
+            cart.setCouponCode(null);
+            cartRepository.save(cart);
+
+
+            productRepository.saveAll(products);
             orderItemRepository.saveAll(orderItems);
             createdOrder.setOrderItems(orderItems);
             orders.add(createdOrder);
         }
 
+
+
         return orders;
     }
+
+
+
 
     private int discountPercentage(double mrpPrice, double sellingPrice) {
         log.info("Mrp: {}; Selling: {}", mrpPrice, sellingPrice);
@@ -115,8 +153,18 @@ public class OrderServiceImpl implements OrderService {
 
 
     @Override
-    public List<Order> sellerOrders(Long sellerId) {
-        return orderRepository.findBySellerId(sellerId);
+    public List<Order> sellerOrders(Long sellerId, ORDER_STATUS orderStatus) {
+
+        Specification<Order> specification = (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            predicates.add(criteriaBuilder.equal(root.get("sellerId"), sellerId));
+            predicates.add(criteriaBuilder.equal(root.get("orderStatus"), orderStatus));
+
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+
+        return orderRepository.findAll(specification);
     }
 
     @Override

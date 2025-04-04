@@ -23,14 +23,14 @@ public class SellerOrderController {
 
 
     @PutMapping("/{orderId}/status/{orderStatus}")
-    public ResponseEntity<Order> updateOrderStatus(@PathVariable("orderId") long orderId, @PathVariable ORDER_STATUS orderStatus) {
+    public ResponseEntity<Order> updateOrderStatus(@PathVariable("orderId") long orderId, @PathVariable("orderStatus") ORDER_STATUS orderStatus) {
         return ResponseEntity.ok(orderService.updateOrderStatus(orderId, orderStatus));
     }
 
-    @GetMapping
-    public ResponseEntity<List<Order>> getAllOrders(@RequestHeader("Authorization") String jwt) {
+    @GetMapping("/{orderStatus}")
+    public ResponseEntity<List<Order>> getAllOrders(@RequestHeader("Authorization") String jwt, @PathVariable("orderStatus") ORDER_STATUS orderStatus) {
         Seller seller = sellerService.getSellerProfile(jwt);
-        return ResponseEntity.ok(orderService.sellerOrders(seller.getId()));
+        return ResponseEntity.ok(orderService.sellerOrders(seller.getId(), orderStatus));
 
     }
 }

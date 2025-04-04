@@ -46,11 +46,11 @@ public class VNPayController {
 
     @GetMapping("/return")
     public ResponseEntity<Void> returnPayment(@RequestParam Map<String, String> params) {
-        String orderId = params.get("vnp_TxnRef");
-        String redirectUrl = "http://localhost:5173/payment-success/" +orderId ;
+        String paymentId = params.get("vnp_TxnRef");
+        String redirectUrl = "http://localhost:5173/payment-success/" +paymentId ;
         
         if (!"00".equals(params.get("vnp_ResponseCode"))) {
-            redirectUrl = "http://localhost:5173/payment-cancel/" +orderId ;
+            redirectUrl = "http://localhost:5173/payment-cancel/" +paymentId ;
         }
 
         HttpHeaders headers = new HttpHeaders();

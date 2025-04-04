@@ -10,7 +10,6 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class PaymentLinkResponse {
+public class PaymentResponse {
     String payment_link_url;
-    String payment_link_id;
 }

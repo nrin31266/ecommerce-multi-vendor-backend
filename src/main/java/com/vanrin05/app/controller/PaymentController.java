@@ -40,4 +40,9 @@ public class PaymentController {
         return ResponseEntity.ok(paymentService.findUserPaymentOrders(user));
     }
 
+    @PutMapping("/cancel/{paymentId}")
+    public ResponseEntity<PaymentOrder> cancelPayment(@PathVariable("paymentId") Long paymentId, @RequestHeader("Authorization") String jwt) {
+        User user = userService.findUserByJwtToken(jwt);
+        return ResponseEntity.ok(paymentService.cancelPaymentOrder(paymentId, user));
+    }
 }

@@ -38,7 +38,8 @@ public class Product {
     @Column(name = "image_url")
     List<String> images;
     int numberRating;
-    @ManyToOne(cascade = CascadeType.MERGE)
+    @ManyToOne  // Không dùng cascade
+    @JoinColumn(name = "category_id")
     Category category;
     @ManyToOne
     Seller seller;

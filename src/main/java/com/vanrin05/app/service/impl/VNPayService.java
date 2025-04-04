@@ -18,6 +18,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
@@ -66,8 +67,7 @@ public class VNPayService {
             params.put("vnp_OrderType", orderType);
             params.put("vnp_ReturnUrl", vnp_ReturnUrl);
             params.put("vnp_ExpireDate", new SimpleDateFormat("yyyyMMddHHmmss")
-                    .format(new Date(Instant.now().plus(15, ChronoUnit.MINUTES)
-                            .toEpochMilli())));
+                    .format(new Date(System.currentTimeMillis() + 30 * 60 * 1000)));
             params.put("vnp_TxnRef", paymentId.toString());
 
             List<String> fieldNames = new ArrayList<>(params.keySet());
@@ -154,6 +154,9 @@ public class VNPayService {
             if(fieldValue != null && !fieldValue.isEmpty()) {
                 hashData.append(fieldName).append("=");
                 hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.UTF_8));
+//                    hashData.append(fieldName).append("=");
+//                    hashData.append(fieldValue); // Không encode ở đây
+
                 if(itr.hasNext()) {
                     hashData.append("&");
                 }

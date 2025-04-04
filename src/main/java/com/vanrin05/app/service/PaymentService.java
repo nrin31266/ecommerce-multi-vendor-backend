@@ -18,4 +18,6 @@ public interface PaymentService {
     PaymentOrder findById(Long paymentId);
     List<Order> findAllOrdersInPaymentOrder(PaymentOrder paymentOrder);
     List<PaymentOrder> findUserPaymentOrders(User user);
+
+    PaymentOrder cancelPaymentOrder(Long paymentId, User user);
 }

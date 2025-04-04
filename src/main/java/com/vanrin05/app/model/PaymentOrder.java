@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +28,7 @@ public class PaymentOrder {
     @Enumerated(EnumType.STRING)
     PAYMENT_METHOD paymentMethod;
 
+    LocalDateTime paymentExpiry;
 
 
     @ManyToOne
