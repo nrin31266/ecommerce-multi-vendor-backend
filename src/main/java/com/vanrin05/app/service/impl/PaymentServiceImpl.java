@@ -2,9 +2,9 @@ package com.vanrin05.app.service.impl;
 
 import com.vanrin05.app.domain.ORDER_STATUS;
 import com.vanrin05.app.exception.ErrorCode;
-import com.vanrin05.app.repository.ProductRepository;
-import com.vanrin05.app.service.OrderService;
-import com.vanrin05.event.SellerReportEvent;
+import com.vanrin05.app.repository.*;
+import com.vanrin05.app.service.SellerReportService;
+import com.vanrin05.app.service.TransactionService;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.checkout.Session;
@@ -14,15 +14,11 @@ import com.vanrin05.app.domain.PAYMENT_ORDER_STATUS;
 import com.vanrin05.app.domain.PAYMENT_STATUS;
 import com.vanrin05.app.exception.AppException;
 import com.vanrin05.app.model.*;
-import com.vanrin05.app.repository.OrderRepository;
-import com.vanrin05.app.repository.PaymentOrderRepository;
 import com.vanrin05.app.service.PaymentService;
-import jakarta.persistence.PrePersist;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Hibernate;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -32,6 +28,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -44,6 +41,10 @@ public class PaymentServiceImpl implements PaymentService {
     private String stripeSecretKey = "sk_test_51R52WvPvjKDrWoaF1R2WPy4ivyRAlWcAYsPLO0t0A7ma3bTIPN8HQFbwpPyRwhR848Sem8oggdCyojGfLWgQSiMV00X4eCr53r";
     KafkaTemplate<String, Object> kafkaTemplate;
     ProductRepository productRepository;
+    private final SellerRepository sellerRepository;
+    SellerReportRepository sellerReportRepository;
+    TransactionService transactionService;
+    SellerReportService sellerReportService;
 
 
     @Override
@@ -51,7 +52,7 @@ public class PaymentServiceImpl implements PaymentService {
         Long amount = orders.stream().mapToLong(Order::getTotalSellingPrice).sum();
 
         PaymentOrder paymentOrder = new PaymentOrder();
-        paymentOrder.setPaymentExpiry(LocalDateTime.now().plus(15, ChronoUnit.MINUTES));
+        paymentOrder.setPaymentExpiry(LocalDateTime.now().plusMinutes(15));
         paymentOrder.setUser(user);
         paymentOrder.setPaymentOrderStatus(PAYMENT_ORDER_STATUS.PENDING);
         paymentOrder.setAmount(amount);
@@ -89,10 +90,25 @@ public class PaymentServiceImpl implements PaymentService {
             paymentOrderRepository.save(paymentOrder);
 
 
-            kafkaTemplate.send("update-seller-report", SellerReportEvent.builder()
-                            .orders(new HashSet<>(orders))
-                            .paymentId(paymentId)
-                    .build());
+            Map<Long, Seller> sellers = sellerRepository.findAllByIdIn(orders.stream().map(Order::getSellerId).collect(Collectors.toSet())).stream().collect(Collectors.toMap(Seller::getId, seller -> seller));
+
+            Map<Seller, SellerReport> sellerReports = sellerReportRepository.findBySellerIn(sellers.values().stream().toList()).stream().collect(Collectors.toMap(SellerReport::getSeller, sellerReport -> sellerReport));
+
+
+
+            for (Order order : orders) {
+                transactionService.createTransaction(order);
+
+                Seller seller = sellers.get(order.getSellerId());
+                SellerReport sellerReport = sellerReports.get(seller);
+
+                sellerReport.setTotalOrders(sellerReport.getTotalOrders() + 1);
+                sellerReport.setTotalEarnings(sellerReport.getTotalEarnings() + order.getTotalSellingPrice());
+                sellerReport.setTotalSales(sellerReport.getTotalSales() + order.getOrderItems().size());
+                sellerReport.setTotalTransactions(sellerReport.getTotalTransactions() + 1);
+            }
+
+            sellerReportService.updateSellerReports(sellerReports.values().stream().toList());
 
 
         }
