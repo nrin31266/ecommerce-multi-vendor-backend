@@ -39,33 +39,19 @@ public class OrderServiceImpl implements OrderService {
     public List<Order> createOrders(User user, Address shippingAddress, Cart cart, PAYMENT_METHOD paymentMethod) {
         shippingAddress = addressRepository.save(shippingAddress);
         user.getAddresses().add(shippingAddress);
-
         Map<Long, List<CartItem>> items =  cart.getCartItems().stream().collect(Collectors.groupingBy(item -> item.getProduct().getSeller().getId()));
-
-
-
         List<Order> orders = new ArrayList<>();
         List<Product> products = new ArrayList<>();
         for(Map.Entry<Long, List<CartItem>> entry : items.entrySet()) {
-
-
-
             Long sellerId = entry.getKey();
-
             List<CartItem> cartItems = entry.getValue();
-
-
-
             int totalOrderPrice = cartItems.stream().mapToInt(
                     CartItem::getSellingPrice
             ).sum();
-
             int totalMrpPrice = cartItems.stream().mapToInt(
                     CartItem::getMrpPrice
             ).sum();
-
             int totalItem = cartItems.stream().mapToInt(CartItem::getQuantity).sum();
-
             Order createdOrder = new Order();
             createdOrder.getPaymentDetails().setPaymentMethod(paymentMethod);
             createdOrder.setUser(user);
@@ -80,19 +66,13 @@ public class OrderServiceImpl implements OrderService {
             createdOrder = orderRepository.save(createdOrder);
             List<OrderItem> orderItems = new ArrayList<>();
             for (CartItem cartItem : cartItems) {
-
                 if(cartItem.getQuantity() > cartItem.getProduct().getQuantity()){
                     throw new AppException(cartItem.getProduct().getTitle() + ": stock unavailable");
 
                 }
-
-
                 Product product = cartItem.getProduct();
                 product.setQuantity(product.getQuantity() - cartItem.getQuantity());
                 products.add(product);
-
-
-
                 OrderItem orderItem = new OrderItem();
                 orderItem.setProduct(cartItem.getProduct());
                 orderItem.setQuantity(cartItem.getQuantity());
@@ -103,7 +83,6 @@ public class OrderServiceImpl implements OrderService {
                 orderItem.setOrder(createdOrder);
                 orderItems.add(orderItem);
             }
-
             cart.setDiscount(0);
             cart.getCartItems().clear();
             cart.setTotalMrpPrice(0);
@@ -111,16 +90,11 @@ public class OrderServiceImpl implements OrderService {
             cart.setTotalItems(0);
             cart.setCouponCode(null);
             cartRepository.save(cart);
-
-
             productRepository.saveAll(products);
             orderItemRepository.saveAll(orderItems);
             createdOrder.setOrderItems(orderItems);
             orders.add(createdOrder);
         }
-
-
-
         return orders;
     }
 

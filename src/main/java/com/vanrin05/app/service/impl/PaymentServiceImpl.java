@@ -52,7 +52,7 @@ public class PaymentServiceImpl implements PaymentService {
         Long amount = orders.stream().mapToLong(Order::getTotalSellingPrice).sum();
 
         PaymentOrder paymentOrder = new PaymentOrder();
-        paymentOrder.setPaymentExpiry(LocalDateTime.now().plusMinutes(15));
+        paymentOrder.setPaymentExpiry(LocalDateTime.now().plusMinutes(30));
         paymentOrder.setUser(user);
         paymentOrder.setPaymentOrderStatus(PAYMENT_ORDER_STATUS.PENDING);
         paymentOrder.setAmount(amount);
@@ -65,55 +65,94 @@ public class PaymentServiceImpl implements PaymentService {
         return paymentOrderRepository.save(paymentOrder);
     }
 
+    @Override
+    @Transactional
+    public PaymentOrder cancelPaymentOrder  (Long paymentId, User user) {
+        PaymentOrder paymentOrder = findById(paymentId);
+        if(!user.getId().equals(paymentOrder.getUser().getId())) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+        paymentOrder.setPaymentOrderStatus(PAYMENT_ORDER_STATUS.FAILED);
+        List<Order> orders = paymentOrder.getOrders();
+        for (Order order : orders) {
+            order.setOrderStatus(ORDER_STATUS.CANCELLED);
+            order.setCancelReason("User cancelled payment");
+            List<Product> products = new ArrayList<>();
+            for (OrderItem orderItem : order.getOrderItems()) {
+                Product product = orderItem.getProduct();
+                product.setQuantity(product.getQuantity() + orderItem.getQuantity());
+            }
+            productRepository.saveAll(products);
+        }
+
+        orderRepository.saveAll(orders);
+        return paymentOrderRepository.save(paymentOrder);
+    }
+
+
+
+    @Scheduled(fixedRate = 60_000)
+    @Transactional
+    public void cancelExpiredPayment() {
+        List<PaymentOrder> expiredPayments = paymentOrderRepository
+                .customFindByExpiredOnlinePayment(
+                        PAYMENT_ORDER_STATUS.PENDING,
+                        LocalDateTime.now()
+                );
+        Map<Long, Integer> productQuantityToAdd = new HashMap<>();
+        List<Order> orders = new ArrayList<>();
+        expiredPayments.forEach(payment -> {
+            payment.getOrders().forEach(order -> {
+                order.setCancelReason("Payment expired");
+                order.setOrderStatus(ORDER_STATUS.CANCELLED);
+                order.getOrderItems().forEach(item -> {
+                    productQuantityToAdd.merge(
+                            item.getProduct().getId(),
+                            item.getQuantity(),
+                            Integer::sum
+                    );
+                });
+                orders.add(order);
+            });
+
+
+            payment.setPaymentOrderStatus(PAYMENT_ORDER_STATUS.FAILED);
+        });
+
+        orderRepository.saveAll(orders);
+        productQuantityToAdd.forEach(productRepository::incrementProductQuantity);
+        paymentOrderRepository.saveAll(expiredPayments);
+    }
+
 
 
     @Transactional
     @Override
     public Boolean proceedPayment(Long paymentId)  {
-
         PaymentOrder paymentOrder = findById(paymentId);
         List<Order> orders = paymentOrder.getOrders();
-
-
         if (paymentOrder.getPaymentOrderStatus().equals(PAYMENT_ORDER_STATUS.PENDING)) {
-
-
-
             for (Order order : orders) {
                 order.getPaymentDetails().setPaymentStatus(PAYMENT_STATUS.COMPLETED);
                 order.setOrderStatus(ORDER_STATUS.PLACED);
             }
-
             orderRepository.saveAll(orders);
-
             paymentOrder.setPaymentOrderStatus(PAYMENT_ORDER_STATUS.SUCCESS);
             paymentOrderRepository.save(paymentOrder);
-
-
             Map<Long, Seller> sellers = sellerRepository.findAllByIdIn(orders.stream().map(Order::getSellerId).collect(Collectors.toSet())).stream().collect(Collectors.toMap(Seller::getId, seller -> seller));
-
             Map<Seller, SellerReport> sellerReports = sellerReportRepository.findBySellerIn(sellers.values().stream().toList()).stream().collect(Collectors.toMap(SellerReport::getSeller, sellerReport -> sellerReport));
-
-
-
             for (Order order : orders) {
                 transactionService.createTransaction(order);
-
                 Seller seller = sellers.get(order.getSellerId());
                 SellerReport sellerReport = sellerReports.get(seller);
-
                 sellerReport.setTotalOrders(sellerReport.getTotalOrders() + 1);
                 sellerReport.setTotalEarnings(sellerReport.getTotalEarnings() + order.getTotalSellingPrice());
                 sellerReport.setTotalSales(sellerReport.getTotalSales() + order.getOrderItems().size());
                 sellerReport.setTotalTransactions(sellerReport.getTotalTransactions() + 1);
             }
-
             sellerReportService.updateSellerReports(sellerReports.values().stream().toList());
-
-
+            return true;
         }
-
-
         return false;
     }
 
@@ -156,70 +195,7 @@ public class PaymentServiceImpl implements PaymentService {
         return session.getUrl();
     }
 
-    @Override
-    @Transactional
-    public PaymentOrder cancelPaymentOrder  (Long paymentId, User user) {
-        PaymentOrder paymentOrder = findById(paymentId);
-        if(!user.getId().equals(paymentOrder.getUser().getId())) {
-            throw new AppException(ErrorCode.UNAUTHORIZED);
-        }
-        paymentOrder.setPaymentOrderStatus(PAYMENT_ORDER_STATUS.FAILED);
-        List<Order> orders = paymentOrder.getOrders();
-        for (Order order : orders) {
-            order.setOrderStatus(ORDER_STATUS.CANCELLED);
-            order.setCancelReason("User cancelled payment");
-            List<Product> products = new ArrayList<>();
-            for (OrderItem orderItem : order.getOrderItems()) {
-                Product product = orderItem.getProduct();
-                product.setQuantity(product.getQuantity() + orderItem.getQuantity());
-            }
-            productRepository.saveAll(products);
-        }
 
-        orderRepository.saveAll(orders);
-        return paymentOrderRepository.save(paymentOrder);
-    }
-
-
-
-    @Scheduled(fixedRate = 60_000) // Chạy mỗi phút
-    @Transactional
-    public void cancelExpiredPayment() {
-        // 1. Lấy danh sách đơn hết hạn (đã quá thời gian hiện tại)
-        List<PaymentOrder> expiredPayments = paymentOrderRepository
-                .customFindByExpiredOnlinePayment(
-                        PAYMENT_ORDER_STATUS.PENDING,
-                        LocalDateTime.now()
-                );
-
-
-        Map<Long, Integer> productQuantityToAdd = new HashMap<>();
-        List<Order> orders = new ArrayList<>();
-
-        expiredPayments.forEach(payment -> {
-            payment.getOrders().forEach(order -> {
-                order.setCancelReason("Payment expired");
-                order.setOrderStatus(ORDER_STATUS.CANCELLED);
-                order.getOrderItems().forEach(item -> {
-                    productQuantityToAdd.merge(
-                            item.getProduct().getId(),
-                            item.getQuantity(),
-                            Integer::sum
-                    );
-                });
-                orders.add(order);
-            });
-
-
-            payment.setPaymentOrderStatus(PAYMENT_ORDER_STATUS.FAILED);
-        });
-
-        orderRepository.saveAll(orders);
-        productQuantityToAdd.forEach(productRepository::incrementProductQuantity);
-
-        // 5. Lưu trạng thái hủy đơn
-        paymentOrderRepository.saveAll(expiredPayments);
-    }
 
 
 

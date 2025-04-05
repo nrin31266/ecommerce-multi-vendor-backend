@@ -14,4 +14,6 @@ public interface OrderService {
     Order updateOrderStatus(Long orderId, ORDER_STATUS orderStatus);
     Order cancelOrder(Long orderId, User user);
     OrderItem findOrderItemById(Long orderItemId);
+
+//    Order cancelOrder
 }
