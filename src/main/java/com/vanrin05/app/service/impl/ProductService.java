@@ -158,6 +158,74 @@ public class ProductService {
         return subProductRepository.save(subProduct);
     }
 
+    @Transactional
+    public void deleteSubProduct(Long productId, String jwt, Long subProductId) {
+        Product product = productRepository.findById(productId).orElseThrow(() -> new AppException("Product not found"));
+        if (product.getIsSubProduct() != null && product.getIsSubProduct()) {
+            throw new AppException("This product is a sub product");
+        }
+        Seller seller = sellerService.getSellerProfile(jwt);
+        if(!seller.getId().equals(product.getSeller().getId())) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+        SubProduct subProduct = subProductRepository.findById(subProductId).orElseThrow(() -> new AppException("SubProduct not found"));
+        if (!product.getSubProducts().contains(subProduct)) {
+            throw new AppException("SubProduct does not belong to this Product");
+        }
+        product.setTotalSubProduct(product.getTotalSubProduct() - 1);
+        product.getSubProducts().remove(subProduct);
+        updateProductMinMaxPrices(product);
+
+
+        subProductRepository.delete(subProduct);
+
+    }
+
+    private void updateProductMinMaxPrices(Product product) {
+
+        Long newMinMrpPrice = null;
+        Long newMaxMrpPrice = null;
+        Long newMinSellingPrice = null;
+        Long newMaxSellingPrice = null;
+
+        for (SubProduct subProduct : product.getSubProducts()) {
+            if (newMinMrpPrice == null || subProduct.getMrpPrice() < newMinMrpPrice) {
+                newMinMrpPrice = subProduct.getMrpPrice();
+            }
+            if (newMaxMrpPrice == null || subProduct.getMrpPrice() > newMaxMrpPrice) {
+                newMaxMrpPrice = subProduct.getMrpPrice();
+            }
+
+            if (newMinSellingPrice == null || subProduct.getSellingPrice() < newMinSellingPrice) {
+                newMinSellingPrice = subProduct.getSellingPrice();
+            }
+            if (newMaxSellingPrice == null || subProduct.getSellingPrice() > newMaxSellingPrice) {
+                newMaxSellingPrice = subProduct.getSellingPrice();
+            }
+        }
+
+
+        product.setMinMrpPrice(newMinMrpPrice);
+        product.setMaxMrpPrice(newMaxMrpPrice);
+        product.setMinSellingPrice(newMinSellingPrice);
+        product.setMaxSellingPrice(newMaxSellingPrice);
+
+
+        if (product.getSubProducts().isEmpty()) {
+            product.setMinMrpPrice(null);
+            product.setMaxMrpPrice(null);
+            product.setMinSellingPrice(null);
+            product.setMaxSellingPrice(null);
+            product.setDiscountPercentage(0);
+        }else{
+            product.setDiscountPercentage(discountPercentage(product.getMaxMrpPrice(), product.getMinSellingPrice()));
+        }
+
+        productRepository.save(product);
+    }
+
+
+
 
     private int discountPercentage(double mrpPrice, double sellingPrice) {
 

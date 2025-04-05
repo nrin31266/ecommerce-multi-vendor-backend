@@ -69,7 +69,7 @@ public class Product {
     Set<ProductOptionType> optionsTypes = new HashSet<>();
     String optionKey;
 
-    @JsonIgnore
+    @JsonManagedReference
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SubProduct> subProducts = new ArrayList<>();
 

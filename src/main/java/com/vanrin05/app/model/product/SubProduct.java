@@ -1,5 +1,6 @@
 package com.vanrin05.app.model.product;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -26,12 +27,12 @@ public class SubProduct {
     @ElementCollection
     List<String> images;
 
-
+    @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;
 
-    @OneToMany(mappedBy = "subProduct")
+    @OneToMany(mappedBy = "subProduct", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<SubProductOption> options;
 
 

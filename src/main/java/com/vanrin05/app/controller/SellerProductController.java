@@ -54,4 +54,10 @@ public class SellerProductController {
         );
     }
 
+    @DeleteMapping("/sub/{productId}/delete/{subProductId}")
+    public ResponseEntity<Void> deleteSubProduct(@PathVariable Long productId,@RequestHeader("Authorization") String token, @PathVariable Long subProductId) {
+        productService.deleteSubProduct(productId, token, subProductId);
+        return ResponseEntity.ok().build();
+    }
+
 }
