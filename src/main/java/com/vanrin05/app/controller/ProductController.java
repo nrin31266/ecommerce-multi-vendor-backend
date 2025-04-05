@@ -1,6 +1,8 @@
 package com.vanrin05.app.controller;
 
+import com.vanrin05.app.dto.request.CreateSubProductReq;
 import com.vanrin05.app.model.product.Product;
+import com.vanrin05.app.model.product.SubProduct;
 import com.vanrin05.app.service.impl.ProductService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,8 @@ public class ProductController {
     public ResponseEntity<Product> getProductById(@PathVariable Long productId) {
         return ResponseEntity.ok(productService.findProductById(productId));
     }
+
+
 
     @GetMapping("/search")
     public ResponseEntity<List<Product>> searchProduct(@RequestParam(required = false) String query) {

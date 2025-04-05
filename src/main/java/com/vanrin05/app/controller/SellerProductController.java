@@ -1,8 +1,10 @@
 package com.vanrin05.app.controller;
 
 import com.vanrin05.app.dto.request.CreateProductReq;
+import com.vanrin05.app.dto.request.CreateSubProductReq;
 import com.vanrin05.app.dto.request.UpdateProductReq;
 import com.vanrin05.app.model.product.Product;
+import com.vanrin05.app.model.product.SubProduct;
 import com.vanrin05.app.service.impl.ProductService;
 import com.vanrin05.app.service.impl.SellerService;
 import lombok.AccessLevel;
@@ -43,6 +45,13 @@ public class SellerProductController {
     public ResponseEntity<Product> updateProduct(@PathVariable("productId") Long productId,
                                                  @RequestBody UpdateProductReq req) {
         return ResponseEntity.ok(productService.updateProduct(productId, req));
+    }
+
+    @PostMapping("/sub/{productId}")
+    public ResponseEntity<SubProduct> createSubProduct(@PathVariable Long productId, @RequestBody CreateSubProductReq req, @RequestHeader("Authorization") String token) {
+        return ResponseEntity.ok().body(
+                productService.addSubProductToProduct(productId, req, token)
+        );
     }
 
 }

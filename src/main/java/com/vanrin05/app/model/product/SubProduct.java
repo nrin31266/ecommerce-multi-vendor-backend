@@ -1,5 +1,6 @@
 package com.vanrin05.app.model.product;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -8,7 +9,7 @@ import java.util.List;
 import java.util.Set;
 
 @Entity
-@Data
+@Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -16,6 +17,7 @@ import java.util.Set;
 public class SubProduct {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     Long id;
     int quantity;
     Long mrpPrice;
@@ -23,6 +25,8 @@ public class SubProduct {
     int discountPercentage;
     @ElementCollection
     List<String> images;
+
+
     @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;

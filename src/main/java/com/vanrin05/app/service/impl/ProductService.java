@@ -50,28 +50,19 @@ public class ProductService {
 
     @Transactional
     public Product createProduct(CreateProductReq req, String jwt) {
-
-
         List<Category> categories = findAllCategoryInIds(List.of(req.getCategory1(), req.getCategory2(), req.getCategory3()));
         if(categories.size() < 3){
             throw new AppException(ErrorCode.CATEGORY_NOT_FOUND);
         }
-
         Product product = productMapper.toProduct(req);
         product.setCategory(categories.get(2));
 
-
         product.setSeller(sellerService.getSellerProfile(jwt));
-
-
 //        product= productRepository.save(product);
-
-
         if (req.getIsSubProduct() != null && req.getIsSubProduct()) {
             if(req.getMrpPrice() == null || req.getSellingPrice() == null || req.getQuantity() == null){
                 throw new AppException("Please fill full field of product");
             }
-
             SubProduct subProduct = new SubProduct();
             subProduct.setQuantity(req.getQuantity());
             subProduct.setImages(req.getImages());
@@ -84,7 +75,9 @@ public class ProductService {
             product.setSubProducts(List.of(subProduct));
             product.setDiscountPercentage(discountPercentage(req.getMrpPrice(), req.getSellingPrice()));
             product.setMinSellingPrice(req.getSellingPrice());
+            product.setMaxSellingPrice(req.getSellingPrice());
             product.setMaxMrpPrice(req.getMrpPrice());
+            product.setMinMrpPrice(req.getMrpPrice());
             product.setTotalSubProduct(1);
         } else {
             if (req.getOptionsTypes().isEmpty()) {
@@ -128,31 +121,41 @@ public class ProductService {
         Set<SubProductOption> subProductOptions = new HashSet<>();
         for (ProductOptionType productOptionType : product.getOptionsTypes()){
             SubProductOption subProductOption = SubProductOption.builder()
-                    .optionValue(productOptionType.getValue())
+                    .optionValue(req.getOptions().get(productOptionType.getValue()))
                     .optionType(productOptionType)
                     .subProduct(subProduct)
                     .build();
             subProductOptions.add(subProductOption);
         }
         subProduct.setOptions(subProductOptions);
-
+        subProduct.setDiscountPercentage(discountPercentage(req.getMrpPrice(), req.getSellingPrice()));
         subProduct.setProduct(product);
-        subProductRepository.save(subProduct);
+
         product.getSubProducts().add(subProduct);
-        if (product.getMinMrpPrice() > req.getMrpPrice()) {
+        // MRPs
+        if (product.getMinMrpPrice() == null || req.getMrpPrice() < product.getMinMrpPrice()) {
             product.setMinMrpPrice(req.getMrpPrice());
-        } else if (product.getMaxMrpPrice() < req.getMrpPrice()) {
+        }
+        if (product.getMaxMrpPrice() == null || req.getMrpPrice() > product.getMaxMrpPrice()) {
             product.setMaxMrpPrice(req.getMrpPrice());
         }
-        if (product.getMinSellingPrice() > req.getSellingPrice()) {
+
+        // Selling Prices
+        if (product.getMinSellingPrice() == null || req.getSellingPrice() < product.getMinSellingPrice()) {
             product.setMinSellingPrice(req.getSellingPrice());
-        } else if (product.getMaxSellingPrice() < req.getSellingPrice()) {
+        }
+        if (product.getMaxSellingPrice() == null || req.getSellingPrice() > product.getMaxSellingPrice()) {
             product.setMaxSellingPrice(req.getSellingPrice());
         }
-        product.setDiscountPercentage(discountPercentage(product.getMinSellingPrice(), product.getMaxMrpPrice()));
+
+
+
+
+        product.setTotalSubProduct(product.getTotalSubProduct() + 1);
+        product.setDiscountPercentage(discountPercentage(product.getMaxMrpPrice(), product.getMinSellingPrice()));
         productRepository.save(product);
 
-        return subProduct;
+        return subProductRepository.save(subProduct);
     }
 
 

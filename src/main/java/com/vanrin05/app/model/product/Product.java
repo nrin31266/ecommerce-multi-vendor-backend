@@ -1,6 +1,8 @@
 package com.vanrin05.app.model.product;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.vanrin05.app.model.Category;
 import com.vanrin05.app.model.Review;
 import com.vanrin05.app.model.Seller;
@@ -15,7 +17,7 @@ import java.util.List;
 import java.util.Set;
 
 @Entity(name = "products")
-@Data
+@Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -23,7 +25,7 @@ import java.util.Set;
 public class Product {
 
 
-
+    @EqualsAndHashCode.Include
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
