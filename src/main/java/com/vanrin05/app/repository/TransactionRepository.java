@@ -1,6 +1,6 @@
 package com.vanrin05.app.repository;
 
-import com.vanrin05.app.model.Transaction;
+import com.vanrin05.app.model.orderpayment.Transaction;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

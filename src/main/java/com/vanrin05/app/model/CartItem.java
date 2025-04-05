@@ -2,6 +2,7 @@ package com.vanrin05.app.model;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.vanrin05.app.model.product.Product;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;

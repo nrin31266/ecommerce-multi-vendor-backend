@@ -1,8 +1,8 @@
 package com.vanrin05.app.service;
 
-import com.vanrin05.app.model.Order;
+import com.vanrin05.app.model.orderpayment.Order;
 import com.vanrin05.app.model.Seller;
-import com.vanrin05.app.model.Transaction;
+import com.vanrin05.app.model.orderpayment.Transaction;
 
 import java.util.List;
 

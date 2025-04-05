@@ -2,7 +2,7 @@ package com.vanrin05.app.repository;
 
 import com.vanrin05.app.model.Cart;
 import com.vanrin05.app.model.CartItem;
-import com.vanrin05.app.model.Product;
+import com.vanrin05.app.model.product.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

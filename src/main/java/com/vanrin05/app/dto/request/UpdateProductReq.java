@@ -16,10 +16,9 @@ public class UpdateProductReq {
     int mrpPrice;
     int sellingPrice;
     int quantity;
-    String color;
     List<String> images;
     String category1;
     String category2;
     String category3;
-    String sizes;
+    String optionKey;
 }

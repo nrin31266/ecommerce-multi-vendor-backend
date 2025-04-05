@@ -2,6 +2,10 @@ package com.vanrin05.app.service.impl;
 
 import com.vanrin05.app.domain.ORDER_STATUS;
 import com.vanrin05.app.exception.ErrorCode;
+import com.vanrin05.app.model.orderpayment.Order;
+import com.vanrin05.app.model.orderpayment.OrderItem;
+import com.vanrin05.app.model.orderpayment.PaymentOrder;
+import com.vanrin05.app.model.product.Product;
 import com.vanrin05.app.repository.*;
 import com.vanrin05.app.service.SellerReportService;
 import com.vanrin05.app.service.TransactionService;
@@ -68,25 +72,26 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public PaymentOrder cancelPaymentOrder  (Long paymentId, User user) {
-        PaymentOrder paymentOrder = findById(paymentId);
-        if(!user.getId().equals(paymentOrder.getUser().getId())) {
-            throw new AppException(ErrorCode.UNAUTHORIZED);
-        }
-        paymentOrder.setPaymentOrderStatus(PAYMENT_ORDER_STATUS.FAILED);
-        List<Order> orders = paymentOrder.getOrders();
-        for (Order order : orders) {
-            order.setOrderStatus(ORDER_STATUS.CANCELLED);
-            order.setCancelReason("User cancelled payment");
-            List<Product> products = new ArrayList<>();
-            for (OrderItem orderItem : order.getOrderItems()) {
-                Product product = orderItem.getProduct();
-                product.setQuantity(product.getQuantity() + orderItem.getQuantity());
-            }
-            productRepository.saveAll(products);
-        }
-
-        orderRepository.saveAll(orders);
-        return paymentOrderRepository.save(paymentOrder);
+//        PaymentOrder paymentOrder = findById(paymentId);
+//        if(!user.getId().equals(paymentOrder.getUser().getId())) {
+//            throw new AppException(ErrorCode.UNAUTHORIZED);
+//        }
+//        paymentOrder.setPaymentOrderStatus(PAYMENT_ORDER_STATUS.FAILED);
+//        List<Order> orders = paymentOrder.getOrders();
+//        for (Order order : orders) {
+//            order.setOrderStatus(ORDER_STATUS.CANCELLED);
+//            order.setCancelReason("User cancelled payment");
+//            List<Product> products = new ArrayList<>();
+//            for (OrderItem orderItem : order.getOrderItems()) {
+//                Product product = orderItem.getProduct();
+//                product.setQuantity(product.getQuantity() + orderItem.getQuantity());
+//            }
+//            productRepository.saveAll(products);
+//        }
+//
+//        orderRepository.saveAll(orders);
+//        return paymentOrderRepository.save(paymentOrder);
+        return null;
     }
 
 
@@ -94,34 +99,34 @@ public class PaymentServiceImpl implements PaymentService {
     @Scheduled(fixedRate = 60_000)
     @Transactional
     public void cancelExpiredPayment() {
-        List<PaymentOrder> expiredPayments = paymentOrderRepository
-                .customFindByExpiredOnlinePayment(
-                        PAYMENT_ORDER_STATUS.PENDING,
-                        LocalDateTime.now()
-                );
-        Map<Long, Integer> productQuantityToAdd = new HashMap<>();
-        List<Order> orders = new ArrayList<>();
-        expiredPayments.forEach(payment -> {
-            payment.getOrders().forEach(order -> {
-                order.setCancelReason("Payment expired");
-                order.setOrderStatus(ORDER_STATUS.CANCELLED);
-                order.getOrderItems().forEach(item -> {
-                    productQuantityToAdd.merge(
-                            item.getProduct().getId(),
-                            item.getQuantity(),
-                            Integer::sum
-                    );
-                });
-                orders.add(order);
-            });
-
-
-            payment.setPaymentOrderStatus(PAYMENT_ORDER_STATUS.FAILED);
-        });
-
-        orderRepository.saveAll(orders);
-        productQuantityToAdd.forEach(productRepository::incrementProductQuantity);
-        paymentOrderRepository.saveAll(expiredPayments);
+//        List<PaymentOrder> expiredPayments = paymentOrderRepository
+//                .customFindByExpiredOnlinePayment(
+//                        PAYMENT_ORDER_STATUS.PENDING,
+//                        LocalDateTime.now()
+//                );
+//        Map<Long, Integer> productQuantityToAdd = new HashMap<>();
+//        List<Order> orders = new ArrayList<>();
+//        expiredPayments.forEach(payment -> {
+//            payment.getOrders().forEach(order -> {
+//                order.setCancelReason("Payment expired");
+//                order.setOrderStatus(ORDER_STATUS.CANCELLED);
+//                order.getOrderItems().forEach(item -> {
+//                    productQuantityToAdd.merge(
+//                            item.getProduct().getId(),
+//                            item.getQuantity(),
+//                            Integer::sum
+//                    );
+//                });
+//                orders.add(order);
+//            });
+//
+//
+//            payment.setPaymentOrderStatus(PAYMENT_ORDER_STATUS.FAILED);
+//        });
+//
+//        orderRepository.saveAll(orders);
+//        productQuantityToAdd.forEach(productRepository::incrementProductQuantity);
+//        paymentOrderRepository.saveAll(expiredPayments);
     }
 
 

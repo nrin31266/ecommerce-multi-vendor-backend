@@ -1,13 +1,18 @@
-package com.vanrin05.app.model;
+package com.vanrin05.app.model.product;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.vanrin05.app.model.Category;
+import com.vanrin05.app.model.Review;
+import com.vanrin05.app.model.Seller;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity(name = "products")
 @Data
@@ -25,12 +30,18 @@ public class Product {
     String title;
     @Column(length = 9999)
     String description;
-    int mrpPrice;
-    int sellingPrice;
+
+
+
+    Long minMrpPrice;
+    Long maxMrpPrice;
     int discountPercentage;
-    int quantity;
-    String color;
-    String sizes;
+    Long minSellingPrice;
+    Long maxSellingPrice;
+    int totalSubProduct;
+    Long totalSold;
+
+    Boolean isSubProduct = false;
 
 
     @ElementCollection
@@ -38,7 +49,7 @@ public class Product {
     @Column(name = "image_url")
     List<String> images;
     int numberRating;
-    @ManyToOne  // Không dùng cascade
+    @ManyToOne
     @JoinColumn(name = "category_id")
     Category category;
     @ManyToOne
@@ -48,10 +59,20 @@ public class Product {
     @JsonIgnore
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     List<Review> reviews;
+
+
+
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    Set<ProductOptionType> optionsTypes = new HashSet<>();
+    String optionKey;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SubProduct> subProducts = new ArrayList<>();
+
+
     @PrePersist
-
-
-
     protected void prePersist() {
         this.createdAt = LocalDateTime.now();
         this.reviews = new ArrayList<>();

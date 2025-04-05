@@ -1,5 +1,7 @@
-package com.vanrin05.app.model;
+package com.vanrin05.app.model.orderpayment;
 
+import com.vanrin05.app.model.Seller;
+import com.vanrin05.app.model.User;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;

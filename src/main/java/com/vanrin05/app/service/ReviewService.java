@@ -2,7 +2,7 @@ package com.vanrin05.app.service;
 
 import com.vanrin05.app.dto.request.CreateReviewRequest;
 import com.vanrin05.app.dto.request.UpdateReviewRequest;
-import com.vanrin05.app.model.Product;
+import com.vanrin05.app.model.product.Product;
 import com.vanrin05.app.model.Review;
 import com.vanrin05.app.model.User;
 

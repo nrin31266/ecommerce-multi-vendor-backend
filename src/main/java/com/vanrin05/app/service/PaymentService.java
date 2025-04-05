@@ -2,8 +2,8 @@ package com.vanrin05.app.service;
 
 import com.stripe.exception.StripeException;
 import com.vanrin05.app.domain.PAYMENT_METHOD;
-import com.vanrin05.app.model.Order;
-import com.vanrin05.app.model.PaymentOrder;
+import com.vanrin05.app.model.orderpayment.Order;
+import com.vanrin05.app.model.orderpayment.PaymentOrder;
 import com.vanrin05.app.model.User;
 
 import java.util.List;

@@ -1,6 +1,8 @@
 package com.vanrin05.app.controller;
 
 import com.vanrin05.app.model.*;
+import com.vanrin05.app.model.orderpayment.Order;
+import com.vanrin05.app.model.orderpayment.PaymentOrder;
 import com.vanrin05.app.service.PaymentService;
 import com.vanrin05.app.service.SellerReportService;
 import com.vanrin05.app.service.TransactionService;

@@ -1,4 +1,4 @@
-package com.vanrin05.app.model;
+package com.vanrin05.app.model.orderpayment;
 
 import com.vanrin05.app.domain.PAYMENT_METHOD;
 import com.vanrin05.app.domain.PAYMENT_STATUS;

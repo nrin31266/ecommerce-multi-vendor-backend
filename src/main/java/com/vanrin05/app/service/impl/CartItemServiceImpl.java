@@ -24,16 +24,17 @@ public class CartItemServiceImpl implements CartItemService {
 
     @Override
     public CartItem updateCartItem(Long userId, Long cartItemId, UpdateCartItemRequest updateCartItemRequest) {
-        CartItem cartItem = cartItemRepository.findCartItemById(cartItemId);
-        User cartItemUser = cartItem.getCart().getUser();
-        if (cartItemUser.getId().equals(userId)) {
-            cartItem.setQuantity(updateCartItemRequest.getQuantity());
-            cartItem.setMrpPrice(cartItem.getQuantity() * cartItem.getProduct().getMrpPrice());
-            cartItem.setSellingPrice(cartItem.getQuantity() * cartItem.getProduct().getSellingPrice());
-            return cartItemRepository.save(cartItem);
-        }else{
-            throw new AppException("You can't update this cart item");
-        }
+//        CartItem cartItem = cartItemRepository.findCartItemById(cartItemId);
+//        User cartItemUser = cartItem.getCart().getUser();
+//        if (cartItemUser.getId().equals(userId)) {
+//            cartItem.setQuantity(updateCartItemRequest.getQuantity());
+//            cartItem.setMrpPrice(cartItem.getQuantity() * cartItem.getProduct().getMrpPrice());
+//            cartItem.setSellingPrice(cartItem.getQuantity() * cartItem.getProduct().getSellingPrice());
+//            return cartItemRepository.save(cartItem);
+//        }else{
+//            throw new AppException("You can't update this cart item");
+//        }
+        return null;
     }
 
     @Override

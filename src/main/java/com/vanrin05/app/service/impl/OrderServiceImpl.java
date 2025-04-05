@@ -5,18 +5,18 @@ import com.vanrin05.app.domain.PAYMENT_METHOD;
 import com.vanrin05.app.domain.PAYMENT_STATUS;
 import com.vanrin05.app.exception.AppException;
 import com.vanrin05.app.model.*;
+import com.vanrin05.app.model.orderpayment.Order;
+import com.vanrin05.app.model.orderpayment.OrderItem;
+import com.vanrin05.app.model.product.Product;
 import com.vanrin05.app.repository.*;
 import com.vanrin05.app.service.OrderService;
-import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.aspectj.weaver.ast.Or;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -37,65 +37,66 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<Order> createOrders(User user, Address shippingAddress, Cart cart, PAYMENT_METHOD paymentMethod) {
-        shippingAddress = addressRepository.save(shippingAddress);
-        user.getAddresses().add(shippingAddress);
-        Map<Long, List<CartItem>> items =  cart.getCartItems().stream().collect(Collectors.groupingBy(item -> item.getProduct().getSeller().getId()));
-        List<Order> orders = new ArrayList<>();
-        List<Product> products = new ArrayList<>();
-        for(Map.Entry<Long, List<CartItem>> entry : items.entrySet()) {
-            Long sellerId = entry.getKey();
-            List<CartItem> cartItems = entry.getValue();
-            int totalOrderPrice = cartItems.stream().mapToInt(
-                    CartItem::getSellingPrice
-            ).sum();
-            int totalMrpPrice = cartItems.stream().mapToInt(
-                    CartItem::getMrpPrice
-            ).sum();
-            int totalItem = cartItems.stream().mapToInt(CartItem::getQuantity).sum();
-            Order createdOrder = new Order();
-            createdOrder.getPaymentDetails().setPaymentMethod(paymentMethod);
-            createdOrder.setUser(user);
-            createdOrder.setSellerId(sellerId);
-            createdOrder.setTotalMrpPrice(totalMrpPrice);
-            createdOrder.setTotalSellingPrice(totalOrderPrice);
-            createdOrder.setTotalItem(totalItem);
-            createdOrder.getPaymentDetails().setPaymentStatus(PAYMENT_STATUS.PENDING);
-            createdOrder.setShippingAddress(shippingAddress);
-            createdOrder.setOrderStatus((paymentMethod == PAYMENT_METHOD.CASH_ON_DELIVERY)? ORDER_STATUS.PLACED : ORDER_STATUS.PENDING);
-            createdOrder.setDiscount(discountPercentage(totalMrpPrice, totalOrderPrice));
-            createdOrder = orderRepository.save(createdOrder);
-            List<OrderItem> orderItems = new ArrayList<>();
-            for (CartItem cartItem : cartItems) {
-                if(cartItem.getQuantity() > cartItem.getProduct().getQuantity()){
-                    throw new AppException(cartItem.getProduct().getTitle() + ": stock unavailable");
-
-                }
-                Product product = cartItem.getProduct();
-                product.setQuantity(product.getQuantity() - cartItem.getQuantity());
-                products.add(product);
-                OrderItem orderItem = new OrderItem();
-                orderItem.setProduct(cartItem.getProduct());
-                orderItem.setQuantity(cartItem.getQuantity());
-                orderItem.setSize(cartItem.getSize());
-                orderItem.setUserId(user.getId());
-                orderItem.setSellingPrice(cartItem.getSellingPrice());
-                orderItem.setMrpPrice(cartItem.getMrpPrice());
-                orderItem.setOrder(createdOrder);
-                orderItems.add(orderItem);
-            }
-            cart.setDiscount(0);
-            cart.getCartItems().clear();
-            cart.setTotalMrpPrice(0);
-            cart.setTotalSellingPrice(0);
-            cart.setTotalItems(0);
-            cart.setCouponCode(null);
-            cartRepository.save(cart);
-            productRepository.saveAll(products);
-            orderItemRepository.saveAll(orderItems);
-            createdOrder.setOrderItems(orderItems);
-            orders.add(createdOrder);
-        }
-        return orders;
+//        shippingAddress = addressRepository.save(shippingAddress);
+//        user.getAddresses().add(shippingAddress);
+//        Map<Long, List<CartItem>> items =  cart.getCartItems().stream().collect(Collectors.groupingBy(item -> item.getProduct().getSeller().getId()));
+//        List<Order> orders = new ArrayList<>();
+//        List<Product> products = new ArrayList<>();
+//        for(Map.Entry<Long, List<CartItem>> entry : items.entrySet()) {
+//            Long sellerId = entry.getKey();
+//            List<CartItem> cartItems = entry.getValue();
+//            int totalOrderPrice = cartItems.stream().mapToInt(
+//                    CartItem::getSellingPrice
+//            ).sum();
+//            int totalMrpPrice = cartItems.stream().mapToInt(
+//                    CartItem::getMrpPrice
+//            ).sum();
+//            int totalItem = cartItems.stream().mapToInt(CartItem::getQuantity).sum();
+//            Order createdOrder = new Order();
+//            createdOrder.getPaymentDetails().setPaymentMethod(paymentMethod);
+//            createdOrder.setUser(user);
+//            createdOrder.setSellerId(sellerId);
+//            createdOrder.setTotalMrpPrice(totalMrpPrice);
+//            createdOrder.setTotalSellingPrice(totalOrderPrice);
+//            createdOrder.setTotalItem(totalItem);
+//            createdOrder.getPaymentDetails().setPaymentStatus(PAYMENT_STATUS.PENDING);
+//            createdOrder.setShippingAddress(shippingAddress);
+//            createdOrder.setOrderStatus((paymentMethod == PAYMENT_METHOD.CASH_ON_DELIVERY)? ORDER_STATUS.PLACED : ORDER_STATUS.PENDING);
+//            createdOrder.setDiscount(discountPercentage(totalMrpPrice, totalOrderPrice));
+//            createdOrder = orderRepository.save(createdOrder);
+//            List<OrderItem> orderItems = new ArrayList<>();
+//            for (CartItem cartItem : cartItems) {
+//                if(cartItem.getQuantity() > cartItem.getProduct().getQuantity()){
+//                    throw new AppException(cartItem.getProduct().getTitle() + ": stock unavailable");
+//
+//                }
+//                Product product = cartItem.getProduct();
+//                product.setQuantity(product.getQuantity() - cartItem.getQuantity());
+//                products.add(product);
+//                OrderItem orderItem = new OrderItem();
+//                orderItem.setProduct(cartItem.getProduct());
+//                orderItem.setQuantity(cartItem.getQuantity());
+//                orderItem.setSize(cartItem.getSize());
+//                orderItem.setUserId(user.getId());
+//                orderItem.setSellingPrice(cartItem.getSellingPrice());
+//                orderItem.setMrpPrice(cartItem.getMrpPrice());
+//                orderItem.setOrder(createdOrder);
+//                orderItems.add(orderItem);
+//            }
+//            cart.setDiscount(0);
+//            cart.getCartItems().clear();
+//            cart.setTotalMrpPrice(0);
+//            cart.setTotalSellingPrice(0);
+//            cart.setTotalItems(0);
+//            cart.setCouponCode(null);
+//            cartRepository.save(cart);
+//            productRepository.saveAll(products);
+//            orderItemRepository.saveAll(orderItems);
+//            createdOrder.setOrderItems(orderItems);
+//            orders.add(createdOrder);
+//        }
+//        return orders;
+        return  null;
     }
 
 

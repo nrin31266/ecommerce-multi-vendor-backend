@@ -25,6 +25,8 @@ public enum ErrorCode {
 
     // Cart
     CART_NOT_FOUND(9009, "Cart not found", HttpStatus.NOT_FOUND),
+
+    CATEGORY_NOT_FOUND(9010, "Category not found", HttpStatus.NOT_FOUND),
     ;
 
 

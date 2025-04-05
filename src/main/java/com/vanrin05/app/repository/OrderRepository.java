@@ -1,9 +1,8 @@
 package com.vanrin05.app.repository;
 
 import com.vanrin05.app.domain.PAYMENT_STATUS;
-import com.vanrin05.app.model.Order;
-import com.vanrin05.app.model.PaymentOrder;
-import com.vanrin05.app.model.User;
+import com.vanrin05.app.model.orderpayment.Order;
+import com.vanrin05.app.model.orderpayment.PaymentOrder;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;

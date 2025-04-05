@@ -2,7 +2,7 @@ package com.vanrin05.app.controller;
 
 import com.vanrin05.app.dto.request.CreateProductReq;
 import com.vanrin05.app.dto.request.UpdateProductReq;
-import com.vanrin05.app.model.Product;
+import com.vanrin05.app.model.product.Product;
 import com.vanrin05.app.service.impl.ProductService;
 import com.vanrin05.app.service.impl.SellerService;
 import lombok.AccessLevel;

@@ -1,15 +1,23 @@
 package com.vanrin05.app.service.impl;
 
 import com.vanrin05.app.dto.request.CreateProductReq;
+import com.vanrin05.app.dto.request.CreateSubProductReq;
 import com.vanrin05.app.dto.request.UpdateProductReq;
 import com.vanrin05.app.exception.AppException;
+import com.vanrin05.app.exception.ErrorCode;
 import com.vanrin05.app.mapper.ProductMapper;
 import com.vanrin05.app.model.Category;
-import com.vanrin05.app.model.Product;
+import com.vanrin05.app.model.Seller;
+import com.vanrin05.app.model.product.Product;
+import com.vanrin05.app.model.product.ProductOptionType;
+import com.vanrin05.app.model.product.SubProduct;
+import com.vanrin05.app.model.product.SubProductOption;
 import com.vanrin05.app.repository.CategoryRepository;
 import com.vanrin05.app.repository.ProductRepository;
+import com.vanrin05.app.repository.SubProductRepository;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -21,10 +29,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -33,24 +38,121 @@ import java.util.Map;
 public class ProductService {
     ProductRepository productRepository;
     ProductMapper productMapper;
-    CategoryRepository categoryRepository;
     CategoryService categoryService;
     SellerService sellerService;
+    SubProductRepository subProductRepository;
+    CategoryRepository categoryRepository;
 
+    private List<Category> findAllCategoryInIds(List<String> ids) {
+        return categoryRepository
+                .findAllByCategoryIdIn(ids);
+    }
+
+    @Transactional
     public Product createProduct(CreateProductReq req, String jwt) {
 
 
-        Category category1 = categoryService.findOrCreateCategory(req.getCategory1(), null, 1);
-        Category category2 = categoryService.findOrCreateCategory(req.getCategory2(), category1, 2);
-        Category category3 = categoryService.findOrCreateCategory(req.getCategory3(), category2, 3);
+        List<Category> categories = findAllCategoryInIds(List.of(req.getCategory1(), req.getCategory2(), req.getCategory3()));
+        if(categories.size() < 3){
+            throw new AppException(ErrorCode.CATEGORY_NOT_FOUND);
+        }
 
         Product product = productMapper.toProduct(req);
-        product.setCategory(category3);
-        product.setDiscountPercentage(discountPercentage(product.getMrpPrice(), product.getSellingPrice()));
+        product.setCategory(categories.get(2));
+
+
         product.setSeller(sellerService.getSellerProfile(jwt));
 
 
-        return productRepository.save(product);
+//        product= productRepository.save(product);
+
+
+        if (req.getIsSubProduct() != null && req.getIsSubProduct()) {
+            if(req.getMrpPrice() == null || req.getSellingPrice() == null || req.getQuantity() == null){
+                throw new AppException("Please fill full field of product");
+            }
+
+            SubProduct subProduct = new SubProduct();
+            subProduct.setQuantity(req.getQuantity());
+            subProduct.setImages(req.getImages());
+            subProduct.setSellingPrice(req.getSellingPrice());
+            subProduct.setMrpPrice(req.getMrpPrice());
+            subProduct.setDiscountPercentage(discountPercentage(req.getMrpPrice(), req.getSellingPrice()));
+            subProduct.setOptions(null);
+            subProduct.setProduct(product);
+//            subProductRepository.save(subProduct);
+            product.setSubProducts(List.of(subProduct));
+            product.setDiscountPercentage(discountPercentage(req.getMrpPrice(), req.getSellingPrice()));
+            product.setMinSellingPrice(req.getSellingPrice());
+            product.setMaxMrpPrice(req.getMrpPrice());
+            product.setTotalSubProduct(1);
+        } else {
+            if (req.getOptionsTypes().isEmpty()) {
+                throw new AppException("Options types are empty");
+            }
+            if (req.getOptionKey() != null && !req.getOptionsTypes().contains(req.getOptionKey())) {
+                throw new AppException("Option key invalid");
+            }
+            Set<ProductOptionType> productOptionTypes = new HashSet<>();
+            for(String optionType : req.getOptionsTypes()) {
+                productOptionTypes.add(
+                        ProductOptionType.builder()
+                                .value(optionType)
+                                .build()
+                );
+            }
+            product.setOptionsTypes(productOptionTypes);
+        }
+        productRepository.save(product);
+        return product;
+    }
+
+    @Transactional
+    public SubProduct addSubProductToProduct(Long productId, CreateSubProductReq req, String jwt) {
+        Product product = productRepository.findById(productId).orElseThrow(() -> new AppException("Product not found"));
+        if (product.getIsSubProduct() != null && product.getIsSubProduct()) {
+            throw new AppException("This product is a sub product");
+        }
+        Seller seller = sellerService.getSellerProfile(jwt);
+        if (!seller.getId().equals(product.getSeller().getId())) {
+            throw new AppException("Seller's id not match");
+        }
+
+        SubProduct subProduct = new SubProduct();
+        subProduct.setQuantity(req.getQuantity());
+        subProduct.setImages(req.getImages());
+        subProduct.setSellingPrice(req.getSellingPrice());
+        subProduct.setMrpPrice(req.getMrpPrice());
+//        subProduct.setOptions(null);
+
+        Set<SubProductOption> subProductOptions = new HashSet<>();
+        for (ProductOptionType productOptionType : product.getOptionsTypes()){
+            SubProductOption subProductOption = SubProductOption.builder()
+                    .optionValue(productOptionType.getValue())
+                    .optionType(productOptionType)
+                    .subProduct(subProduct)
+                    .build();
+            subProductOptions.add(subProductOption);
+        }
+        subProduct.setOptions(subProductOptions);
+
+        subProduct.setProduct(product);
+        subProductRepository.save(subProduct);
+        product.getSubProducts().add(subProduct);
+        if (product.getMinMrpPrice() > req.getMrpPrice()) {
+            product.setMinMrpPrice(req.getMrpPrice());
+        } else if (product.getMaxMrpPrice() < req.getMrpPrice()) {
+            product.setMaxMrpPrice(req.getMrpPrice());
+        }
+        if (product.getMinSellingPrice() > req.getSellingPrice()) {
+            product.setMinSellingPrice(req.getSellingPrice());
+        } else if (product.getMaxSellingPrice() < req.getSellingPrice()) {
+            product.setMaxSellingPrice(req.getSellingPrice());
+        }
+        product.setDiscountPercentage(discountPercentage(product.getMinSellingPrice(), product.getMaxMrpPrice()));
+        productRepository.save(product);
+
+        return subProduct;
     }
 
 
@@ -60,7 +162,7 @@ public class ProductService {
             throw new AppException("Mrp price is invalid. Mrp: " + mrpPrice + ", Selling price: " + sellingPrice);
         }
         double discount = (mrpPrice - sellingPrice);
-        double percentage = discount / sellingPrice * 100;
+        double percentage = discount / mrpPrice * 100;
         return (int) percentage;
     }
 
@@ -74,13 +176,13 @@ public class ProductService {
     }
 
     public Product updateProduct(Long productId, UpdateProductReq req) {
-        Category category1 = categoryService.findOrCreateCategory(req.getCategory1(), null, 1);
-        Category category2 = categoryService.findOrCreateCategory(req.getCategory2(), category1, 2);
-        Category category3 = categoryService.findOrCreateCategory(req.getCategory3(), category2, 3);
+        List<Category> categories = findAllCategoryInIds(List.of(req.getCategory1(), req.getCategory2(), req.getCategory3()));
+        if(categories.size() < 3){
+            throw new AppException(ErrorCode.CATEGORY_NOT_FOUND);
+        }
         Product product = this.findProductById(productId);
-        product.setCategory(category3);
+        product.setCategory(categories.get(2));
         productMapper.updateProduct(product, req);
-        product.setDiscountPercentage(discountPercentage(product.getMrpPrice(), product.getSellingPrice()));
         return productRepository.save(product);
     }
 
@@ -99,6 +201,7 @@ public class ProductService {
     ) {
         Specification<Product> specification = (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
+            predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("totalSubProduct"), 1));
 
             if (category != null) {
                 Join<Product, Category> joinCategory = root.join("category");

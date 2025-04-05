@@ -3,7 +3,7 @@ package com.vanrin05.app.service.impl;
 import com.vanrin05.app.exception.AppException;
 import com.vanrin05.app.model.Cart;
 import com.vanrin05.app.model.CartItem;
-import com.vanrin05.app.model.Product;
+import com.vanrin05.app.model.product.Product;
 import com.vanrin05.app.model.User;
 import com.vanrin05.app.repository.CartItemRepository;
 import com.vanrin05.app.repository.CartRepository;
@@ -26,25 +26,26 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public CartItem addCartItem(User user, Product product, String size, int quantity) {
-        Cart cart = cartRepository.findByUserId(user.getId());
-        Optional<CartItem> cartItemOptional = cartItemRepository.findByCartAndProductAndSize(cart, product, size);
-        if(cartItemOptional.isEmpty()){
-            CartItem cartItem = new CartItem();
-            cartItem.setProduct(product);
-            cartItem.setSize(size);
-            cartItem.setQuantity(quantity);
-            cartItem.setUserId(user.getId());
-
-            cartItem.setSellingPrice(product.getSellingPrice() * quantity);
-            cartItem.setMrpPrice(product.getMrpPrice() * quantity);
-
-            cart.getCartItems().add(cartItem);
-            cartItem.setCart(cart);
-
-            return cartItemRepository.save(cartItem);
-        }else{
-            return cartItemOptional.get();
-        }
+//        Cart cart = cartRepository.findByUserId(user.getId());
+//        Optional<CartItem> cartItemOptional = cartItemRepository.findByCartAndProductAndSize(cart, product, size);
+//        if(cartItemOptional.isEmpty()){
+//            CartItem cartItem = new CartItem();
+//            cartItem.setProduct(product);
+//            cartItem.setSize(size);
+//            cartItem.setQuantity(quantity);
+//            cartItem.setUserId(user.getId());
+//
+//            cartItem.setSellingPrice(product.getSellingPrice() * quantity);
+//            cartItem.setMrpPrice(product.getMrpPrice() * quantity);
+//
+//            cart.getCartItems().add(cartItem);
+//            cartItem.setCart(cart);
+//
+//            return cartItemRepository.save(cartItem);
+//        }else{
+//            return cartItemOptional.get();
+//        }
+        return null;
     }
 
     @Override

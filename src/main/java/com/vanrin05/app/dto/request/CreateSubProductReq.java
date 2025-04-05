@@ -4,6 +4,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Data
@@ -11,18 +12,10 @@ import java.util.Set;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class CreateProductReq {
-    String title;
-    String description;
+public class CreateSubProductReq {
     List<String> images;
-    String category1;
-    String category2;
-    String category3;
-    Set<String> optionsTypes;
-    String optionKey;
-    Boolean isSubProduct;
-    Integer quantity;
+    int quantity;
     Long mrpPrice;
     Long sellingPrice;
-
+    Map<String, String> options;
 }

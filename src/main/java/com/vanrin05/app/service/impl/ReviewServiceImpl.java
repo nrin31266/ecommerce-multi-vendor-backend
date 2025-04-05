@@ -5,7 +5,7 @@ import com.vanrin05.app.dto.request.UpdateReviewRequest;
 import com.vanrin05.app.exception.AppException;
 import com.vanrin05.app.exception.ErrorCode;
 import com.vanrin05.app.mapper.ReviewMapper;
-import com.vanrin05.app.model.Product;
+import com.vanrin05.app.model.product.Product;
 import com.vanrin05.app.model.Review;
 import com.vanrin05.app.model.User;
 import com.vanrin05.app.repository.ReviewRepository;

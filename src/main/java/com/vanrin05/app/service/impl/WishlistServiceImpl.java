@@ -1,6 +1,6 @@
 package com.vanrin05.app.service.impl;
 
-import com.vanrin05.app.model.Product;
+import com.vanrin05.app.model.product.Product;
 import com.vanrin05.app.model.User;
 import com.vanrin05.app.model.Wishlist;
 import com.vanrin05.app.repository.WishlistRepository;

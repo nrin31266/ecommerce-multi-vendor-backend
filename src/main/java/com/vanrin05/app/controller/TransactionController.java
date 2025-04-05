@@ -1,7 +1,7 @@
 package com.vanrin05.app.controller;
 
 import com.vanrin05.app.model.Seller;
-import com.vanrin05.app.model.Transaction;
+import com.vanrin05.app.model.orderpayment.Transaction;
 import com.vanrin05.app.service.TransactionService;
 import com.vanrin05.app.service.impl.SellerService;
 import lombok.AccessLevel;

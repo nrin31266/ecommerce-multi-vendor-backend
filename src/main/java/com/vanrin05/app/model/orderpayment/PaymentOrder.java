@@ -1,8 +1,9 @@
-package com.vanrin05.app.model;
+package com.vanrin05.app.model.orderpayment;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.vanrin05.app.domain.PAYMENT_METHOD;
 import com.vanrin05.app.domain.PAYMENT_ORDER_STATUS;
+import com.vanrin05.app.model.User;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;

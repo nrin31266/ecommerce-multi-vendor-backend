@@ -1,7 +1,7 @@
 package com.vanrin05.app.controller;
 
 import com.vanrin05.app.domain.ORDER_STATUS;
-import com.vanrin05.app.model.Order;
+import com.vanrin05.app.model.orderpayment.Order;
 import com.vanrin05.app.model.Seller;
 import com.vanrin05.app.service.OrderService;
 import com.vanrin05.app.service.impl.SellerService;

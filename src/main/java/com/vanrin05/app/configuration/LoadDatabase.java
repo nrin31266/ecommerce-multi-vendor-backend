@@ -4,6 +4,7 @@ import com.vanrin05.app.data.CategoriesData;
 import com.vanrin05.app.domain.ACCOUNT_STATUS;
 import com.vanrin05.app.domain.USER_ROLE;
 import com.vanrin05.app.model.*;
+import com.vanrin05.app.model.product.Product;
 import com.vanrin05.app.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -81,6 +82,8 @@ public class LoadDatabase {
                 allCategories.addAll(CategoriesData.MEN_LEVEL_THREE);
                 allCategories.addAll(CategoriesData.WOMEN_LEVEL_TWO);
                 allCategories.addAll(CategoriesData.WOMEN_LEVEL_THREE);
+                allCategories.addAll(CategoriesData.HOME_FURNITURE_LEVEL_TWO);
+                allCategories.addAll(CategoriesData.HOME_FURNITURE_LEVEL_THREE);
                 allCategories.addAll(CategoriesData.ELECTRONICS_LEVEL_TWO);
                 allCategories.addAll(CategoriesData.ELECTRONICS_LEVEL_THREE);
 
@@ -90,9 +93,9 @@ public class LoadDatabase {
 
 
 
-                List<Product> allProducts = productList(savedCategories, savedSellers.get(0), savedSellers.get(1), savedSellers.get(2));
-
-                productRepository.saveAll(allProducts);
+//                List<Product> allProducts = productList(savedCategories, savedSellers.get(0), savedSellers.get(1), savedSellers.get(2));
+//
+//                productRepository.saveAll(allProducts);
 
 
 
@@ -294,88 +297,88 @@ public class LoadDatabase {
 
 
 
-     private List<Product> productList(Map<String, Category> savedCategories, Seller seller1, Seller seller2, Seller seller3) {
-        return Arrays.asList(
-                Product.builder()
-
-                        .title("Heavyweight Tee")
-                        .description("Heavyweight Tee")
-                        .mrpPrice(3000000)
-                        .sellingPrice(1000000)
-                        .discountPercentage(200)
-                        .quantity(321)
-                        .color("#000080")
-                        .sizes("S, M, L, XL, 2XL, 3XL, 4XL")
-                        .images(Arrays.asList(
-                                "https://firebasestorage.googleapis.com/v0/b/crested-mercury-452707-e8.firebasestorage.app/o/ecommerce_project1%2Fimages%2F1742510732174-NonBranded_Mens_HeavyweightTee_Navy_Mock_720x.webp?alt=media&token=e6c9afe5-2d1b-4ba6-8e14-05e173ce2e24",
-                                "https://firebasestorage.googleapis.com/v0/b/crested-mercury-452707-e8.firebasestorage.app/o/ecommerce_project1%2Fimages%2F1742510732175-NonBranded_Mens_Heavyweight_Tees_Zac_Navy_Front_720x.webp?alt=media&token=bd26dc80-113d-4639-a7db-710ab37243f5"
-                        ))
-                        .numberRating(0)
-                        .category(savedCategories.get("men_tops_tshirts"))
-                        .seller(seller1)
-                        .createdAt(LocalDateTime.parse("2025-03-21T05:45:33.133478"))
-                        .build(),
-
-                Product.builder()
-
-                        .title("Evergreen Vintage Tee")
-                        .description("Evergreen Vintage Tee")
-                        .mrpPrice(1300000)
-                        .sellingPrice(200000)
-                        .discountPercentage(0)
-                        .quantity(12)
-                        .color("#008080")
-                        .sizes("S, M, L, XL, 2XL, 3XL, 4XL")
-                        .images(Arrays.asList(
-                                "https://firebasestorage.googleapis.com/v0/b/crested-mercury-452707-e8.firebasestorage.app/o/ecommerce_project1%2Fimages%2F1742510797626-Evergreen_Mens_Tee_Mock_Front_2048x.webp?alt=media&token=a07adef0-0b25-4e25-ab01-9aaa2403a95e",
-                                "https://firebasestorage.googleapis.com/v0/b/crested-mercury-452707-e8.firebasestorage.app/o/ecommerce_project1%2Fimages%2F1742510797627-Evergreen_Mens_Tee_Front_2048x.webp?alt=media&token=9978573a-3152-4085-8634-79ab3969216f"
-                        ))
-                        .numberRating(0)
-                        .category(
-                               savedCategories.get("men_tops_tshirts"))
-                        .seller(seller2)
-                        .createdAt(LocalDateTime.parse("2025-03-21T05:46:40.231542"))
-                        .build(),
-                Product.builder()
-
-                        .title("Polo - Branded")
-                        .description("Polo - Branded")
-                        .mrpPrice(400000)
-                        .sellingPrice(50000)
-                        .discountPercentage(0)
-                        .quantity(3)
-                        .color("#0000FF")
-                        .sizes("S, M, L, XL, 2XL, 3XL, 4XL")
-                        .images(Arrays.asList(
-                                "https://firebasestorage.googleapis.com/v0/b/crested-mercury-452707-e8.firebasestorage.app/o/ecommerce_project1%2Fimages%2F1742511367126-Branded_Mens_Polos_RoyalBlue_Front_720x.webp?alt=media&token=eabc2e3f-76fb-4b91-b366-a62229667f72",
-                                "https://firebasestorage.googleapis.com/v0/b/crested-mercury-452707-e8.firebasestorage.app/o/ecommerce_project1%2Fimages%2F1742511367127-Mens_SSPolo_Branded_RoyalBlue_Front.jpg?alt=media&token=b8a9f5d8-502c-4bf3-a95d-aecae905c564"
-                        ))
-                        .numberRating(0)
-                        .category(savedCategories.get("men_tops_polo"))
-                        .seller(seller3)
-                        .createdAt(LocalDateTime.parse("2025-03-21T05:56:10.180944"))
-                        .build(),
-                Product.builder()
-
-                        .title("Pullover Hoodie (Classic Pocket) - Non-Branded")
-                        .description("Pullover Hoodie (Classic Pocket) - Non-Branded")
-                        .mrpPrice(1000000)
-                        .sellingPrice(300000)
-                        .discountPercentage(0)
-                        .quantity(12)
-                        .color("#000000")
-                        .sizes("S, M, L, XL, 2XL, 3XL, 4XL")
-                        .images(Arrays.asList(
-                                "https://firebasestorage.googleapis.com/v0/b/crested-mercury-452707-e8.firebasestorage.app/o/ecommerce_project1%2Fimages%2F1742510689621-PulloverHoodie_Mens_NonBranded_Black_Front_2048x.webp?alt=media&token=d0308739-f055-4566-9d9d-a0dd34eed7c3",
-                                "https://firebasestorage.googleapis.com/v0/b/crested-mercury-452707-e8.firebasestorage.app/o/ecommerce_project1%2Fimages%2F1742510689622-KangarooNB_Mens_Hoodie_Black_Front_2048x.webp?alt=media&token=4d5994e9-3d5e-48cc-a4c2-b140908d46cc",
-                                "https://firebasestorage.googleapis.com/v0/b/crested-mercury-452707-e8.firebasestorage.app/o/ecommerce_project1%2Fimages%2F1742510689622-KangarooNB_Mens_Hoodie_Black_Back.jpg?alt=media&token=d264bf4f-8121-45f5-b4b9-b4519b6116f1"
-                        ))
-                        .numberRating(0)
-                        .category(savedCategories.get("men_tops_hoodies"))
-                        .seller(seller1)
-                        .createdAt(LocalDateTime.parse("2025-03-21T05:44:50.746251"))
-                        .build()
-        );
-    }
+//     private List<Product> productList(Map<String, Category> savedCategories, Seller seller1, Seller seller2, Seller seller3) {
+//        return Arrays.asList(
+//                Product.builder()
+//
+//                        .title("Heavyweight Tee")
+//                        .description("Heavyweight Tee")
+//                        .mrpPrice(3000000)
+//                        .sellingPrice(1000000)
+//                        .discountPercentage(200)
+//                        .quantity(321)
+//                        .color("#000080")
+//                        .sizes("S, M, L, XL, 2XL, 3XL, 4XL")
+//                        .images(Arrays.asList(
+//                                "https://firebasestorage.googleapis.com/v0/b/crested-mercury-452707-e8.firebasestorage.app/o/ecommerce_project1%2Fimages%2F1742510732174-NonBranded_Mens_HeavyweightTee_Navy_Mock_720x.webp?alt=media&token=e6c9afe5-2d1b-4ba6-8e14-05e173ce2e24",
+//                                "https://firebasestorage.googleapis.com/v0/b/crested-mercury-452707-e8.firebasestorage.app/o/ecommerce_project1%2Fimages%2F1742510732175-NonBranded_Mens_Heavyweight_Tees_Zac_Navy_Front_720x.webp?alt=media&token=bd26dc80-113d-4639-a7db-710ab37243f5"
+//                        ))
+//                        .numberRating(0)
+//                        .category(savedCategories.get("men_tops_tshirts"))
+//                        .seller(seller1)
+//                        .createdAt(LocalDateTime.parse("2025-03-21T05:45:33.133478"))
+//                        .build(),
+//
+//                Product.builder()
+//
+//                        .title("Evergreen Vintage Tee")
+//                        .description("Evergreen Vintage Tee")
+//                        .mrpPrice(1300000)
+//                        .sellingPrice(200000)
+//                        .discountPercentage(0)
+//                        .quantity(12)
+//                        .color("#008080")
+//                        .sizes("S, M, L, XL, 2XL, 3XL, 4XL")
+//                        .images(Arrays.asList(
+//                                "https://firebasestorage.googleapis.com/v0/b/crested-mercury-452707-e8.firebasestorage.app/o/ecommerce_project1%2Fimages%2F1742510797626-Evergreen_Mens_Tee_Mock_Front_2048x.webp?alt=media&token=a07adef0-0b25-4e25-ab01-9aaa2403a95e",
+//                                "https://firebasestorage.googleapis.com/v0/b/crested-mercury-452707-e8.firebasestorage.app/o/ecommerce_project1%2Fimages%2F1742510797627-Evergreen_Mens_Tee_Front_2048x.webp?alt=media&token=9978573a-3152-4085-8634-79ab3969216f"
+//                        ))
+//                        .numberRating(0)
+//                        .category(
+//                               savedCategories.get("men_tops_tshirts"))
+//                        .seller(seller2)
+//                        .createdAt(LocalDateTime.parse("2025-03-21T05:46:40.231542"))
+//                        .build(),
+//                Product.builder()
+//
+//                        .title("Polo - Branded")
+//                        .description("Polo - Branded")
+//                        .mrpPrice(400000)
+//                        .sellingPrice(50000)
+//                        .discountPercentage(0)
+//                        .quantity(3)
+//                        .color("#0000FF")
+//                        .sizes("S, M, L, XL, 2XL, 3XL, 4XL")
+//                        .images(Arrays.asList(
+//                                "https://firebasestorage.googleapis.com/v0/b/crested-mercury-452707-e8.firebasestorage.app/o/ecommerce_project1%2Fimages%2F1742511367126-Branded_Mens_Polos_RoyalBlue_Front_720x.webp?alt=media&token=eabc2e3f-76fb-4b91-b366-a62229667f72",
+//                                "https://firebasestorage.googleapis.com/v0/b/crested-mercury-452707-e8.firebasestorage.app/o/ecommerce_project1%2Fimages%2F1742511367127-Mens_SSPolo_Branded_RoyalBlue_Front.jpg?alt=media&token=b8a9f5d8-502c-4bf3-a95d-aecae905c564"
+//                        ))
+//                        .numberRating(0)
+//                        .category(savedCategories.get("men_tops_polo"))
+//                        .seller(seller3)
+//                        .createdAt(LocalDateTime.parse("2025-03-21T05:56:10.180944"))
+//                        .build(),
+//                Product.builder()
+//
+//                        .title("Pullover Hoodie (Classic Pocket) - Non-Branded")
+//                        .description("Pullover Hoodie (Classic Pocket) - Non-Branded")
+//                        .mrpPrice(1000000)
+//                        .sellingPrice(300000)
+//                        .discountPercentage(0)
+//                        .quantity(12)
+//                        .color("#000000")
+//                        .sizes("S, M, L, XL, 2XL, 3XL, 4XL")
+//                        .images(Arrays.asList(
+//                                "https://firebasestorage.googleapis.com/v0/b/crested-mercury-452707-e8.firebasestorage.app/o/ecommerce_project1%2Fimages%2F1742510689621-PulloverHoodie_Mens_NonBranded_Black_Front_2048x.webp?alt=media&token=d0308739-f055-4566-9d9d-a0dd34eed7c3",
+//                                "https://firebasestorage.googleapis.com/v0/b/crested-mercury-452707-e8.firebasestorage.app/o/ecommerce_project1%2Fimages%2F1742510689622-KangarooNB_Mens_Hoodie_Black_Front_2048x.webp?alt=media&token=4d5994e9-3d5e-48cc-a4c2-b140908d46cc",
+//                                "https://firebasestorage.googleapis.com/v0/b/crested-mercury-452707-e8.firebasestorage.app/o/ecommerce_project1%2Fimages%2F1742510689622-KangarooNB_Mens_Hoodie_Black_Back.jpg?alt=media&token=d264bf4f-8121-45f5-b4b9-b4519b6116f1"
+//                        ))
+//                        .numberRating(0)
+//                        .category(savedCategories.get("men_tops_hoodies"))
+//                        .seller(seller1)
+//                        .createdAt(LocalDateTime.parse("2025-03-21T05:44:50.746251"))
+//                        .build()
+//        );
+//    }
 
 }

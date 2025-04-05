@@ -1,8 +1,8 @@
 package com.vanrin05.app.service.impl;
 
-import com.vanrin05.app.model.Order;
+import com.vanrin05.app.model.orderpayment.Order;
 import com.vanrin05.app.model.Seller;
-import com.vanrin05.app.model.Transaction;
+import com.vanrin05.app.model.orderpayment.Transaction;
 import com.vanrin05.app.repository.SellerRepository;
 import com.vanrin05.app.repository.TransactionRepository;
 import com.vanrin05.app.service.TransactionService;
