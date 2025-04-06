@@ -2,8 +2,8 @@ package com.vanrin05.app.service.impl;
 
 import com.vanrin05.app.domain.COUPON_TYPE;
 import com.vanrin05.app.exception.AppException;
-import com.vanrin05.app.model.Cart;
-import com.vanrin05.app.model.Coupon;
+import com.vanrin05.app.model.cart.Cart;
+import com.vanrin05.app.model.cart.Coupon;
 import com.vanrin05.app.model.User;
 import com.vanrin05.app.repository.CartRepository;
 import com.vanrin05.app.repository.CouponRepository;
@@ -43,10 +43,7 @@ public class CouponServiceImpl implements CouponService {
             user.getUsedCoupons().add(coupon);
             userRepository.save(user);
 
-            double discountPrice = coupon.getCouponType().equals(COUPON_TYPE.PERCENTAGE) ?
-                    (cart.getTotalSellingPrice() * coupon.getDiscountValue() / 100) : (coupon.getDiscountValue());
-
-            cart.setTotalSellingPrice(cart.getTotalSellingPrice() - discountPrice);
+            cart.setTotalSellingPrice(calculateDiscountPrice(cart.getTotalSellingPrice(), coupon.getCouponType(), coupon.getDiscountValue()));
             cart.setCouponCode(code);
             cartRepository.save(cart);
         }
@@ -58,11 +55,20 @@ public class CouponServiceImpl implements CouponService {
     public Cart removeCoupon(String code, User user) {
         Coupon coupon = couponRepository.findByCode(code).orElseThrow(() -> new AppException("Coupon not found"));
         Cart cart = cartRepository.findByUserId(user.getId());
-        double discountPrice = coupon.getCouponType().equals(COUPON_TYPE.PERCENTAGE) ?
-                (cart.getTotalSellingPrice() * coupon.getDiscountValue() / 100) : (coupon.getDiscountValue());
-        cart.setTotalSellingPrice(cart.getTotalSellingPrice() + discountPrice);
+
+
+        cart.setTotalSellingPrice(calculateDiscountPrice(cart.getTotalSellingPrice(), coupon.getCouponType(), coupon.getDiscountValue()));
         cart.setCouponCode(null);
         return cartRepository.save(cart);
+    }
+
+    private Long calculateDiscountPrice(Long totalSellingPrice, COUPON_TYPE couponType, Long discountValue) {
+
+        if (couponType.equals(COUPON_TYPE.PERCENTAGE)) {
+            return Math.round(totalSellingPrice * discountValue / 100.0);
+        } else {
+            return discountValue;
+        }
     }
 
     @Override

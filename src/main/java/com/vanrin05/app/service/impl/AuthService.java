@@ -8,7 +8,7 @@ import com.vanrin05.app.dto.response.AuthResponse;
 import com.vanrin05.app.exception.AppException;
 import com.vanrin05.app.exception.ErrorCode;
 import com.vanrin05.app.mapper.UserMapper;
-import com.vanrin05.app.model.Cart;
+import com.vanrin05.app.model.cart.Cart;
 import com.vanrin05.app.model.User;
 import com.vanrin05.app.model.VerificationCode;
 import com.vanrin05.app.repository.CartRepository;

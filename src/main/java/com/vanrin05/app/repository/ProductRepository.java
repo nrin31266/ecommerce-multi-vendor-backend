@@ -18,6 +18,9 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
            "OR (:query is null or lower(p.category.name) LIKE lower(concat('%', :query, '%'))) ")
     List<Product> searchProduct(@Param("query")String query);
 
+
+
+
 //    @Modifying
 //    @Query("UPDATE products p SET p.quantity = p.quantity + :quantity WHERE p.id = :id")
 //    void incrementProductQuantity(@Param("id") Long id, @Param("quantity") int quantity);

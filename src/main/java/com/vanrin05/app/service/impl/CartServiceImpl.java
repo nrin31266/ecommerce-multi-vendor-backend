@@ -1,10 +1,15 @@
 package com.vanrin05.app.service.impl;
 
+import com.vanrin05.app.dto.CartDto;
+import com.vanrin05.app.dto.CartItemDto;
 import com.vanrin05.app.exception.AppException;
-import com.vanrin05.app.model.Cart;
-import com.vanrin05.app.model.CartItem;
+import com.vanrin05.app.mapper.CartItemMapper;
+import com.vanrin05.app.mapper.CartMapper;
+import com.vanrin05.app.model.cart.Cart;
+import com.vanrin05.app.model.cart.CartItem;
 import com.vanrin05.app.model.product.Product;
 import com.vanrin05.app.model.User;
+import com.vanrin05.app.model.product.SubProduct;
 import com.vanrin05.app.repository.CartItemRepository;
 import com.vanrin05.app.repository.CartRepository;
 import com.vanrin05.app.service.CartService;
@@ -22,44 +27,56 @@ public class CartServiceImpl implements CartService {
 
     CartRepository cartRepository;
     CartItemRepository cartItemRepository;
-
+    CartItemMapper cartItemMapper;
+    CartMapper cartMapper;
 
     @Override
-    public CartItem addCartItem(User user, Product product, String size, int quantity) {
-//        Cart cart = cartRepository.findByUserId(user.getId());
-//        Optional<CartItem> cartItemOptional = cartItemRepository.findByCartAndProductAndSize(cart, product, size);
-//        if(cartItemOptional.isEmpty()){
-//            CartItem cartItem = new CartItem();
-//            cartItem.setProduct(product);
-//            cartItem.setSize(size);
-//            cartItem.setQuantity(quantity);
-//            cartItem.setUserId(user.getId());
-//
-//            cartItem.setSellingPrice(product.getSellingPrice() * quantity);
-//            cartItem.setMrpPrice(product.getMrpPrice() * quantity);
-//
-//            cart.getCartItems().add(cartItem);
-//            cartItem.setCart(cart);
-//
-//            return cartItemRepository.save(cartItem);
-//        }else{
-//            return cartItemOptional.get();
-//        }
-        return null;
+    public CartItemDto addCartItem(User user, Product product, int quantity, SubProduct subProduct) {
+        if(!product.getSubProducts().contains(subProduct)) {
+            throw new AppException("Product does not have a sub product");
+        }
+
+        Cart cart = cartRepository.findByUserId(user.getId());
+        Optional<CartItem> cartItemOptional = cartItemRepository.findByCartAndProductAndSubProduct(cart, product, subProduct);
+        if(cartItemOptional.isEmpty()){
+
+
+            CartItem cartItem = new CartItem();
+            cartItem.setProduct(product);
+            cartItem.setSubProduct(subProduct);
+            cartItem.setQuantity(quantity);
+            cartItem.setUserId(user.getId());
+
+
+            cart.getCartItems().add(cartItem);
+            cartItem.setCart(cart);
+
+            return cartItemMapper.toCartItemDto( cartItemRepository.save(cartItem));
+        }else{
+            if(quantity <= 0){
+                throw new AppException("Quantity should be greater than 0");
+            }
+
+            CartItem cartItem = cartItemOptional.get();
+            cartItem.setQuantity(quantity);
+            cartItem.setCart(cart);
+
+            return cartItemMapper.toCartItemDto( cartItemRepository.save(cartItem));
+        }
     }
 
     @Override
-    public Cart findUserCart(User user) {
+    public CartDto findUserCart(User user) {
         Cart cart = cartRepository.findByUserId(user.getId());
 
-        int totalPrice = 0;
-        int totalDiscountedPrice = 0;
+        long totalPrice = 0L;
+        long totalDiscountedPrice = 0L;
         int totalItems = 0;
 
         for (CartItem cartItem : cart.getCartItems()) {
             totalItems += cartItem.getQuantity();
-            totalPrice += cartItem.getMrpPrice();
-            totalDiscountedPrice += cartItem.getSellingPrice();
+            totalPrice += (cartItem.getQuantity() * cartItem.getSubProduct().getMrpPrice());
+            totalDiscountedPrice += (cartItem.getSubProduct().getSellingPrice() * cartItem.getQuantity());
         }
 
         cart.setTotalItems(totalItems);
@@ -67,8 +84,10 @@ public class CartServiceImpl implements CartService {
         cart.setTotalMrpPrice(totalPrice);
         cart.setDiscount(discountPercentage(totalPrice, totalDiscountedPrice));
 
-        return cart;
+        return cartMapper.toCartDto(cart);
     }
+
+
 
     private int discountPercentage(double mrpPrice, double sellingPrice) {
 
@@ -76,7 +95,7 @@ public class CartServiceImpl implements CartService {
             throw new AppException("Mrp price is invalid. Mrp: " + mrpPrice + ", Selling price: " + sellingPrice);
         }
         double discount = (mrpPrice - sellingPrice);
-        double percentage = discount / sellingPrice * 100;
+        double percentage = discount / mrpPrice * 100;
         return (int) percentage;
     }
 }

@@ -4,6 +4,7 @@ package com.vanrin05.app.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.vanrin05.app.domain.USER_ROLE;
+import com.vanrin05.app.model.cart.Coupon;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;

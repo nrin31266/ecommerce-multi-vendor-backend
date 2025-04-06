@@ -1,5 +1,6 @@
 package com.vanrin05.app.service.impl;
 
+import com.vanrin05.app.dto.ProductDto;
 import com.vanrin05.app.dto.request.CreateProductReq;
 import com.vanrin05.app.dto.request.CreateSubProductReq;
 import com.vanrin05.app.dto.request.UpdateProductReq;
@@ -153,9 +154,13 @@ public class ProductService {
 
         product.setTotalSubProduct(product.getTotalSubProduct() + 1);
         product.setDiscountPercentage(discountPercentage(product.getMaxMrpPrice(), product.getMinSellingPrice()));
-        productRepository.save(product);
+        subProduct.setProduct(product);
 
         return subProductRepository.save(subProduct);
+    }
+
+    public SubProduct findSubProductById(Long subProductId) {
+        return subProductRepository.findById(subProductId).orElseThrow(() -> new AppException("SubProduct not found"));
     }
 
     @Transactional
@@ -261,7 +266,7 @@ public class ProductService {
         return productRepository.searchProduct(query);
     }
 
-    public Page<Product> getAllProduct(
+    public Page<ProductDto> getAllProduct(
             String category, String brand,
             String colors, String sizes,
             Integer minimumPrice, Integer maximumPrice,
@@ -321,7 +326,13 @@ public class ProductService {
         Sort sortOption = sort != null && sortMap.containsKey(sort) ? sortMap.get(sort) : Sort.unsorted();
         pageable = PageRequest.of(pageNumber != null ? (pageNumber - 1) : 0, 10, sortOption);
 
-        return productRepository.findAll(specification, pageable);
+        Page<Product> pageData = productRepository.findAll(specification, pageable);
+
+        Page<ProductDto> dtoPage = pageData.map(productMapper::toProductDto);
+
+
+        return dtoPage;
+
     }
 
     public List<Product> getProductsBySellerId(Long sellerId) {

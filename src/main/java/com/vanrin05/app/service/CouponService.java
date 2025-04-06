@@ -1,7 +1,7 @@
 package com.vanrin05.app.service;
 
-import com.vanrin05.app.model.Cart;
-import com.vanrin05.app.model.Coupon;
+import com.vanrin05.app.model.cart.Cart;
+import com.vanrin05.app.model.cart.Coupon;
 import com.vanrin05.app.model.User;
 
 import java.util.List;

@@ -4,7 +4,7 @@ import com.vanrin05.app.data.CategoriesData;
 import com.vanrin05.app.domain.ACCOUNT_STATUS;
 import com.vanrin05.app.domain.USER_ROLE;
 import com.vanrin05.app.model.*;
-import com.vanrin05.app.model.product.Product;
+import com.vanrin05.app.model.cart.Cart;
 import com.vanrin05.app.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,9 +13,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;

@@ -1,6 +1,7 @@
-package com.vanrin05.app.model;
+package com.vanrin05.app.model.cart;
 
 import com.vanrin05.app.domain.COUPON_TYPE;
+import com.vanrin05.app.model.User;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -22,13 +23,13 @@ public class Coupon {
 
     String code;
 
-    double discountValue;
+    Long discountValue;
 
     LocalDateTime validityStartDate;
 
     LocalDateTime validityEndDate;
 
-    double minimumOrderValue;
+    Long minimumOrderValue;
 
     boolean isActive;
 

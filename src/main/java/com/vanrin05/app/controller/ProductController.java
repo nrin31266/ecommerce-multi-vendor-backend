@@ -1,5 +1,6 @@
 package com.vanrin05.app.controller;
 
+import com.vanrin05.app.dto.ProductDto;
 import com.vanrin05.app.dto.request.CreateSubProductReq;
 import com.vanrin05.app.model.product.Product;
 import com.vanrin05.app.model.product.SubProduct;
@@ -36,7 +37,7 @@ public class ProductController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<Product>> getAllProducts(
+    public ResponseEntity<Page<ProductDto>> getAllProducts(
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String brand,
             @RequestParam(required = false) String colors,

@@ -1,8 +1,9 @@
-package com.vanrin05.app.model;
+package com.vanrin05.app.model.cart;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.vanrin05.app.model.product.Product;
+import com.vanrin05.app.model.product.SubProduct;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -23,10 +24,19 @@ public class CartItem {
     @JoinColumn(name = "cart_id")
     Cart cart;
     @ManyToOne
+
+    @JoinColumn(name = "product_id")
     Product product;
-    String size;
+
+    @ManyToOne
+    @JoinColumn(name = "sub_product_id")
+    SubProduct subProduct;
+
+
+//    String size;
     int quantity;
-    Integer mrpPrice;
-    Integer sellingPrice;
+
+//    Integer mrpPrice;
+//    Integer sellingPrice;
     Long userId;
 }

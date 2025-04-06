@@ -1,5 +1,6 @@
 package com.vanrin05.app.mapper;
 
+import com.vanrin05.app.dto.ProductDto;
 import com.vanrin05.app.dto.request.CreateProductReq;
 import com.vanrin05.app.dto.request.UpdateProductReq;
 import com.vanrin05.app.model.product.Product;
@@ -12,4 +13,6 @@ public interface ProductMapper {
     @Mapping(ignore = true, target = "optionsTypes")
     Product toProduct(CreateProductReq createProductReq);
     void updateProduct(@MappingTarget Product product, UpdateProductReq updateProductReq);
+
+    ProductDto toProductDto(Product product);
 }

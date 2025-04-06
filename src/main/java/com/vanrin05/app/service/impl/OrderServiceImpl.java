@@ -5,9 +5,9 @@ import com.vanrin05.app.domain.PAYMENT_METHOD;
 import com.vanrin05.app.domain.PAYMENT_STATUS;
 import com.vanrin05.app.exception.AppException;
 import com.vanrin05.app.model.*;
+import com.vanrin05.app.model.cart.Cart;
 import com.vanrin05.app.model.orderpayment.Order;
 import com.vanrin05.app.model.orderpayment.OrderItem;
-import com.vanrin05.app.model.product.Product;
 import com.vanrin05.app.repository.*;
 import com.vanrin05.app.service.OrderService;
 import jakarta.persistence.criteria.Predicate;
@@ -19,7 +19,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service

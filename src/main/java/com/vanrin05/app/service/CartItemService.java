@@ -2,7 +2,7 @@ package com.vanrin05.app.service;
 
 
 import com.vanrin05.app.dto.request.UpdateCartItemRequest;
-import com.vanrin05.app.model.CartItem;
+import com.vanrin05.app.model.cart.CartItem;
 
 public interface CartItemService {
     CartItem updateCartItem(Long userId, Long cartItemId, UpdateCartItemRequest updateCartItem);

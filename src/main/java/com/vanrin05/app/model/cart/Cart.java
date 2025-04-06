@@ -1,5 +1,6 @@
-package com.vanrin05.app.model;
+package com.vanrin05.app.model.cart;
 
+import com.vanrin05.app.model.User;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -20,10 +21,10 @@ public class Cart {
     @OneToOne
     User user;
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
-    Set<CartItem> cartItems;
-    double totalSellingPrice;
-    int totalItems;
-    int totalMrpPrice;
+    Set<CartItem> cartItems = new HashSet<>();
+    Long totalSellingPrice = 0L;
+    int totalItems = 0;
+    Long totalMrpPrice = 0L;
     int discount;
     String couponCode;
 
@@ -31,12 +32,5 @@ public class Cart {
         this.user = user;
     }
 
-    @PrePersist
-    protected void prePersist() {
-        this.cartItems = new HashSet<>();
-        totalSellingPrice = 0;
-        totalItems = 0;
-        totalMrpPrice = 0;
-        discount = 0;
-    }
+
 }

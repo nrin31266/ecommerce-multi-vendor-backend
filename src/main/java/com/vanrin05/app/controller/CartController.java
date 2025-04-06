@@ -1,11 +1,14 @@
 package com.vanrin05.app.controller;
 
+import com.vanrin05.app.dto.CartDto;
+import com.vanrin05.app.dto.CartItemDto;
 import com.vanrin05.app.dto.request.AddCartRequest;
 import com.vanrin05.app.dto.request.UpdateCartItemRequest;
-import com.vanrin05.app.model.Cart;
-import com.vanrin05.app.model.CartItem;
+import com.vanrin05.app.model.cart.Cart;
+import com.vanrin05.app.model.cart.CartItem;
 import com.vanrin05.app.model.product.Product;
 import com.vanrin05.app.model.User;
+import com.vanrin05.app.model.product.SubProduct;
 import com.vanrin05.app.service.CartItemService;
 import com.vanrin05.app.service.CartService;
 import com.vanrin05.app.service.impl.ProductService;
@@ -28,16 +31,18 @@ public class CartController {
     ProductService productService;
 
     @GetMapping
-    public ResponseEntity<Cart> findUserCart(@RequestHeader("Authorization") String jwt) {
+    public ResponseEntity<CartDto> findUserCart(@RequestHeader("Authorization") String jwt) {
         User user = userService.findUserByJwtToken(jwt);
         return ResponseEntity.ok(cartService.findUserCart(user));
     }
 
-    @PutMapping("/add")
-    public ResponseEntity<CartItem> addCartItem(@RequestBody AddCartRequest addCartRequest, @RequestHeader("Authorization") String jwt) {
+    @PutMapping("/add/{productId}/item/{subProductId}")
+    public ResponseEntity<CartItemDto> addCartItem(@RequestBody AddCartRequest addCartRequest, @RequestHeader("Authorization") String jwt,
+                                                   @PathVariable Long productId, @PathVariable Long subProductId) {
         User user = userService.findUserByJwtToken(jwt);
-        Product product = productService.findProductById(addCartRequest.getProductId());
-        return ResponseEntity.ok(cartService.addCartItem(user, product, addCartRequest.getSize(), addCartRequest.getQuantity()));
+        Product product = productService.findProductById(productId);
+        SubProduct subProduct = productService.findSubProductById(subProductId);
+        return ResponseEntity.ok(cartService.addCartItem(user, product, addCartRequest.getQuantity(), subProduct));
     }
 
     @DeleteMapping("/item/{cartItemId}")
