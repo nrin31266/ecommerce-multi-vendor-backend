@@ -167,7 +167,11 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderItem updateOrderItemStatus(Long orderId, ORDER_ITEM_STATUS orderItemStatus, Long orderItemId) {
+    public OrderItem updateOrderItemStatus(Long orderId, ORDER_ITEM_STATUS orderItemStatus, Long orderItemId,  Seller seller) {
+        OrderItem orderItem = findOrderItemById(orderItemId);
+        if(!seller.getId().equals(orderItem.getSellerId())) {
+            throw new AppException("Seller is not the seller");
+        }
 
         OrderItem orderStatus = findOrderItemById(orderItemId);
         orderStatus.setStatus(orderItemStatus);

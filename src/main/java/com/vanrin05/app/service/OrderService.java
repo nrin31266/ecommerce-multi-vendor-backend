@@ -17,7 +17,7 @@ public interface OrderService {
     Order findOrderById(Long orderId);
     List<Order> userOrdersHistory(Long userId);
     List<OrderItem> sellerOrders(Seller seller, ORDER_ITEM_STATUS orderItemStatus);
-    OrderItem updateOrderItemStatus(Long orderId, ORDER_ITEM_STATUS orderItemStatus, Long orderItemId);
+    OrderItem updateOrderItemStatus(Long orderId, ORDER_ITEM_STATUS orderItemStatus, Long orderItemId, Seller seller);
     Order cancelOrder(Order order, User user, String cancelReason);
     OrderItem findOrderItemById(Long orderItemId);
     OrderItem sellerCancelOrder(Order order, Seller seller, String cancelReason, OrderItem orderItem);

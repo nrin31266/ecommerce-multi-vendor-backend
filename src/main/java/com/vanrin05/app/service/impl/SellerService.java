@@ -44,8 +44,6 @@ public class SellerService {
     }
     public Seller getSellerProfile(String jwt){
         String email = jwtProvider.getEmailFromJwtToken(jwt);
-
-
         return this.getSellerByEmail(email);
     }
 
