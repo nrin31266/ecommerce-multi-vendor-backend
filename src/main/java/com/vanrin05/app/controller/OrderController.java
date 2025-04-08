@@ -11,10 +11,7 @@ import com.vanrin05.app.model.cart.Cart;
 import com.vanrin05.app.model.orderpayment.Order;
 import com.vanrin05.app.model.orderpayment.OrderItem;
 import com.vanrin05.app.model.orderpayment.Payment;
-import com.vanrin05.app.service.CartService;
-import com.vanrin05.app.service.OrderService;
-import com.vanrin05.app.service.PaymentService;
-import com.vanrin05.app.service.SellerReportService;
+import com.vanrin05.app.service.*;
 import com.vanrin05.app.service.impl.SellerService;
 import com.vanrin05.app.service.impl.UserService;
 import lombok.AccessLevel;
@@ -41,6 +38,7 @@ public class OrderController {
     SellerService sellerService;
     SellerReportService sellerReportService;
     PaymentService paymentService;
+    AddressService addressService;
 
 
     @Transactional(rollbackFor = Exception.class)
@@ -48,47 +46,35 @@ public class OrderController {
     public ResponseEntity<PaymentResponse> createOrder(
             @RequestBody CreateOrderRequest request,
             @RequestHeader("Authorization") String jwt
-            ) throws StripeException {
-//        User user = userService.findUserByJwtToken(jwt);
-//        Cart cart = cartService.findUserCart(user);
-//        PaymentResponse paymentResponse = new PaymentResponse();
-//
-//        // Create orders
-//        List<Order> orders = orderService.createOrders(user, shippingAddress, cart, paymentMethod);
-//
-//        if(paymentMethod.equals(PAYMENT_METHOD.CASH_ON_DELIVERY)){
-//
-//            return ResponseEntity.ok(paymentResponse);
-//        }
-//        //Create payment
-//        PaymentOrder paymentOrder = paymentService.createPaymentOrder(user, orders, paymentMethod);
-//
-//
-//
-//
-//        if(paymentMethod.equals(PAYMENT_METHOD.VNPAY)){
-//            Map<String, String> params = new HashMap<>();
-//            params.put("orderInfo", "Payment order with id: " + paymentOrder.getId());
-//            params.put("orderType", "other");
-////            params.put("bankCode", null);
-//            String linkUrl = paymentService.createVNPaymentLink(user, paymentOrder.getAmount(), paymentOrder.getId(), params);
-//
-//            paymentResponse.setPayment_link_url(linkUrl);
-//
-//        }else if(paymentMethod.equals(PAYMENT_METHOD.STRIPE)){
-//            String linkUrl = paymentService.createStripePaymentLink(user, paymentOrder.getAmount() ,paymentOrder.getId());
-//            paymentResponse.setPayment_link_url(linkUrl);
-//        }else{
-//            throw new AppException("Invalid payment method: " + paymentMethod);
-//        }
-//
-//
-//        return ResponseEntity.ok(paymentResponse);
-        return null;
+    ) throws StripeException {
+        User user = userService.findUserByJwtToken(jwt);
+        Cart cart = cartService.findUserCart(user);
+        // Create orders
+        Order order = orderService.createOrder(user, addressService.getAddressById(request.getAddressId()), cart, request);
+
+        if(request.getPaymentMethod().equals(PAYMENT_METHOD.CASH_ON_DELIVERY)){
+            return ResponseEntity.noContent().build();
+        }
+        Payment payment = paymentService.createPaymentOrder(user, order, request.getPaymentMethod());
+        if(request.getPaymentMethod().equals(PAYMENT_METHOD.VNPAY)){
+            Map<String, String> params = new HashMap<>();
+            params.put("orderInfo", "Payment order with id: " + payment.getId());
+            params.put("orderType", "other");
+//            params.put("bankCode", null);
+            String linkUrl = paymentService.createVNPaymentLink(user, payment.getAmount(), payment.getId(), params);
+
+            return ResponseEntity.ok(new PaymentResponse(linkUrl));
+        }else if(request.getPaymentMethod().equals(PAYMENT_METHOD.STRIPE)){
+            String linkUrl = paymentService.createStripePaymentLink(user, payment.getAmount() ,payment.getId());
+            return ResponseEntity.ok(new PaymentResponse(linkUrl));
+        }else{
+            throw new AppException("Payment method not supported");
+        }
+
     }
 
     @GetMapping("/user")
-    public ResponseEntity<List<Order>> getUserOrdersHistory(@RequestHeader("Authorization") String jwt){
+    public ResponseEntity<List<Order>> getUserOrdersHistory(@RequestHeader("Authorization") String jwt) {
         User user = userService.findUserByJwtToken(jwt);
         return ResponseEntity.ok(orderService.userOrdersHistory(user.getId()));
     }
@@ -101,24 +87,19 @@ public class OrderController {
 
     @GetMapping("/item/{orderItemId}")
     public ResponseEntity<OrderItem> getOrderItem(@PathVariable("orderItemId") Long orderItemId, @RequestHeader("Authorization") String jwt) {
-        log.info("OrderItemId: {}", orderItemId);
         OrderItem orderItem = orderService.findOrderItemById(orderItemId);
         return ResponseEntity.ok(orderItem);
     }
 
-    @PutMapping("/{orderId}/cancel")
-    public ResponseEntity<Order> cancelOrder(@PathVariable("orderId") Long orderId, @RequestHeader("Authorization") String jwt) {
+    @PutMapping("/{orderId}/cancel/{orderItemId}")
+    public ResponseEntity<Order> cancelOrder(@PathVariable("orderId") Long orderId, @RequestHeader("Authorization") String jwt,
+                                             @PathVariable("orderItemId") Long orderItemId) {
         User user = userService.findUserByJwtToken(jwt);
         Order order = orderService.findOrderById(orderId);
-        Seller seller = sellerService.getSellerById(order.getSellerId());
-        SellerReport sellerReport = sellerReportService.getSellerReport(seller);
+        OrderItem orderItem = orderService.findOrderItemById(orderItemId);
+        Seller seller = sellerService.getSellerById(orderItem.getSellerId());
 
-        sellerReport.setCanceledOrders(sellerReport.getCanceledOrders() + 1);
-        sellerReport.setTotalRefunds(sellerReport.getTotalRefunds() + order.getTotalSellingPrice());
-        sellerReportService.updateSellerReport(sellerReport);
-
-
-        return ResponseEntity.ok(orderService.cancelOrder(orderId, user));
+        return ResponseEntity.ok(orderService.cancelOrder(order, user, "User cancel"));
     }
 
 

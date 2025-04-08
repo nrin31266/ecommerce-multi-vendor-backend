@@ -244,10 +244,8 @@ public class ProductService {
         return subProductMapper.toDto(subProduct);
     }
 
-    public void restoreStock(Order order, User user) {
-        if(!user.getId().equals(order.getUser().getId())) {
-            throw new AppException(ErrorCode.UNAUTHORIZED);
-        }
+    public void restoreStock(Order order) {
+
         List<SubProduct> subProducts = order.getOrderItems().stream().map((orderItem)->{
             SubProduct subProduct = orderItem.getSubProduct();
             subProduct.setQuantity(orderItem.getQuantity() + subProduct.getQuantity());
@@ -257,10 +255,8 @@ public class ProductService {
         subProductRepository.saveAll(subProducts);
     }
 
-    public void restoreStock(OrderItem orderItem, User user) {
-        if(!user.getId().equals(orderItem.getUserId())) {
-            throw new AppException(ErrorCode.UNAUTHORIZED);
-        }
+    public void restoreStock(OrderItem orderItem) {
+
         SubProduct subProduct = orderItem.getSubProduct();
         subProduct.setQuantity(orderItem.getQuantity() + subProduct.getQuantity());
         subProductRepository.save(subProduct);
@@ -320,35 +316,35 @@ public class ProductService {
                 Join<Product, Category> joinCategory = root.join("category");
                 predicates.add(criteriaBuilder.equal(joinCategory.get("categoryId"), category));
             }
-            if (brand != null && !brand.isEmpty()) {
-                predicates.add(criteriaBuilder.equal(root.get("brand"), brand));
-            }
-
-            if (stock != null && !stock.isEmpty()) {
-                predicates.add(criteriaBuilder.equal(root.get("stock"), stock));
-            }
-
-            if (colors != null && !colors.isEmpty()) {
-                List<String> colorList = Arrays.asList(colors.split(","));
-                predicates.add(root.get("color").in(colorList));
-            }
-
-            if (sizes != null && !sizes.isEmpty()) {
-                List<String> sizeList = Arrays.asList(sizes.split(","));
-                predicates.add(root.get("size").in(sizeList));
-            }
-
-            if (minimumPrice != null) {
-                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("sellingPrice"), minimumPrice));
-            }
-
-            if (maximumPrice != null) {
-                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("sellingPrice"), maximumPrice));
-            }
-
-            if (minimumDiscount != null) {
-                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("discountPercentage"), minimumDiscount));
-            }
+//            if (brand != null && !brand.isEmpty()) {
+//                predicates.add(criteriaBuilder.equal(root.get("brand"), brand));
+//            }
+//
+//            if (stock != null && !stock.isEmpty()) {
+//                predicates.add(criteriaBuilder.equal(root.get("stock"), stock));
+//            }
+//
+//            if (colors != null && !colors.isEmpty()) {
+//                List<String> colorList = Arrays.asList(colors.split(","));
+//                predicates.add(root.get("color").in(colorList));
+//            }
+//
+//            if (sizes != null && !sizes.isEmpty()) {
+//                List<String> sizeList = Arrays.asList(sizes.split(","));
+//                predicates.add(root.get("size").in(sizeList));
+//            }
+//
+//            if (minimumPrice != null) {
+//                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("sellingPrice"), minimumPrice));
+//            }
+//
+//            if (maximumPrice != null) {
+//                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("sellingPrice"), maximumPrice));
+//            }
+//
+//            if (minimumDiscount != null) {
+//                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("discountPercentage"), minimumDiscount));
+//            }
 
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
@@ -360,6 +356,7 @@ public class ProductService {
                 "price_high", Sort.by("sellingPrice").descending(),
                 "discount_high", Sort.by("discountPercentage").descending()
         );
+        sort = null;
         Sort sortOption = sort != null && sortMap.containsKey(sort) ? sortMap.get(sort) : Sort.unsorted();
         pageable = PageRequest.of(pageNumber != null ? (pageNumber - 1) : 0, 10, sortOption);
 

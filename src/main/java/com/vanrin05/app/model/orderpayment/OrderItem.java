@@ -2,6 +2,7 @@ package com.vanrin05.app.model.orderpayment;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.vanrin05.app.domain.ORDER_ITEM_STATUS;
+import com.vanrin05.app.model.Seller;
 import com.vanrin05.app.model.product.Product;
 import com.vanrin05.app.model.product.SubProduct;
 import jakarta.persistence.*;
@@ -57,12 +58,16 @@ public class OrderItem {
     @LastModifiedDate
     LocalDateTime updatedDate;
 
+    Long sellerId;
 
     LocalDateTime deliveryDate;
+
+    Boolean isApproved = false;
 
     @PrePersist
     protected void onCreate() {
         deliveryDate = LocalDateTime.now().plusDays(7);
+        isApproved = false;
     }
 
 }

@@ -66,26 +66,39 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public CartDto findUserCart(User user) {
+    public Cart findUserCart(User user) {
         Cart cart = cartRepository.findByUserId(user.getId());
+        calculateCartSummary(cart);
+        return cart;
+    }
 
+    @Override
+    public CartDto getUserCart(User user) {
+        Cart cart = cartRepository.findByUserId(user.getId());
+        calculateCartSummary(cart);
+        return cartMapper.toCartDto(cart);
+    }
+    private void calculateCartSummary(Cart cart) {
         long totalPrice = 0L;
         long totalDiscountedPrice = 0L;
         int totalItems = 0;
 
         for (CartItem cartItem : cart.getCartItems()) {
-            totalItems += cartItem.getQuantity();
-            totalPrice += (cartItem.getQuantity() * cartItem.getSubProduct().getMrpPrice());
-            totalDiscountedPrice += (cartItem.getSubProduct().getSellingPrice() * cartItem.getQuantity());
+            int quantity = cartItem.getQuantity();
+            long mrp = cartItem.getSubProduct().getMrpPrice();
+            long selling = cartItem.getSubProduct().getSellingPrice();
+
+            totalItems += quantity;
+            totalPrice += quantity * mrp;
+            totalDiscountedPrice += quantity * selling;
         }
 
         cart.setTotalItems(totalItems);
         cart.setTotalSellingPrice(totalDiscountedPrice);
         cart.setTotalMrpPrice(totalPrice);
         cart.setDiscount(discountPercentage(totalPrice, totalDiscountedPrice));
-
-        return cartMapper.toCartDto(cart);
     }
+
 
 
 

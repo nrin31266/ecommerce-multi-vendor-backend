@@ -26,7 +26,7 @@ public class Order {
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     User user;
-    Long sellerId;
+
     @JsonManagedReference
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     List<OrderItem> orderItems;
@@ -37,7 +37,7 @@ public class Order {
 
     Long totalMrpPrice;
     Long totalSellingPrice;
-    Long discount;
+    int discountPercentage;
     int totalItem;
     int totalQuantity;
     @Enumerated(EnumType.STRING)

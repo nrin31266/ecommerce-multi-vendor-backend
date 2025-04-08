@@ -8,9 +8,10 @@ import com.vanrin05.app.model.User;
 import com.vanrin05.app.model.product.SubProduct;
 
 public interface CartService {
-    public CartItemDto addCartItem(User user, Product product, int quantity, SubProduct subProduct);
+    CartItemDto addCartItem(User user, Product product, int quantity, SubProduct subProduct);
 
-    public CartDto findUserCart(User user);
+    CartDto getUserCart(User user);
 
+    Cart findUserCart(User user);
 
 }

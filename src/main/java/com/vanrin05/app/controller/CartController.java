@@ -33,7 +33,7 @@ public class CartController {
     @GetMapping
     public ResponseEntity<CartDto> findUserCart(@RequestHeader("Authorization") String jwt) {
         User user = userService.findUserByJwtToken(jwt);
-        return ResponseEntity.ok(cartService.findUserCart(user));
+        return ResponseEntity.ok(cartService.getUserCart(user));
     }
 
     @PutMapping("/add/{productId}/item/{subProductId}")
