@@ -11,6 +11,9 @@ import com.vanrin05.app.mapper.ProductMapper;
 import com.vanrin05.app.mapper.SubProductMapper;
 import com.vanrin05.app.model.Category;
 import com.vanrin05.app.model.Seller;
+import com.vanrin05.app.model.User;
+import com.vanrin05.app.model.orderpayment.Order;
+import com.vanrin05.app.model.orderpayment.OrderItem;
 import com.vanrin05.app.model.product.Product;
 import com.vanrin05.app.model.product.ProductOptionType;
 import com.vanrin05.app.model.product.SubProduct;
@@ -239,6 +242,28 @@ public class ProductService {
         SubProduct subProduct = findSubProductById(subProductId);
 
         return subProductMapper.toDto(subProduct);
+    }
+
+    public void restoreStock(Order order, User user) {
+        if(!user.getId().equals(order.getUser().getId())) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+        List<SubProduct> subProducts = order.getOrderItems().stream().map((orderItem)->{
+            SubProduct subProduct = orderItem.getSubProduct();
+            subProduct.setQuantity(orderItem.getQuantity() + subProduct.getQuantity());
+            return subProduct;
+        }).toList();
+
+        subProductRepository.saveAll(subProducts);
+    }
+
+    public void restoreStock(OrderItem orderItem, User user) {
+        if(!user.getId().equals(orderItem.getUserId())) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+        SubProduct subProduct = orderItem.getSubProduct();
+        subProduct.setQuantity(orderItem.getQuantity() + subProduct.getQuantity());
+        subProductRepository.save(subProduct);
     }
 
 

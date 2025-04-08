@@ -4,7 +4,9 @@ import com.vanrin05.app.dto.request.AddressRequest;
 import com.vanrin05.app.exception.AppException;
 import com.vanrin05.app.mapper.AddressMapper;
 import com.vanrin05.app.model.Address;
+import com.vanrin05.app.model.User;
 import com.vanrin05.app.repository.AddressRepository;
+import com.vanrin05.app.repository.UserRepository;
 import com.vanrin05.app.service.AddressService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,7 @@ public class AddressServiceImpl implements AddressService {
 
     private final AddressRepository addressRepository;
     private final AddressMapper addressMapper;
+    private final UserRepository userRepository;
     @Override
     public Address getAddressById(Long id) {
         return addressRepository.findById(id).orElseThrow(()->new AppException("Address not found"));
@@ -39,4 +42,15 @@ public class AddressServiceImpl implements AddressService {
         Address address = getAddressById(id);
         addressRepository.delete(address);
     }
+
+    @Override
+    public Address createUserAddress(AddressRequest request, User user) {
+        Address address = addressMapper.toAddress(request);
+        user.getAddresses().add(address);
+        address.setUser(user);
+        return addressRepository.save(address);
+    }
+
+
+
 }

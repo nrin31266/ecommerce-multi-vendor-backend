@@ -34,7 +34,7 @@ public class UserAddressController {
             throw new AppException("You can have at most 5 addresses");
         }
 
-        return ResponseEntity.ok(addressService.createAddress(request));
+        return ResponseEntity.ok(addressService.createUserAddress(request, user));
     }
 
     @PutMapping("/{addressId}")

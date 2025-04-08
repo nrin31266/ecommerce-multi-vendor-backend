@@ -1,5 +1,6 @@
 package com.vanrin05.app.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -28,5 +29,13 @@ public class Address {
     String province;
 
     String postalCode;    // Mã bưu điện
+
+    @JsonIgnore
+    @ManyToOne@JoinColumn(name = "user_id")
+    User user;
+
+    @JsonIgnore
+    @ManyToOne@JoinColumn(name = "seller_id")
+    Seller seller;
 }
 

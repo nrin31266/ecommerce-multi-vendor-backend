@@ -5,7 +5,9 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity(name = "carts")
@@ -21,7 +23,7 @@ public class Cart {
     @OneToOne
     User user;
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
-    Set<CartItem> cartItems = new HashSet<>();
+    List<CartItem> cartItems = new ArrayList<>();
     Long totalSellingPrice = 0L;
     int totalItems = 0;
     Long totalMrpPrice = 0L;

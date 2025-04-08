@@ -11,14 +11,14 @@ import java.util.List;
 import java.util.Map;
 
 public interface PaymentService {
-    Payment createPaymentOrder(User user, List<Order> orders, PAYMENT_METHOD paymentMethod);
-    Boolean proceedPayment(Long paymentId);
+    Payment createPaymentOrder(User user, Order order, PAYMENT_METHOD paymentMethod) throws StripeException;
+    void proceedPayment(Long paymentId);
     String createVNPaymentLink(User user, Long amount, Long paymentId, Map<String, String> params);
     String createStripePaymentLink(User user, Long amount, Long paymentId) throws StripeException;
 
     Payment findById(Long paymentId);
-    List<Order> findAllOrdersInPaymentOrder(Payment paymentOrder);
-    List<Payment> findUserPaymentOrders(User user);
 
-    Payment cancelPaymentOrder(Long paymentId, User user);
+    List<Payment> findUserPaymentOrdersPaymentNotYet(User user);
+
+    Payment cancelPaymentOrder(Payment payment, User user, String cancelReason);
 }

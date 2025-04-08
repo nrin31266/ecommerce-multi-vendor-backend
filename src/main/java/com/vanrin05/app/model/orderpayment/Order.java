@@ -35,14 +35,15 @@ public class Order {
     @JoinColumn(name = "shipping_address_id")
     Address shippingAddress;
 
-    double totalMrpPrice;
-    Integer totalSellingPrice;
-    Integer discount;
-    Integer totalItem;
+    Long totalMrpPrice;
+    Long totalSellingPrice;
+    Long discount;
+    int totalItem;
+    int totalQuantity;
     @Enumerated(EnumType.STRING)
 
     @JsonBackReference
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "payment_order_id")
     Payment payment;
 

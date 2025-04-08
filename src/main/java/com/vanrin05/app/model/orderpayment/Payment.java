@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity(name = "payment_orders")
+@Entity(name = "payments")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -29,7 +29,7 @@ public class Payment {
     @Enumerated(EnumType.STRING)
     PAYMENT_METHOD paymentMethod;
 
-    LocalDateTime paymentExpiry;
+    LocalDateTime expiryDate;
 
 
     @ManyToOne
@@ -38,8 +38,8 @@ public class Payment {
 
 
     @JsonManagedReference
-    @OneToMany(mappedBy = "payment", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    List<Order> orders = new ArrayList<>();
+    @OneToOne(mappedBy = "payment", orphanRemoval = true, cascade = CascadeType.ALL)
+    Order order;
 
 
 

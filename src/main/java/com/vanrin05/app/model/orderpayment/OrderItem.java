@@ -36,8 +36,8 @@ public class OrderItem {
     SubProduct subProduct;
 
     int quantity;
-    Integer mrpPrice;
-    Integer sellingPrice;
+    Long mrpPrice;
+    Long sellingPrice;
     Long userId;
 
 

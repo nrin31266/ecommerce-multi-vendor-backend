@@ -1,12 +1,20 @@
 package com.vanrin05.app.service.impl;
 
+import com.vanrin05.app.domain.ORDER_ITEM_STATUS;
 import com.vanrin05.app.domain.PAYMENT_METHOD;
 import com.vanrin05.app.domain.PAYMENT_STATUS;
+import com.vanrin05.app.dto.request.CreateOrderRequest;
 import com.vanrin05.app.exception.AppException;
+import com.vanrin05.app.exception.ErrorCode;
 import com.vanrin05.app.model.*;
 import com.vanrin05.app.model.cart.Cart;
+import com.vanrin05.app.model.cart.CartItem;
 import com.vanrin05.app.model.orderpayment.Order;
 import com.vanrin05.app.model.orderpayment.OrderItem;
+import com.vanrin05.app.model.orderpayment.Payment;
+import com.vanrin05.app.model.orderpayment.PaymentDetails;
+import com.vanrin05.app.model.product.Product;
+import com.vanrin05.app.model.product.SubProduct;
 import com.vanrin05.app.repository.*;
 import com.vanrin05.app.service.OrderService;
 import jakarta.persistence.criteria.Predicate;
@@ -17,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Slf4j
@@ -31,10 +40,83 @@ public class OrderServiceImpl implements OrderService {
     private final UserRepository userRepository;
     ProductRepository productRepository;
     CartRepository cartRepository;
+    SubProductRepository subProductRepository;
+    ProductService productService;
 
 
     @Override
-    public List<Order> createOrders(User user, Address shippingAddress, Cart cart, PAYMENT_METHOD paymentMethod) {
+    public Order createOrder(User user, Address shippingAddress, Cart cart, CreateOrderRequest createOrderRequest) {
+        List<CartItem> cartItems = cart.getCartItems();
+
+        List<OrderItem> orderItems = new ArrayList<>();
+        List<SubProduct> stockProducts = new ArrayList<>();
+        long totalMrpPrice = 0L;
+        long totalSellingPrice = 0L;
+        int totalQuantity = 0;
+        int totalItem = 0;
+        for (CartItem cartItem : cartItems) {
+            // Handle stock
+            Product product = cartItem.getProduct();
+            SubProduct subProduct = cartItem.getSubProduct();
+            if(subProduct.getQuantity() < cartItem.getQuantity()){
+                throw new AppException("The product " + ((product.getTitle().length() < 20) ?
+                        product.getTitle() : product.getTitle().substring(20) + "...")  +" is currently out of stock");
+            }
+            subProduct.setQuantity(subProduct.getQuantity() - cartItem.getQuantity());
+            product.setTotalOrder(product.getTotalOrder() + subProduct.getQuantity());
+            subProduct.setProduct(product);
+            stockProducts.add(subProduct);
+
+            // Total
+            totalMrpPrice += cartItem.getQuantity() * subProduct.getMrpPrice();
+            totalSellingPrice += cartItem.getQuantity() * subProduct.getSellingPrice();
+            totalQuantity += cartItem.getQuantity();
+            totalItem += 1;
+
+            // Create order item
+            OrderItem orderItem = new OrderItem();
+            orderItem.setProduct(product);
+            orderItem.setSubProduct(subProduct);
+            orderItem.setPaymentDetails(
+                    PaymentDetails.builder()
+                            .paymentStatus(PAYMENT_STATUS.PENDING)
+                            .build()
+            );
+            orderItem.setQuantity(cartItem.getQuantity());
+            orderItem.setMrpPrice( cartItem.getSubProduct().getMrpPrice() * cartItem.getQuantity());
+            orderItem.setSellingPrice(cartItem.getSubProduct().getSellingPrice() * cartItem.getQuantity());
+            orderItem.setDeliveryDate(LocalDateTime.now().plusDays(7));
+            orderItem.setStatus(createOrderRequest.getPaymentMethod()
+                    .equals(PAYMENT_METHOD.CASH_ON_DELIVERY)?
+                    ORDER_ITEM_STATUS.PENDING:ORDER_ITEM_STATUS.PENDING_PAYMENT);
+            orderItems.add(orderItem);
+        }
+        subProductRepository.saveAll(stockProducts);
+
+        // Clear cart
+        cart.getCartItems().clear();
+        cart.setDiscount(0);
+        cart.setCouponCode(null);
+        cart.setTotalSellingPrice(0L);
+        cart.setTotalMrpPrice(0L);
+        cartRepository.save(cart);
+
+        // Update seller report: Not update soon
+
+        // Create order
+        Order order = new Order();
+        order.setUser(user);
+        order.setShippingAddress(shippingAddress);
+        order.setOrderItems(orderItems);
+        order.setTotalMrpPrice(totalMrpPrice);
+        order.setTotalSellingPrice(totalSellingPrice);
+        order.setDiscount(totalMrpPrice - totalSellingPrice);
+        order.setTotalItem(totalItem);
+        order.setTotalQuantity(totalQuantity);
+        order.setPaymentMethod(createOrderRequest.getPaymentMethod());
+        order = orderRepository.save(order);
+
+        return order;
 //        shippingAddress = addressRepository.save(shippingAddress);
 //        user.getAddresses().add(shippingAddress);
 //        Map<Long, List<CartItem>> items =  cart.getCartItems().stream().collect(Collectors.groupingBy(item -> item.getProduct().getSeller().getId()));
@@ -94,7 +176,7 @@ public class OrderServiceImpl implements OrderService {
 //            orders.add(createdOrder);
 //        }
 //        return orders;
-        return null;
+
     }
 
 
@@ -148,19 +230,39 @@ public class OrderServiceImpl implements OrderService {
 //    }
 
     @Override
-    public Order cancelOrder(Long orderId, User user) {
-//        Order order = orderRepository.findById(orderId).orElseThrow(()->new AppException("Order not found"));
-//        if(!user.getId().equals(order.getUser().getId())) {
-//            throw new AppException("User is not the user");
-//        }
-//        order.setOrderStatus(ORDER_STATUS.CANCELLED);
-//        return orderRepository.save(order);
-        return null;
+    public Order cancelOrder(Order order, User user, String cancelReason) {
+        if(!order.getUser().getId().equals(user.getId())){
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+        //Product
+        productService.restoreStock(order, user);
+
+        // Handle order items
+        List<OrderItem> orderItems = order.getOrderItems();
+        for(OrderItem orderItem : orderItems){
+            orderItem.setCancelReason(cancelReason);
+            orderItem.setStatus(ORDER_ITEM_STATUS.CANCELLED);
+        }
+
+
+        return orderRepository.save(order);
+
     }
 
     @Override
     public OrderItem findOrderItemById(Long orderItemId) {
-        log.info("OrderItemId: {}", orderItemId);
+
         return orderItemRepository.findById(orderItemId).orElseThrow(()->new AppException("Order item not found"));
+    }
+
+    @Override
+    public Order proceedPayment(Order order, User user) {
+        for (OrderItem orderItem : order.getOrderItems()) {
+            orderItem.setStatus(ORDER_ITEM_STATUS.PENDING);
+            orderItem.getPaymentDetails().setPaymentStatus(PAYMENT_STATUS.COMPLETED);
+            orderItem.getPaymentDetails().setPaymentDate(LocalDateTime.now());
+        }
+
+        return orderRepository.save(order);
     }
 }

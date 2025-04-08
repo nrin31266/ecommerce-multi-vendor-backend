@@ -27,8 +27,11 @@ public class SellerReport {
     Long totalTax;
 
     Long netEarnings;
+
     Integer totalOrders;
+
     Integer canceledOrders;
+
     Integer totalTransactions;
 
     @PrePersist

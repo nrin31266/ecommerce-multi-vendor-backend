@@ -18,9 +18,5 @@ import java.time.LocalDateTime;
 public class PaymentDetails {
     @Enumerated(EnumType.STRING)
     PAYMENT_STATUS paymentStatus;
-    @Enumerated(EnumType.STRING)
-    PAYMENT_METHOD paymentMethod;
-
-
     LocalDateTime paymentDate;
 }

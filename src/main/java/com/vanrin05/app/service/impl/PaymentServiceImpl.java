@@ -1,9 +1,11 @@
 package com.vanrin05.app.service.impl;
 
+import com.vanrin05.app.exception.ErrorCode;
 import com.vanrin05.app.model.orderpayment.Order;
 import com.vanrin05.app.model.orderpayment.Payment;
 
 import com.vanrin05.app.repository.*;
+import com.vanrin05.app.service.OrderService;
 import com.vanrin05.app.service.SellerReportService;
 import com.vanrin05.app.service.TransactionService;
 import com.stripe.Stripe;
@@ -46,118 +48,70 @@ public class PaymentServiceImpl implements PaymentService {
     SellerReportRepository sellerReportRepository;
     TransactionService transactionService;
     SellerReportService sellerReportService;
+    OrderService orderService;
 
 
     @Override
-    public Payment createPaymentOrder(User user, List<Order> orders, PAYMENT_METHOD paymentMethod) {
-//        Long amount = orders.stream().mapToLong(Order::getTotalSellingPrice).sum();
-//
-//        PaymentOrder paymentOrder = new PaymentOrder();
-//        paymentOrder.setPaymentExpiry(LocalDateTime.now().plusMinutes(30));
-//        paymentOrder.setUser(user);
-//        paymentOrder.setPaymentOrderStatus(PAYMENT_ORDER_STATUS.PENDING);
-//        paymentOrder.setAmount(amount);
-//        for (Order order : orders) {
-//            order.setPaymentOrder(paymentOrder);
-//        }
-//        paymentOrder.setOrders(orders);
-//        paymentOrder.setPaymentMethod(paymentMethod);
-//
-//        return paymentOrderRepository.save(paymentOrder);
-        return null;
+    public Payment createPaymentOrder(User user, Order orders, PAYMENT_METHOD paymentMethod) {
+        Payment payment = new Payment();
+        payment.setPaymentMethod(paymentMethod);
+        payment.setPaymentOrderStatus(PAYMENT_ORDER_STATUS.PENDING);
+        payment.setExpiryDate(LocalDateTime.now().plusHours(12));
+        payment.setOrder(orders);
+        payment.setUser(user);
+        return paymentOrderRepository.save(payment);
+
+
     }
+
 
     @Override
     @Transactional
-    public Payment cancelPaymentOrder  (Long paymentId, User user) {
-//        PaymentOrder paymentOrder = findById(paymentId);
-//        if(!user.getId().equals(paymentOrder.getUser().getId())) {
-//            throw new AppException(ErrorCode.UNAUTHORIZED);
-//        }
-//        paymentOrder.setPaymentOrderStatus(PAYMENT_ORDER_STATUS.FAILED);
-//        List<Order> orders = paymentOrder.getOrders();
-//        for (Order order : orders) {
-//            order.setOrderStatus(ORDER_STATUS.CANCELLED);
-//            order.setCancelReason("User cancelled payment");
-//            List<Product> products = new ArrayList<>();
-//            for (OrderItem orderItem : order.getOrderItems()) {
-//                Product product = orderItem.getProduct();
-//                product.setQuantity(product.getQuantity() + orderItem.getQuantity());
-//            }
-//            productRepository.saveAll(products);
-//        }
-//
-//        orderRepository.saveAll(orders);
-//        return paymentOrderRepository.save(paymentOrder);
-        return null;
+    public Payment cancelPaymentOrder(Payment payment, User user, String cancelReason) {
+
+        if (!user.getId().equals(payment.getUser().getId())) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+
+        // Handle order
+        orderService.cancelOrder(payment.getOrder(), user, cancelReason);
+        // Payment
+        payment.setPaymentOrderStatus(PAYMENT_ORDER_STATUS.CANCELLED);
+        payment.setExpiryDate(LocalDateTime.now());
+
+        return paymentOrderRepository.save(payment);
+
+
     }
 
 
-
-    @Scheduled(fixedRate = 60_000)
+    @Scheduled(fixedRate = 180_000)
     @Transactional
     public void cancelExpiredPayment() {
-//        List<PaymentOrder> expiredPayments = paymentOrderRepository
-//                .customFindByExpiredOnlinePayment(
-//                        PAYMENT_ORDER_STATUS.PENDING,
-//                        LocalDateTime.now()
-//                );
-//        Map<Long, Integer> productQuantityToAdd = new HashMap<>();
-//        List<Order> orders = new ArrayList<>();
-//        expiredPayments.forEach(payment -> {
-//            payment.getOrders().forEach(order -> {
-//                order.setCancelReason("Payment expired");
-//                order.setOrderStatus(ORDER_STATUS.CANCELLED);
-//                order.getOrderItems().forEach(item -> {
-//                    productQuantityToAdd.merge(
-//                            item.getProduct().getId(),
-//                            item.getQuantity(),
-//                            Integer::sum
-//                    );
-//                });
-//                orders.add(order);
-//            });
-//
-//
-//            payment.setPaymentOrderStatus(PAYMENT_ORDER_STATUS.FAILED);
-//        });
-//
-//        orderRepository.saveAll(orders);
-//        productQuantityToAdd.forEach(productRepository::incrementProductQuantity);
-//        paymentOrderRepository.saveAll(expiredPayments);
-    }
+        List<Payment> expiredPayments = paymentOrderRepository.findExpiredPaymentsByStatus(
+                PAYMENT_ORDER_STATUS.PENDING, LocalDateTime.now()
+        );
 
+        for (Payment expiredPayment : expiredPayments) {
+            cancelPaymentOrder(expiredPayment, expiredPayment.getUser(), "Late payment deadline");
+
+            expiredPayment.setPaymentOrderStatus(PAYMENT_ORDER_STATUS.CANCELLED);
+
+        }
+
+        paymentOrderRepository.saveAll(expiredPayments);
+
+    }
 
 
     @Transactional
     @Override
-    public Boolean proceedPayment(Long paymentId)  {
-//        PaymentOrder paymentOrder = findById(paymentId);
-//        List<Order> orders = paymentOrder.getOrders();
-//        if (paymentOrder.getPaymentOrderStatus().equals(PAYMENT_ORDER_STATUS.PENDING)) {
-//            for (Order order : orders) {
-//                order.getPaymentDetails().setPaymentStatus(PAYMENT_STATUS.COMPLETED);
-//                order.setOrderStatus(ORDER_STATUS.PLACED);
-//            }
-//            orderRepository.saveAll(orders);
-//            paymentOrder.setPaymentOrderStatus(PAYMENT_ORDER_STATUS.SUCCESS);
-//            paymentOrderRepository.save(paymentOrder);
-//            Map<Long, Seller> sellers = sellerRepository.findAllByIdIn(orders.stream().map(Order::getSellerId).collect(Collectors.toSet())).stream().collect(Collectors.toMap(Seller::getId, seller -> seller));
-//            Map<Seller, SellerReport> sellerReports = sellerReportRepository.findBySellerIn(sellers.values().stream().toList()).stream().collect(Collectors.toMap(SellerReport::getSeller, sellerReport -> sellerReport));
-//            for (Order order : orders) {
-//                transactionService.createTransaction(order);
-//                Seller seller = sellers.get(order.getSellerId());
-//                SellerReport sellerReport = sellerReports.get(seller);
-//                sellerReport.setTotalOrders(sellerReport.getTotalOrders() + 1);
-//                sellerReport.setTotalEarnings(sellerReport.getTotalEarnings() + order.getTotalSellingPrice());
-//                sellerReport.setTotalSales(sellerReport.getTotalSales() + order.getOrderItems().size());
-//                sellerReport.setTotalTransactions(sellerReport.getTotalTransactions() + 1);
-//            }
-//            sellerReportService.updateSellerReports(sellerReports.values().stream().toList());
-//            return true;
-//        }
-//        return false;
-        return null;
+    public void proceedPayment(Long paymentId) {
+        Payment payment = findById(paymentId);
+
+        orderService.proceedPayment(payment.getOrder(), payment.getUser());
+
     }
 
     @Override
@@ -200,29 +154,21 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
 
-
-
-
     @Override
     public Payment findById(Long paymentId) {
-//        Payment paymentOrder= paymentOrderRepository.findById(paymentId).orElseThrow(()->new AppException("Payment not found"));
-//        return paymentOrder;
-        return null;
-    }
-
-
-    @Override
-    public List<Order> findAllOrdersInPaymentOrder(Payment paymentOrder) {
-//        return orderRepository.findAllByPaymentOrder(paymentOrder);
-        return null;
+        Payment paymentOrder = paymentOrderRepository.findById(paymentId).orElseThrow(() -> new AppException("Payment not found"));
+        return paymentOrder;
     }
 
 
 
+
+
     @Override
-    public List<Payment> findUserPaymentOrders(User user) {
-//        return paymentOrderRepository.findByUser(user);
-    return null;
+    public List<Payment> findUserPaymentOrdersPaymentNotYet(User user) {
+        return paymentOrderRepository.findUserPaymentOrdersPaymentNotYet(
+                PAYMENT_ORDER_STATUS.PENDING, user.getId()
+        );
     }
 
 
