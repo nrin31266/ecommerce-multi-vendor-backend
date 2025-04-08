@@ -1,11 +1,8 @@
 package com.vanrin05.app.service.impl;
 
-import com.vanrin05.app.domain.ORDER_STATUS;
-import com.vanrin05.app.exception.ErrorCode;
 import com.vanrin05.app.model.orderpayment.Order;
-import com.vanrin05.app.model.orderpayment.OrderItem;
-import com.vanrin05.app.model.orderpayment.PaymentOrder;
-import com.vanrin05.app.model.product.Product;
+import com.vanrin05.app.model.orderpayment.Payment;
+
 import com.vanrin05.app.repository.*;
 import com.vanrin05.app.service.SellerReportService;
 import com.vanrin05.app.service.TransactionService;
@@ -52,26 +49,27 @@ public class PaymentServiceImpl implements PaymentService {
 
 
     @Override
-    public PaymentOrder createPaymentOrder(User user, List<Order> orders, PAYMENT_METHOD paymentMethod) {
-        Long amount = orders.stream().mapToLong(Order::getTotalSellingPrice).sum();
-
-        PaymentOrder paymentOrder = new PaymentOrder();
-        paymentOrder.setPaymentExpiry(LocalDateTime.now().plusMinutes(30));
-        paymentOrder.setUser(user);
-        paymentOrder.setPaymentOrderStatus(PAYMENT_ORDER_STATUS.PENDING);
-        paymentOrder.setAmount(amount);
-        for (Order order : orders) {
-            order.setPaymentOrder(paymentOrder);
-        }
-        paymentOrder.setOrders(orders);
-        paymentOrder.setPaymentMethod(paymentMethod);
-
-        return paymentOrderRepository.save(paymentOrder);
+    public Payment createPaymentOrder(User user, List<Order> orders, PAYMENT_METHOD paymentMethod) {
+//        Long amount = orders.stream().mapToLong(Order::getTotalSellingPrice).sum();
+//
+//        PaymentOrder paymentOrder = new PaymentOrder();
+//        paymentOrder.setPaymentExpiry(LocalDateTime.now().plusMinutes(30));
+//        paymentOrder.setUser(user);
+//        paymentOrder.setPaymentOrderStatus(PAYMENT_ORDER_STATUS.PENDING);
+//        paymentOrder.setAmount(amount);
+//        for (Order order : orders) {
+//            order.setPaymentOrder(paymentOrder);
+//        }
+//        paymentOrder.setOrders(orders);
+//        paymentOrder.setPaymentMethod(paymentMethod);
+//
+//        return paymentOrderRepository.save(paymentOrder);
+        return null;
     }
 
     @Override
     @Transactional
-    public PaymentOrder cancelPaymentOrder  (Long paymentId, User user) {
+    public Payment cancelPaymentOrder  (Long paymentId, User user) {
 //        PaymentOrder paymentOrder = findById(paymentId);
 //        if(!user.getId().equals(paymentOrder.getUser().getId())) {
 //            throw new AppException(ErrorCode.UNAUTHORIZED);
@@ -134,31 +132,32 @@ public class PaymentServiceImpl implements PaymentService {
     @Transactional
     @Override
     public Boolean proceedPayment(Long paymentId)  {
-        PaymentOrder paymentOrder = findById(paymentId);
-        List<Order> orders = paymentOrder.getOrders();
-        if (paymentOrder.getPaymentOrderStatus().equals(PAYMENT_ORDER_STATUS.PENDING)) {
-            for (Order order : orders) {
-                order.getPaymentDetails().setPaymentStatus(PAYMENT_STATUS.COMPLETED);
-                order.setOrderStatus(ORDER_STATUS.PLACED);
-            }
-            orderRepository.saveAll(orders);
-            paymentOrder.setPaymentOrderStatus(PAYMENT_ORDER_STATUS.SUCCESS);
-            paymentOrderRepository.save(paymentOrder);
-            Map<Long, Seller> sellers = sellerRepository.findAllByIdIn(orders.stream().map(Order::getSellerId).collect(Collectors.toSet())).stream().collect(Collectors.toMap(Seller::getId, seller -> seller));
-            Map<Seller, SellerReport> sellerReports = sellerReportRepository.findBySellerIn(sellers.values().stream().toList()).stream().collect(Collectors.toMap(SellerReport::getSeller, sellerReport -> sellerReport));
-            for (Order order : orders) {
-                transactionService.createTransaction(order);
-                Seller seller = sellers.get(order.getSellerId());
-                SellerReport sellerReport = sellerReports.get(seller);
-                sellerReport.setTotalOrders(sellerReport.getTotalOrders() + 1);
-                sellerReport.setTotalEarnings(sellerReport.getTotalEarnings() + order.getTotalSellingPrice());
-                sellerReport.setTotalSales(sellerReport.getTotalSales() + order.getOrderItems().size());
-                sellerReport.setTotalTransactions(sellerReport.getTotalTransactions() + 1);
-            }
-            sellerReportService.updateSellerReports(sellerReports.values().stream().toList());
-            return true;
-        }
-        return false;
+//        PaymentOrder paymentOrder = findById(paymentId);
+//        List<Order> orders = paymentOrder.getOrders();
+//        if (paymentOrder.getPaymentOrderStatus().equals(PAYMENT_ORDER_STATUS.PENDING)) {
+//            for (Order order : orders) {
+//                order.getPaymentDetails().setPaymentStatus(PAYMENT_STATUS.COMPLETED);
+//                order.setOrderStatus(ORDER_STATUS.PLACED);
+//            }
+//            orderRepository.saveAll(orders);
+//            paymentOrder.setPaymentOrderStatus(PAYMENT_ORDER_STATUS.SUCCESS);
+//            paymentOrderRepository.save(paymentOrder);
+//            Map<Long, Seller> sellers = sellerRepository.findAllByIdIn(orders.stream().map(Order::getSellerId).collect(Collectors.toSet())).stream().collect(Collectors.toMap(Seller::getId, seller -> seller));
+//            Map<Seller, SellerReport> sellerReports = sellerReportRepository.findBySellerIn(sellers.values().stream().toList()).stream().collect(Collectors.toMap(SellerReport::getSeller, sellerReport -> sellerReport));
+//            for (Order order : orders) {
+//                transactionService.createTransaction(order);
+//                Seller seller = sellers.get(order.getSellerId());
+//                SellerReport sellerReport = sellerReports.get(seller);
+//                sellerReport.setTotalOrders(sellerReport.getTotalOrders() + 1);
+//                sellerReport.setTotalEarnings(sellerReport.getTotalEarnings() + order.getTotalSellingPrice());
+//                sellerReport.setTotalSales(sellerReport.getTotalSales() + order.getOrderItems().size());
+//                sellerReport.setTotalTransactions(sellerReport.getTotalTransactions() + 1);
+//            }
+//            sellerReportService.updateSellerReports(sellerReports.values().stream().toList());
+//            return true;
+//        }
+//        return false;
+        return null;
     }
 
     @Override
@@ -205,22 +204,25 @@ public class PaymentServiceImpl implements PaymentService {
 
 
     @Override
-    public PaymentOrder findById(Long paymentId) {
-        PaymentOrder paymentOrder= paymentOrderRepository.findById(paymentId).orElseThrow(()->new AppException("Payment not found"));
-        return paymentOrder;
+    public Payment findById(Long paymentId) {
+//        Payment paymentOrder= paymentOrderRepository.findById(paymentId).orElseThrow(()->new AppException("Payment not found"));
+//        return paymentOrder;
+        return null;
     }
 
 
     @Override
-    public List<Order> findAllOrdersInPaymentOrder(PaymentOrder paymentOrder) {
-        return orderRepository.findAllByPaymentOrder(paymentOrder);
+    public List<Order> findAllOrdersInPaymentOrder(Payment paymentOrder) {
+//        return orderRepository.findAllByPaymentOrder(paymentOrder);
+        return null;
     }
 
 
 
     @Override
-    public List<PaymentOrder> findUserPaymentOrders(User user) {
-        return paymentOrderRepository.findByUser(user);
+    public List<Payment> findUserPaymentOrders(User user) {
+//        return paymentOrderRepository.findByUser(user);
+    return null;
     }
 
 

@@ -1,12 +1,14 @@
 package com.vanrin05.app.service.impl;
 
 import com.vanrin05.app.dto.ProductDto;
+import com.vanrin05.app.dto.SubProductDto;
 import com.vanrin05.app.dto.request.CreateProductReq;
 import com.vanrin05.app.dto.request.CreateSubProductReq;
 import com.vanrin05.app.dto.request.UpdateProductReq;
 import com.vanrin05.app.exception.AppException;
 import com.vanrin05.app.exception.ErrorCode;
 import com.vanrin05.app.mapper.ProductMapper;
+import com.vanrin05.app.mapper.SubProductMapper;
 import com.vanrin05.app.model.Category;
 import com.vanrin05.app.model.Seller;
 import com.vanrin05.app.model.product.Product;
@@ -43,6 +45,7 @@ public class ProductService {
     SellerService sellerService;
     SubProductRepository subProductRepository;
     CategoryRepository categoryRepository;
+    SubProductMapper subProductMapper;
 
     private List<Category> findAllCategoryInIds(List<String> ids) {
         return categoryRepository
@@ -159,9 +162,7 @@ public class ProductService {
         return subProductRepository.save(subProduct);
     }
 
-    public SubProduct findSubProductById(Long subProductId) {
-        return subProductRepository.findById(subProductId).orElseThrow(() -> new AppException("SubProduct not found"));
-    }
+
 
     @Transactional
     public void deleteSubProduct(Long productId, String jwt, Long subProductId) {
@@ -227,6 +228,17 @@ public class ProductService {
         }
 
         productRepository.save(product);
+    }
+
+    public SubProduct findSubProductById(Long subProductId) {
+        return subProductRepository.findById(subProductId).orElseThrow(()-> new AppException("SubProduct not found"));
+
+    }
+
+    public SubProductDto findSubProductByIdT(Long subProductId) {
+        SubProduct subProduct = findSubProductById(subProductId);
+
+        return subProductMapper.toDto(subProduct);
     }
 
 

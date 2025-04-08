@@ -2,7 +2,7 @@ package com.vanrin05.app.controller;
 
 import com.vanrin05.app.model.*;
 import com.vanrin05.app.model.orderpayment.Order;
-import com.vanrin05.app.model.orderpayment.PaymentOrder;
+import com.vanrin05.app.model.orderpayment.Payment;
 import com.vanrin05.app.service.PaymentService;
 import com.vanrin05.app.service.SellerReportService;
 import com.vanrin05.app.service.TransactionService;
@@ -28,7 +28,7 @@ public class PaymentController {
     TransactionService transactionService;
 
     @GetMapping("/{paymentId}")
-    public ResponseEntity<PaymentOrder> findPaymentById(@PathVariable("paymentId") Long paymentId) {
+    public ResponseEntity<Payment> findPaymentById(@PathVariable("paymentId") Long paymentId) {
         return ResponseEntity.ok(paymentService.findById(paymentId));
     }
 
@@ -37,13 +37,13 @@ public class PaymentController {
         return ResponseEntity.ok(paymentService.findAllOrdersInPaymentOrder(paymentService.findById(paymentId)));
     }
     @GetMapping
-    public ResponseEntity<List<PaymentOrder>> findAllPayments(@RequestHeader("Authorization") String jwt) {
+    public ResponseEntity<List<Payment>> findAllPayments(@RequestHeader("Authorization") String jwt) {
         User user = userService.findUserByJwtToken(jwt);
         return ResponseEntity.ok(paymentService.findUserPaymentOrders(user));
     }
 
     @PutMapping("/cancel/{paymentId}")
-    public ResponseEntity<PaymentOrder> cancelPayment(@PathVariable("paymentId") Long paymentId, @RequestHeader("Authorization") String jwt) {
+    public ResponseEntity<Payment> cancelPayment(@PathVariable("paymentId") Long paymentId, @RequestHeader("Authorization") String jwt) {
         User user = userService.findUserByJwtToken(jwt);
         return ResponseEntity.ok(paymentService.cancelPaymentOrder(paymentId, user));
     }

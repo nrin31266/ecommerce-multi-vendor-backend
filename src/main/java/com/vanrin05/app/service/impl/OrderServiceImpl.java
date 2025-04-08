@@ -1,6 +1,5 @@
 package com.vanrin05.app.service.impl;
 
-import com.vanrin05.app.domain.ORDER_STATUS;
 import com.vanrin05.app.domain.PAYMENT_METHOD;
 import com.vanrin05.app.domain.PAYMENT_STATUS;
 import com.vanrin05.app.exception.AppException;
@@ -95,7 +94,7 @@ public class OrderServiceImpl implements OrderService {
 //            orders.add(createdOrder);
 //        }
 //        return orders;
-        return  null;
+        return null;
     }
 
 
@@ -119,43 +118,44 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<Order> userOrdersHistory(Long userId) {
 //        return orderRepository.customFindByUserId(userId, PAYMENT_STATUS.COMPLETED);
-            return  orderRepository.findByUserIdAndPaymentDetails_PaymentStatus(userId, PAYMENT_STATUS.COMPLETED);
-
+//            return  orderRepository.findByUserIdAndPaymentDetails_PaymentStatus(userId, PAYMENT_STATUS.COMPLETED);
+    return null;
 
     }
 
 
 
-    @Override
-    public List<Order> sellerOrders(Long sellerId, ORDER_STATUS orderStatus) {
-
-        Specification<Order> specification = (root, query, criteriaBuilder) -> {
-            List<Predicate> predicates = new ArrayList<>();
-
-            predicates.add(criteriaBuilder.equal(root.get("sellerId"), sellerId));
-            predicates.add(criteriaBuilder.equal(root.get("orderStatus"), orderStatus));
-
-            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
-        };
-
-        return orderRepository.findAll(specification);
-    }
-
-    @Override
-    public Order updateOrderStatus(Long orderId, ORDER_STATUS orderStatus) {
-        Order order = orderRepository.findById(orderId).orElseThrow(()->new AppException("Order not found"));
-        order.setOrderStatus(orderStatus);
-        return orderRepository.save(order);
-    }
+//    @Override
+//    public List<Order> sellerOrders(Long sellerId, ORDER_STATUS orderStatus) {
+//
+//        Specification<Order> specification = (root, query, criteriaBuilder) -> {
+//            List<Predicate> predicates = new ArrayList<>();
+//
+//            predicates.add(criteriaBuilder.equal(root.get("sellerId"), sellerId));
+//            predicates.add(criteriaBuilder.equal(root.get("orderStatus"), orderStatus));
+//
+//            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+//        };
+//
+//        return orderRepository.findAll(specification);
+//    }
+//
+//    @Override
+//    public Order updateOrderStatus(Long orderId, ORDER_STATUS orderStatus) {
+//        Order order = orderRepository.findById(orderId).orElseThrow(()->new AppException("Order not found"));
+//        order.setOrderStatus(orderStatus);
+//        return orderRepository.save(order);
+//    }
 
     @Override
     public Order cancelOrder(Long orderId, User user) {
-        Order order = orderRepository.findById(orderId).orElseThrow(()->new AppException("Order not found"));
-        if(!user.getId().equals(order.getUser().getId())) {
-            throw new AppException("User is not the user");
-        }
-        order.setOrderStatus(ORDER_STATUS.CANCELLED);
-        return orderRepository.save(order);
+//        Order order = orderRepository.findById(orderId).orElseThrow(()->new AppException("Order not found"));
+//        if(!user.getId().equals(order.getUser().getId())) {
+//            throw new AppException("User is not the user");
+//        }
+//        order.setOrderStatus(ORDER_STATUS.CANCELLED);
+//        return orderRepository.save(order);
+        return null;
     }
 
     @Override

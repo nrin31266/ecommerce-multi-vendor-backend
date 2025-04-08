@@ -18,7 +18,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class PaymentOrder {
+public class Payment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
@@ -38,13 +38,9 @@ public class PaymentOrder {
 
 
     @JsonManagedReference
-    @OneToMany(mappedBy = "paymentOrder", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    List<Order> orders;
+    @OneToMany(mappedBy = "payment", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    List<Order> orders = new ArrayList<>();
 
 
-    @PrePersist
-    protected void onCreate() {
-        this.orders = new ArrayList<>();
-        this.paymentOrderStatus = PAYMENT_ORDER_STATUS.PENDING;
-    }
+
 }

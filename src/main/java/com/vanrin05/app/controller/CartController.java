@@ -45,6 +45,8 @@ public class CartController {
         return ResponseEntity.ok(cartService.addCartItem(user, product, addCartRequest.getQuantity(), subProduct));
     }
 
+
+
     @DeleteMapping("/item/{cartItemId}")
     public ResponseEntity<Void> deleteCartItem(@RequestHeader("Authorization") String jwt,
                                                @PathVariable Long cartItemId) {

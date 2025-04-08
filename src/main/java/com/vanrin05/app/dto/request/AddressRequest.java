@@ -1,18 +1,18 @@
-package com.vanrin05.app.model;
+package com.vanrin05.app.dto.request;
 
-import jakarta.persistence.*;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-@Entity(name = "addresses")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Address {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class AddressRequest {
+
     Long id;
 
     String name;
@@ -27,6 +27,7 @@ public class Address {
 
     String province;
 
-    String postalCode;    // Mã bưu điện
+    String postalCode;
 }
+
 

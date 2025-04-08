@@ -2,12 +2,13 @@ package com.vanrin05.app.model.orderpayment;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.vanrin05.app.domain.ORDER_STATUS;
+import com.vanrin05.app.domain.PAYMENT_METHOD;
 import com.vanrin05.app.model.Address;
 import com.vanrin05.app.model.User;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -29,30 +30,26 @@ public class Order {
     @JsonManagedReference
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     List<OrderItem> orderItems;
+
     @ManyToOne
     @JoinColumn(name = "shipping_address_id")
     Address shippingAddress;
-    @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(name = "paymentStatus", column = @Column(name = "payment_status"))
-    })
-    PaymentDetails paymentDetails = new PaymentDetails();
+
     double totalMrpPrice;
     Integer totalSellingPrice;
     Integer discount;
     Integer totalItem;
     @Enumerated(EnumType.STRING)
-    ORDER_STATUS orderStatus;
-    String cancelReason;
+
     @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "payment_order_id")
-    PaymentOrder paymentOrder;
+    Payment payment;
+
+    PAYMENT_METHOD paymentMethod;
+
+    @CreatedDate
     LocalDateTime orderDate;
-    LocalDateTime deliveryDate;
-    @PrePersist
-    protected void onCreate() {
-        this.orderDate = LocalDateTime.now();
-        this.deliveryDate = this.orderDate.plusDays(7);
-    }
+
+
 }

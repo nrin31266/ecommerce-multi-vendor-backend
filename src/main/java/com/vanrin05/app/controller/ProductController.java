@@ -1,6 +1,7 @@
 package com.vanrin05.app.controller;
 
 import com.vanrin05.app.dto.ProductDto;
+import com.vanrin05.app.dto.SubProductDto;
 import com.vanrin05.app.dto.request.CreateSubProductReq;
 import com.vanrin05.app.model.product.Product;
 import com.vanrin05.app.model.product.SubProduct;
@@ -27,6 +28,11 @@ public class ProductController {
     @GetMapping("/{productId}")
     public ResponseEntity<Product> getProductById(@PathVariable Long productId) {
         return ResponseEntity.ok(productService.findProductById(productId));
+    }
+
+    @GetMapping("/sub-product/{subProductId}")
+    public ResponseEntity<SubProductDto> getSubProductById(@PathVariable Long subProductId) {
+        return ResponseEntity.ok(productService.findSubProductByIdT(subProductId));
     }
 
 

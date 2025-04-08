@@ -3,13 +3,14 @@ package com.vanrin05.app.controller;
 
 import com.stripe.exception.StripeException;
 import com.vanrin05.app.domain.PAYMENT_METHOD;
+import com.vanrin05.app.dto.request.CreateOrderRequest;
 import com.vanrin05.app.dto.response.PaymentResponse;
 import com.vanrin05.app.exception.AppException;
 import com.vanrin05.app.model.*;
 import com.vanrin05.app.model.cart.Cart;
 import com.vanrin05.app.model.orderpayment.Order;
 import com.vanrin05.app.model.orderpayment.OrderItem;
-import com.vanrin05.app.model.orderpayment.PaymentOrder;
+import com.vanrin05.app.model.orderpayment.Payment;
 import com.vanrin05.app.service.CartService;
 import com.vanrin05.app.service.OrderService;
 import com.vanrin05.app.service.PaymentService;
@@ -45,8 +46,7 @@ public class OrderController {
     @Transactional(rollbackFor = Exception.class)
     @PostMapping
     public ResponseEntity<PaymentResponse> createOrder(
-            @RequestBody Address shippingAddress,
-            @RequestParam PAYMENT_METHOD paymentMethod,
+            @RequestBody CreateOrderRequest request,
             @RequestHeader("Authorization") String jwt
             ) throws StripeException {
 //        User user = userService.findUserByJwtToken(jwt);

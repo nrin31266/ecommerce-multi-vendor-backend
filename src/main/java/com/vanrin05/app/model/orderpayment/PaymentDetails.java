@@ -7,6 +7,8 @@ import jakarta.persistence.Enumerated;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDateTime;
+
 
 @Data
 @NoArgsConstructor
@@ -16,7 +18,9 @@ import lombok.experimental.FieldDefaults;
 public class PaymentDetails {
     @Enumerated(EnumType.STRING)
     PAYMENT_STATUS paymentStatus;
-
     @Enumerated(EnumType.STRING)
     PAYMENT_METHOD paymentMethod;
+
+
+    LocalDateTime paymentDate;
 }

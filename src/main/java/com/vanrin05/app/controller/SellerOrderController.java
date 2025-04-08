@@ -1,6 +1,5 @@
 package com.vanrin05.app.controller;
 
-import com.vanrin05.app.domain.ORDER_STATUS;
 import com.vanrin05.app.model.orderpayment.Order;
 import com.vanrin05.app.model.Seller;
 import com.vanrin05.app.service.OrderService;
@@ -22,15 +21,15 @@ public class SellerOrderController {
     SellerService sellerService;
 
 
-    @PutMapping("/{orderId}/status/{orderStatus}")
-    public ResponseEntity<Order> updateOrderStatus(@PathVariable("orderId") long orderId, @PathVariable("orderStatus") ORDER_STATUS orderStatus) {
-        return ResponseEntity.ok(orderService.updateOrderStatus(orderId, orderStatus));
-    }
-
-    @GetMapping("/{orderStatus}")
-    public ResponseEntity<List<Order>> getAllOrders(@RequestHeader("Authorization") String jwt, @PathVariable("orderStatus") ORDER_STATUS orderStatus) {
-        Seller seller = sellerService.getSellerProfile(jwt);
-        return ResponseEntity.ok(orderService.sellerOrders(seller.getId(), orderStatus));
-
-    }
+//    @PutMapping("/{orderId}/status/{orderStatus}")
+//    public ResponseEntity<Order> updateOrderStatus(@PathVariable("orderId") long orderId, @PathVariable("orderStatus") ORDER_STATUS orderStatus) {
+//        return ResponseEntity.ok(orderService.updateOrderStatus(orderId, orderStatus));
+//    }
+//
+//    @GetMapping("/{orderStatus}")
+//    public ResponseEntity<List<Order>> getAllOrders(@RequestHeader("Authorization") String jwt, @PathVariable("orderStatus") ORDER_STATUS orderStatus) {
+//        Seller seller = sellerService.getSellerProfile(jwt);
+//        return ResponseEntity.ok(orderService.sellerOrders(seller.getId(), orderStatus));
+//
+//    }
 }

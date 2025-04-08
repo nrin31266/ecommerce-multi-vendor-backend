@@ -9,7 +9,9 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity(name = "users")
@@ -35,9 +37,8 @@ public class User {
     @Enumerated(EnumType.STRING)
     USER_ROLE role;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonIgnore
-    Set<Address> addresses;
+    @OneToMany(cascade = CascadeType.ALL)
+    List<Address> addresses = new ArrayList<>();
 
 
     @ManyToMany(fetch = FetchType.LAZY)
@@ -47,7 +48,7 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "coupon_id")
     )
-    Set<Coupon> usedCoupons;
+    Set<Coupon> usedCoupons = new HashSet<>();
 
     public User(String email,String fullName, String mobile, String password) {
         this.email = email;
@@ -59,7 +60,5 @@ public class User {
     @PrePersist
     protected void prePersist() {
         this.role = USER_ROLE.ROLE_CUSTOMER;
-        this.addresses = new HashSet<>();
-        this.usedCoupons = new HashSet<>();
     }
 }
