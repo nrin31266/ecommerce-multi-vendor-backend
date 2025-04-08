@@ -23,28 +23,24 @@ import java.util.List;
 public class PaymentController {
     PaymentService paymentService;
     UserService userService;
-    SellerService sellerService;
-    SellerReportService sellerReportService;
-    TransactionService transactionService;
+
 
     @GetMapping("/{paymentId}")
     public ResponseEntity<Payment> findPaymentById(@PathVariable("paymentId") Long paymentId) {
         return ResponseEntity.ok(paymentService.findById(paymentId));
     }
 
-    @GetMapping("/{paymentId}/orders")
-    public ResponseEntity<List<Order>> findPaymentHasOrders(@PathVariable("paymentId") Long paymentId) {
-        return ResponseEntity.ok(paymentService.findAllOrdersInPaymentOrder(paymentService.findById(paymentId)));
-    }
-    @GetMapping
-    public ResponseEntity<List<Payment>> findAllPayments(@RequestHeader("Authorization") String jwt) {
+    @GetMapping("/pending-payment")
+    public ResponseEntity<List<Payment>> findUserPaymentOrdersPaymentNotYet(@RequestHeader("Authorization") String jwt) {
         User user = userService.findUserByJwtToken(jwt);
-        return ResponseEntity.ok(paymentService.findUserPaymentOrders(user));
+        return ResponseEntity.ok(paymentService.findUserPaymentOrdersPaymentNotYet(user));
     }
+
 
     @PutMapping("/cancel/{paymentId}")
     public ResponseEntity<Payment> cancelPayment(@PathVariable("paymentId") Long paymentId, @RequestHeader("Authorization") String jwt) {
         User user = userService.findUserByJwtToken(jwt);
-        return ResponseEntity.ok(paymentService.cancelPaymentOrder(paymentId, user));
+        Payment payment = paymentService.findById(paymentId);
+        return ResponseEntity.ok(paymentService.cancelPaymentOrder(payment, user, "Cancel payment"));
     }
 }

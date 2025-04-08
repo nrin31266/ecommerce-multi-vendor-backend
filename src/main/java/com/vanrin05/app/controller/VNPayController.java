@@ -76,17 +76,9 @@ public class VNPayController {
             vnPayService.handlerInp(params);
 
             if ("00".equals(vnp_ResponseCode)) {
-                Boolean isSuccessPayment = paymentService.proceedPayment(Long.valueOf(paymentId));
-                if (isSuccessPayment) {
-
-
-
-                    res.setRspCode("00"); // Success
-                    res.setMessage("Payment successfully processed.");
-                } else {
-                    res.setRspCode("99"); // Unknown Error
-                    res.setMessage("Payment processing failed.");
-                }
+                paymentService.proceedPayment(Long.valueOf(paymentId));
+                res.setRspCode("00"); // Success
+                res.setMessage("Payment successfully processed.");
             } else {
                 res.setRspCode(vnp_ResponseCode);
                 res.setMessage("Payment failed with VNPAY Response Code: " + vnp_ResponseCode);
