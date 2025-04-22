@@ -1,18 +1,17 @@
 package com.vanrin05.app.dto.request;
 
+import com.vanrin05.app.exception.ErrorCode;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class SignupRequest {
-    String email;
-    @NotBlank(message = "FULL_NAME_IS_REQUIRED")
-    String fullName;
-    String otp;
+
+public class VerifyTokenRequest {
+    @NotBlank(message = "TOKEN_IS_REQUIRED")
+    String jwtToken;
 }

@@ -90,7 +90,7 @@ public class ProductService {
             if (req.getOptionsTypes().isEmpty()) {
                 throw new AppException("Options types are empty");
             }
-            if (req.getOptionKey() != null && !req.getOptionsTypes().contains(req.getOptionKey())) {
+            if (req.getOptionKey() != null && !req.getOptionKey().isEmpty() && !req.getOptionsTypes().contains(req.getOptionKey())) {
                 throw new AppException("Option key invalid");
             }
             Set<ProductOptionType> productOptionTypes = new HashSet<>();

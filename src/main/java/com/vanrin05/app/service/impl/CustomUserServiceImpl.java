@@ -25,13 +25,13 @@ import java.util.Optional;
 @Service
 public class CustomUserServiceImpl implements UserDetailsService {
     UserRepository userRepository;
-    String SELLER_PREFIX = "seller_";
     SellerRepository sellerRepository;
 
 
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        String SELLER_PREFIX = "seller_";
         if(username.startsWith(SELLER_PREFIX)) {
             String actualUsername = username.substring(SELLER_PREFIX.length());
             Optional<Seller> optionalSeller = sellerRepository.findByEmail(actualUsername);

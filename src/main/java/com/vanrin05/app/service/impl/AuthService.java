@@ -5,6 +5,7 @@ import com.vanrin05.app.domain.USER_ROLE;
 import com.vanrin05.app.dto.request.SigningRequest;
 import com.vanrin05.app.dto.request.SignupRequest;
 import com.vanrin05.app.dto.response.AuthResponse;
+import com.vanrin05.app.dto.response.VerifyTokenResponse;
 import com.vanrin05.app.exception.AppException;
 import com.vanrin05.app.exception.ErrorCode;
 import com.vanrin05.app.mapper.UserMapper;
@@ -17,6 +18,7 @@ import com.vanrin05.app.repository.UserRepository;
 import com.vanrin05.app.repository.VerificationCodeRepository;
 import com.vanrin05.app.utils.OtpUtil;
 import com.vanrin05.event.SentLoginSignupEvent;
+import io.jsonwebtoken.Claims;
 import jakarta.mail.MessagingException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -102,13 +104,13 @@ public class AuthService {
 
     public AuthResponse signup(SignupRequest req) {
         if(userRepository.findByEmail(req.getEmail()).isPresent()){
-            throw new RuntimeException("Email already in use");
+            throw new AppException("Email already in use");
         }
 
         Optional<VerificationCode> verificationCodeOptional = verificationCodeRepository.findByEmail(req.getEmail());
 
         if (verificationCodeOptional.isEmpty() || !verificationCodeOptional.get().getOtp().equals(req.getOtp())) {
-            throw new RuntimeException("Wrong otp...");
+            throw new AppException("Wrong otp...");
         }
 
 
@@ -116,7 +118,9 @@ public class AuthService {
         User user = userMapper.toUser(req);
         user.setRole(USER_ROLE.ROLE_CUSTOMER);
         user.setMobile("0321312321");
-
+        user.setPassword(
+                passwordEncoder.encode(verificationCodeOptional.get().getOtp())
+        );
         user = userRepository.save(user);
 
         cartRepository.save(Cart.builder()
@@ -166,5 +170,22 @@ public class AuthService {
             throw new AppException(ErrorCode.WRONG_OTP);
         }
         return new UsernamePasswordAuthenticationToken(userDetails, null,  userDetails.getAuthorities());
+    }
+
+    public VerifyTokenResponse verifyToken(String token) {
+        boolean isValid;
+        String details;
+        try {
+            Claims claims = jwtProvider.validateToken(token);
+            isValid = true;
+            details = claims.get("email").toString();
+        }catch (Exception e){
+            isValid = false;
+            details = e.getMessage();
+        }
+
+        return new VerifyTokenResponse(
+                isValid, details
+        );
     }
 }

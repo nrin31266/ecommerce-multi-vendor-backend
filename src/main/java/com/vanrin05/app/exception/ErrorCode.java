@@ -27,6 +27,13 @@ public enum ErrorCode {
     CART_NOT_FOUND(9009, "Cart not found", HttpStatus.NOT_FOUND),
 
     CATEGORY_NOT_FOUND(9010, "Category not found", HttpStatus.NOT_FOUND),
+
+    EMAIL_INVALID(9011, "Email is invalid", HttpStatus.BAD_REQUEST),
+    EMAIL_REQUIRED(9012, "Email is required", HttpStatus.BAD_REQUEST),
+//    TOKEN_INVALID(9013, "Token is invalid", HttpStatus.BAD_REQUEST),
+//    TOKEN_IS_EXPIRED(9014, "Token is expired", HttpStatus.BAD_REQUEST),
+    TOKEN_IS_REQUIRED(9015, "Token is required", HttpStatus.BAD_REQUEST),
+    FULL_NAME_IS_REQUIRED(9016, "Full name is required", HttpStatus.BAD_REQUEST),
     ;
 
 

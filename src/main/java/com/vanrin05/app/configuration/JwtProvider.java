@@ -39,6 +39,9 @@ public class JwtProvider {
                 .signWith(secretKey())
                 .compact();
     }
+    public Claims validateToken(String jwtToken) {
+        return parseToken(jwtToken); // Sử dụng parseToken
+    }
 
     private String populateAuthorities(Collection<? extends GrantedAuthority> authorities) {
         Set<String> auths = new HashSet<>();
@@ -49,11 +52,15 @@ public class JwtProvider {
     }
 
     public String getEmailFromJwtToken(String jwtToken) {
-        jwtToken = jwtToken.substring(7);
-        Claims claims = Jwts.parserBuilder().setSigningKey(secretKey()).build()
-                .parseClaimsJws(jwtToken).getBody();
-
+        Claims claims = parseToken(jwtToken);
         return String.valueOf(claims.get("email"));
+    }
+
+    public Claims parseToken(String jwtToken) {
+        jwtToken = jwtToken.substring(7); // Xử lý "Bearer "
+        SecretKey key = secretKey();
+        return Jwts.parserBuilder().setSigningKey(key).build()
+                .parseClaimsJws(jwtToken).getBody();
     }
 
 

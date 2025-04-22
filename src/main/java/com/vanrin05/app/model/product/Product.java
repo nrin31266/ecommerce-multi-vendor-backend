@@ -36,8 +36,8 @@ public class Product {
     Long minSellingPrice;
     Long maxSellingPrice;
     int totalSubProduct;
-    int totalSold;
-    int totalOrder;
+    int totalSold=0;
+    int totalOrder=0;
     Boolean isSubProduct = false;
     @ElementCollection
     @CollectionTable(name = "product_images", joinColumns = @JoinColumn(name = "product_id"))
