@@ -35,8 +35,8 @@ public class AuthController {
 
     @PostMapping("/send-login-signup-otp")
     public ResponseEntity<ApiResponse> sendOtpHandler(@Valid @RequestBody SigningOtpRequest request) throws MessagingException {
-        log.info(request.toString());
-        authService.sendLoginOtp(request.getEmail(), request.getRole());
+//        log.info(request.toString());
+//        authService.sendLoginOtp(request.getEmail(), request.getRole());
         return ResponseEntity.ok(ApiResponse.builder()
                         .message("Sent otp successfully")
                 .build());

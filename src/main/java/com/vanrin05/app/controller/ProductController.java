@@ -53,10 +53,11 @@ public class ProductController {
             @RequestParam(required = false) Integer minimumDiscount,
             @RequestParam(required = false) String sort,
             @RequestParam(required = false) String stock,
-            @RequestParam(defaultValue = "1", required = false) Integer pageNumber
+            @RequestParam(defaultValue = "1", required = false) Integer pageNumber,
+            @RequestParam(required = false) String search
     ) {
-        log.info("Received request with params: category={}, brand={}, colors={}, sizes={}, minimumPrice={}, maximumPrice={}, minimumDiscount={}, sort={}, stock={}, pageNumber={}", category, brand, colors, sizes, minimumPrice, maximumPrice, minimumDiscount, sort, stock, pageNumber);
-        return ResponseEntity.ok(productService.getAllProduct(category, brand, colors, sizes, minimumPrice, maximumPrice, minimumDiscount, sort, stock, pageNumber));
+
+        return ResponseEntity.ok(productService.getAllProduct(category, brand, colors, sizes, minimumPrice, maximumPrice, minimumDiscount, sort, stock, pageNumber, search));
     }
 
 

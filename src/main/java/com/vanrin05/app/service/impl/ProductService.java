@@ -1,10 +1,12 @@
 package com.vanrin05.app.service.impl;
 
 import com.vanrin05.app.dto.ProductDto;
+
 import com.vanrin05.app.dto.SubProductDto;
 import com.vanrin05.app.dto.request.CreateProductReq;
 import com.vanrin05.app.dto.request.CreateSubProductReq;
 import com.vanrin05.app.dto.request.UpdateProductReq;
+import com.vanrin05.app.dto.request.UpdateSubProductReq;
 import com.vanrin05.app.exception.AppException;
 import com.vanrin05.app.exception.ErrorCode;
 import com.vanrin05.app.mapper.ProductMapper;
@@ -58,7 +60,7 @@ public class ProductService {
     @Transactional
     public Product createProduct(CreateProductReq req, String jwt) {
         List<Category> categories = findAllCategoryInIds(List.of(req.getCategory1(), req.getCategory2(), req.getCategory3()));
-        if(categories.size() < 3){
+        if (categories.size() < 3) {
             throw new AppException(ErrorCode.CATEGORY_NOT_FOUND);
         }
         Product product = productMapper.toProduct(req);
@@ -67,7 +69,7 @@ public class ProductService {
         product.setSeller(sellerService.getSellerProfile(jwt));
 //        product= productRepository.save(product);
         if (req.getIsSubProduct() != null && req.getIsSubProduct()) {
-            if(req.getMrpPrice() == null || req.getSellingPrice() == null || req.getQuantity() == null){
+            if (req.getMrpPrice() == null || req.getSellingPrice() == null || req.getQuantity() == null) {
                 throw new AppException("Please fill full field of product");
             }
             SubProduct subProduct = new SubProduct();
@@ -94,7 +96,7 @@ public class ProductService {
                 throw new AppException("Option key invalid");
             }
             Set<ProductOptionType> productOptionTypes = new HashSet<>();
-            for(String optionType : req.getOptionsTypes()) {
+            for (String optionType : req.getOptionsTypes()) {
                 productOptionTypes.add(
                         ProductOptionType.builder()
                                 .value(optionType)
@@ -109,13 +111,13 @@ public class ProductService {
 
     @Transactional
     public SubProduct addSubProductToProduct(Long productId, CreateSubProductReq req, String jwt) {
-        Product product = productRepository.findById(productId).orElseThrow(() -> new AppException("Product not found"));
+        Product product = findProductById(productId);
         if (product.getIsSubProduct() != null && product.getIsSubProduct()) {
             throw new AppException("This product is a sub product");
         }
         Seller seller = sellerService.getSellerProfile(jwt);
         if (!seller.getId().equals(product.getSeller().getId())) {
-            throw new AppException("Seller's id not match");
+            throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 
         SubProduct subProduct = new SubProduct();
@@ -126,7 +128,7 @@ public class ProductService {
 //        subProduct.setOptions(null);
 
         Set<SubProductOption> subProductOptions = new HashSet<>();
-        for (ProductOptionType productOptionType : product.getOptionsTypes()){
+        for (ProductOptionType productOptionType : product.getOptionsTypes()) {
             SubProductOption subProductOption = SubProductOption.builder()
                     .optionValue(req.getOptions().get(productOptionType.getValue()))
                     .optionType(productOptionType)
@@ -156,8 +158,6 @@ public class ProductService {
         }
 
 
-
-
         product.setTotalSubProduct(product.getTotalSubProduct() + 1);
         product.setDiscountPercentage(discountPercentage(product.getMaxMrpPrice(), product.getMinSellingPrice()));
         subProduct.setProduct(product);
@@ -165,6 +165,31 @@ public class ProductService {
         return subProductRepository.save(subProduct);
     }
 
+    @Transactional
+    public SubProduct updateSubProduct(Long subProductId, UpdateSubProductReq req, String jwt) {
+        SubProduct subProduct = subProductRepository.findById(subProductId).orElseThrow(
+                () -> new AppException("Sub product not found")
+        );
+        Seller seller = sellerService.getSellerProfile(jwt);
+        if (!seller.getId().equals(subProduct.getProduct().getSeller().getId())) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+        subProductMapper.updateSubProduct(subProduct, req);
+        if (req.getOptions() != null) {
+            subProduct.getOptions().forEach(option -> {
+                String newValue = req.getOptions().get(option.getOptionType().getValue());
+                if (newValue != null) {
+                    option.setOptionValue(newValue);
+                }
+            });
+        }
+
+        SubProduct savedSubProduct = subProductRepository.save(subProduct);
+        Product product = savedSubProduct.getProduct();
+        updateProductMinMaxPrices(product);
+
+        return savedSubProduct;
+    }
 
 
     @Transactional
@@ -174,7 +199,7 @@ public class ProductService {
             throw new AppException("This product is a sub product");
         }
         Seller seller = sellerService.getSellerProfile(jwt);
-        if(!seller.getId().equals(product.getSeller().getId())) {
+        if (!seller.getId().equals(product.getSeller().getId())) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
         SubProduct subProduct = subProductRepository.findById(subProductId).orElseThrow(() -> new AppException("SubProduct not found"));
@@ -186,7 +211,7 @@ public class ProductService {
         updateProductMinMaxPrices(product);
 
 
-        subProductRepository.delete(subProduct);
+//        subProductRepository.delete(subProduct);
 
     }
 
@@ -226,7 +251,7 @@ public class ProductService {
             product.setMinSellingPrice(null);
             product.setMaxSellingPrice(null);
             product.setDiscountPercentage(0);
-        }else{
+        } else {
             product.setDiscountPercentage(discountPercentage(product.getMaxMrpPrice(), product.getMinSellingPrice()));
         }
 
@@ -234,7 +259,7 @@ public class ProductService {
     }
 
     public SubProduct findSubProductById(Long subProductId) {
-        return subProductRepository.findById(subProductId).orElseThrow(()-> new AppException("SubProduct not found"));
+        return subProductRepository.findById(subProductId).orElseThrow(() -> new AppException("SubProduct not found"));
 
     }
 
@@ -246,7 +271,7 @@ public class ProductService {
 
     public void restoreStock(Order order) {
 
-        List<SubProduct> subProducts = order.getOrderItems().stream().map((orderItem)->{
+        List<SubProduct> subProducts = order.getOrderItems().stream().map((orderItem) -> {
             SubProduct subProduct = orderItem.getSubProduct();
             subProduct.setQuantity(orderItem.getQuantity() + subProduct.getQuantity());
             return subProduct;
@@ -261,8 +286,6 @@ public class ProductService {
         subProduct.setQuantity(orderItem.getQuantity() + subProduct.getQuantity());
         subProductRepository.save(subProduct);
     }
-
-
 
 
     private int discountPercentage(double mrpPrice, double sellingPrice) {
@@ -286,7 +309,7 @@ public class ProductService {
 
     public Product updateProduct(Long productId, UpdateProductReq req) {
         List<Category> categories = findAllCategoryInIds(List.of(req.getCategory1(), req.getCategory2(), req.getCategory3()));
-        if(categories.size() < 3){
+        if (categories.size() < 3) {
             throw new AppException(ErrorCode.CATEGORY_NOT_FOUND);
         }
         Product product = this.findProductById(productId);
@@ -306,15 +329,26 @@ public class ProductService {
             Integer minimumDiscount,
             String sort,
             String stock,
-            Integer pageNumber
+            Integer pageNumber,
+            String search
     ) {
         Specification<Product> specification = (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("totalSubProduct"), 1));
 
-            if (category != null) {
+            if (category != null && !category.isEmpty()) {
                 Join<Product, Category> joinCategory = root.join("category");
                 predicates.add(criteriaBuilder.equal(joinCategory.get("categoryId"), category));
+            }
+            if (search != null && !search.isEmpty()) {
+                var loweredSearch = "%" + search.toLowerCase() + "%";
+                predicates.add(
+                        criteriaBuilder.or(
+                                criteriaBuilder.like(criteriaBuilder.lower(root.get("title")), loweredSearch)
+//                                ,criteriaBuilder.like(criteriaBuilder.lower(root.get("description")), loweredSearch)
+                        )
+                );
+
             }
 //            if (brand != null && !brand.isEmpty()) {
 //                predicates.add(criteriaBuilder.equal(root.get("brand"), brand));
@@ -357,7 +391,7 @@ public class ProductService {
                 "discount_high", Sort.by("discountPercentage").descending()
         );
         sort = null;
-        Sort sortOption = sort != null && sortMap.containsKey(sort) ? sortMap.get(sort) : Sort.unsorted();
+        Sort sortOption = Sort.unsorted();
         pageable = PageRequest.of(pageNumber != null ? (pageNumber - 1) : 0, 10, sortOption);
 
         Page<Product> pageData = productRepository.findAll(specification, pageable);

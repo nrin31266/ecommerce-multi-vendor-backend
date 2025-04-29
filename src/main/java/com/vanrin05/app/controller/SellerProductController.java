@@ -3,6 +3,7 @@ package com.vanrin05.app.controller;
 import com.vanrin05.app.dto.request.CreateProductReq;
 import com.vanrin05.app.dto.request.CreateSubProductReq;
 import com.vanrin05.app.dto.request.UpdateProductReq;
+import com.vanrin05.app.dto.request.UpdateSubProductReq;
 import com.vanrin05.app.model.product.Product;
 import com.vanrin05.app.model.product.SubProduct;
 import com.vanrin05.app.service.impl.ProductService;
@@ -58,6 +59,14 @@ public class SellerProductController {
     public ResponseEntity<Void> deleteSubProduct(@PathVariable Long productId,@RequestHeader("Authorization") String token, @PathVariable Long subProductId) {
         productService.deleteSubProduct(productId, token, subProductId);
         return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/sub/{subProductId}")
+    public ResponseEntity<SubProduct> updateSubProduct(@PathVariable Long subProductId, @RequestBody UpdateSubProductReq req,
+                                                       @RequestHeader("Authorization") String jwt) {
+        return ResponseEntity.ok().body(
+                productService.updateSubProduct(subProductId, req, jwt)
+        );
     }
 
 }

@@ -4,7 +4,6 @@ import com.vanrin05.app.dto.CartDto;
 import com.vanrin05.app.dto.CartItemDto;
 import com.vanrin05.app.dto.request.AddCartRequest;
 import com.vanrin05.app.dto.request.UpdateCartItemRequest;
-import com.vanrin05.app.model.cart.Cart;
 import com.vanrin05.app.model.cart.CartItem;
 import com.vanrin05.app.model.product.Product;
 import com.vanrin05.app.model.User;
