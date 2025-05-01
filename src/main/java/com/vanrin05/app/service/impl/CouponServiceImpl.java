@@ -26,41 +26,41 @@ public class CouponServiceImpl implements CouponService {
     CartRepository cartRepository;
     UserRepository userRepository;
 
-    @Override
-    public Cart applyCoupon(String code, double orderValue, User user) {
-        Coupon coupon = couponRepository.findByCode(code).orElseThrow(() -> new AppException("Coupon not found"));
-        Cart cart = cartRepository.findByUserId(user.getId());
-
-        if(user.getUsedCoupons().contains(coupon)){
-            throw new AppException("Coupon already used");
-        }
-
-        if(orderValue <= coupon.getMinimumOrderValue()){
-            throw new AppException("Valid for minimum order values: "+ coupon.getMinimumOrderValue());
-        }
-
-        if(coupon.isActive() && LocalDateTime.now().isBefore(coupon.getValidityStartDate()) && LocalDateTime.now().isAfter(coupon.getValidityEndDate())){
-            user.getUsedCoupons().add(coupon);
-            userRepository.save(user);
-
-            cart.setTotalSellingPrice(calculateDiscountPrice(cart.getTotalSellingPrice(), coupon.getCouponType(), coupon.getDiscountValue()));
-            cart.setCouponCode(code);
-            cartRepository.save(cart);
-        }
-
-        throw new AppException("Coupon not valid");
-    }
-
-    @Override
-    public Cart removeCoupon(String code, User user) {
-        Coupon coupon = couponRepository.findByCode(code).orElseThrow(() -> new AppException("Coupon not found"));
-        Cart cart = cartRepository.findByUserId(user.getId());
-
-
-        cart.setTotalSellingPrice(calculateDiscountPrice(cart.getTotalSellingPrice(), coupon.getCouponType(), coupon.getDiscountValue()));
-        cart.setCouponCode(null);
-        return cartRepository.save(cart);
-    }
+//    @Override
+//    public Cart applyCoupon(String code, double orderValue, User user) {
+//        Coupon coupon = couponRepository.findByCode(code).orElseThrow(() -> new AppException("Coupon not found"));
+//        Cart cart = cartRepository.findByUserId(user.getId());
+//
+//        if(user.getUsedCoupons().contains(coupon)){
+//            throw new AppException("Coupon already used");
+//        }
+//
+//        if(orderValue <= coupon.getMinimumOrderValue()){
+//            throw new AppException("Valid for minimum order values: "+ coupon.getMinimumOrderValue());
+//        }
+//
+//        if(coupon.isActive() && LocalDateTime.now().isBefore(coupon.getValidityStartDate()) && LocalDateTime.now().isAfter(coupon.getValidityEndDate())){
+//            user.getUsedCoupons().add(coupon);
+//            userRepository.save(user);
+//
+//            cart.setTotalSellingPrice(calculateDiscountPrice(cart.getTotalSellingPrice(), coupon.getCouponType(), coupon.getDiscountValue()));
+//            cart.setCouponCode(code);
+//            cartRepository.save(cart);
+//        }
+//
+//        throw new AppException("Coupon not valid");
+//    }
+//
+//    @Override
+//    public Cart removeCoupon(String code, User user) {
+//        Coupon coupon = couponRepository.findByCode(code).orElseThrow(() -> new AppException("Coupon not found"));
+//        Cart cart = cartRepository.findByUserId(user.getId());
+//
+//
+//        cart.setTotalSellingPrice(calculateDiscountPrice(cart.getTotalSellingPrice(), coupon.getCouponType(), coupon.getDiscountValue()));
+//        cart.setCouponCode(null);
+//        return cartRepository.save(cart);
+//    }
 
     private Long calculateDiscountPrice(Long totalSellingPrice, COUPON_TYPE couponType, Long discountValue) {
 

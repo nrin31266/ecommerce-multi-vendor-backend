@@ -37,7 +37,7 @@ public class User {
     @Enumerated(EnumType.STRING)
     USER_ROLE role;
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "user", orphanRemoval = true)
     List<Address> addresses = new ArrayList<>();
 
 

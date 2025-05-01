@@ -98,10 +98,7 @@ public class OrderServiceImpl implements OrderService {
 
         // Clear cart
         cart.getCartItems().clear();
-        cart.setDiscount(0);
         cart.setCouponCode(null);
-        cart.setTotalSellingPrice(0L);
-        cart.setTotalMrpPrice(0L);
         cartRepository.save(cart);
 
         // Update seller report: Not update soon

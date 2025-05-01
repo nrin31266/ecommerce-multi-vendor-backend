@@ -1,5 +1,6 @@
 package com.vanrin05.app.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
@@ -28,14 +29,14 @@ public class Address {
 
     String province;
 
-    String postalCode;    // Mã bưu điện
+    String postalCode;
 
-    @JsonIgnore
+    @JsonBackReference
     @ManyToOne@JoinColumn(name = "user_id")
     User user;
 
-    @JsonIgnore
-    @ManyToOne@JoinColumn(name = "seller_id")
+    @JsonBackReference
+    @OneToOne@JoinColumn(name = "seller_id")
     Seller seller;
 }
 

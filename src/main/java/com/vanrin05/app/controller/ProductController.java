@@ -1,5 +1,6 @@
 package com.vanrin05.app.controller;
 
+import com.vanrin05.app.dto.PageableDto;
 import com.vanrin05.app.dto.ProductDto;
 import com.vanrin05.app.dto.SubProductDto;
 import com.vanrin05.app.dto.request.CreateSubProductReq;
@@ -43,7 +44,7 @@ public class ProductController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<ProductDto>> getAllProducts(
+    public ResponseEntity<PageableDto<ProductDto>> getAllProducts(
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String brand,
             @RequestParam(required = false) String colors,
@@ -54,10 +55,11 @@ public class ProductController {
             @RequestParam(required = false) String sort,
             @RequestParam(required = false) String stock,
             @RequestParam(defaultValue = "1", required = false) Integer pageNumber,
-            @RequestParam(required = false) String search
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false, defaultValue = "10") Integer pageSize
     ) {
 
-        return ResponseEntity.ok(productService.getAllProduct(category, brand, colors, sizes, minimumPrice, maximumPrice, minimumDiscount, sort, stock, pageNumber, search));
+        return ResponseEntity.ok(productService.getAllProduct(category, brand, colors, sizes, minimumPrice, maximumPrice, minimumDiscount, sort, stock, pageNumber, search, pageSize));
     }
 
 

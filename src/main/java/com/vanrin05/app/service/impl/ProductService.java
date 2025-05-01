@@ -1,5 +1,6 @@
 package com.vanrin05.app.service.impl;
 
+import com.vanrin05.app.dto.PageableDto;
 import com.vanrin05.app.dto.ProductDto;
 
 import com.vanrin05.app.dto.SubProductDto;
@@ -9,6 +10,7 @@ import com.vanrin05.app.dto.request.UpdateProductReq;
 import com.vanrin05.app.dto.request.UpdateSubProductReq;
 import com.vanrin05.app.exception.AppException;
 import com.vanrin05.app.exception.ErrorCode;
+import com.vanrin05.app.mapper.PageableMapper;
 import com.vanrin05.app.mapper.ProductMapper;
 import com.vanrin05.app.mapper.SubProductMapper;
 import com.vanrin05.app.model.Category;
@@ -51,6 +53,7 @@ public class ProductService {
     SubProductRepository subProductRepository;
     CategoryRepository categoryRepository;
     SubProductMapper subProductMapper;
+    PageableMapper pageableMapper;
 
     private List<Category> findAllCategoryInIds(List<String> ids) {
         return categoryRepository
@@ -322,7 +325,7 @@ public class ProductService {
         return productRepository.searchProduct(query);
     }
 
-    public Page<ProductDto> getAllProduct(
+    public PageableDto<ProductDto> getAllProduct(
             String category, String brand,
             String colors, String sizes,
             Integer minimumPrice, Integer maximumPrice,
@@ -330,7 +333,8 @@ public class ProductService {
             String sort,
             String stock,
             Integer pageNumber,
-            String search
+            String search,
+            Integer pageSize
     ) {
         Specification<Product> specification = (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -350,35 +354,6 @@ public class ProductService {
                 );
 
             }
-//            if (brand != null && !brand.isEmpty()) {
-//                predicates.add(criteriaBuilder.equal(root.get("brand"), brand));
-//            }
-//
-//            if (stock != null && !stock.isEmpty()) {
-//                predicates.add(criteriaBuilder.equal(root.get("stock"), stock));
-//            }
-//
-//            if (colors != null && !colors.isEmpty()) {
-//                List<String> colorList = Arrays.asList(colors.split(","));
-//                predicates.add(root.get("color").in(colorList));
-//            }
-//
-//            if (sizes != null && !sizes.isEmpty()) {
-//                List<String> sizeList = Arrays.asList(sizes.split(","));
-//                predicates.add(root.get("size").in(sizeList));
-//            }
-//
-//            if (minimumPrice != null) {
-//                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("sellingPrice"), minimumPrice));
-//            }
-//
-//            if (maximumPrice != null) {
-//                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("sellingPrice"), maximumPrice));
-//            }
-//
-//            if (minimumDiscount != null) {
-//                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("discountPercentage"), minimumDiscount));
-//            }
 
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
@@ -392,14 +367,14 @@ public class ProductService {
         );
         sort = null;
         Sort sortOption = Sort.unsorted();
-        pageable = PageRequest.of(pageNumber != null ? (pageNumber - 1) : 0, 10, sortOption);
+        pageable = PageRequest.of(pageNumber != null ? (pageNumber - 1) : 0, pageSize, sortOption);
 
         Page<Product> pageData = productRepository.findAll(specification, pageable);
 
         Page<ProductDto> dtoPage = pageData.map(productMapper::toProductDto);
 
 
-        return dtoPage;
+        return pageableMapper.toPageableDto(dtoPage);
 
     }
 

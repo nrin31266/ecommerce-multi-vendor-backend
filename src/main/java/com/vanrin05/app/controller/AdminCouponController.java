@@ -24,23 +24,23 @@ public class AdminCouponController {
     UserService userService;
     CartService cartService;
 
-    @PostMapping("/apply")
-    public ResponseEntity<Cart> applyCoupon(
-            @RequestParam String apply,
-            @RequestParam String code,
-            @RequestParam double orderValue,
-            @RequestHeader("Authorization") String jwtToken
-    ){
-        User user = userService.findUserByJwtToken(jwtToken);
-        Cart cart;
-        if(apply.equals("true")){
-            cart = couponService.applyCoupon(code, orderValue, user);
-        }else{
-            cart = couponService.removeCoupon(code, user);
-        }
-
-        return ResponseEntity.ok(cart);
-    }
+//    @PostMapping("/apply")
+//    public ResponseEntity<Cart> applyCoupon(
+//            @RequestParam String apply,
+//            @RequestParam String code,
+//            @RequestParam double orderValue,
+//            @RequestHeader("Authorization") String jwtToken
+//    ){
+//        User user = userService.findUserByJwtToken(jwtToken);
+//        Cart cart;
+//        if(apply.equals("true")){
+//            cart = couponService.applyCoupon(code, orderValue, user);
+//        }else{
+//            cart = couponService.removeCoupon(code, user);
+//        }
+//
+//        return ResponseEntity.ok(cart);
+//    }
 
     @PostMapping("/admin/create")
     public ResponseEntity<Coupon> createCoupon(@RequestBody Coupon coupon){

@@ -7,8 +7,8 @@ import com.vanrin05.app.model.User;
 import java.util.List;
 
 public interface CouponService {
-    Cart applyCoupon(String code, double orderValue, User user);
-    Cart removeCoupon(String code, User user);
+//    Cart applyCoupon(String code, double orderValue, User user);
+//    Cart removeCoupon(String code, User user);
 
     Coupon findCouponById(Long couponId);
 

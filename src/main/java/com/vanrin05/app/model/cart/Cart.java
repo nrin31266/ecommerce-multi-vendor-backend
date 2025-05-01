@@ -24,10 +24,10 @@ public class Cart {
     User user;
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     List<CartItem> cartItems = new ArrayList<>();
-    Long totalSellingPrice = 0L;
-    int totalItems = 0;
-    Long totalMrpPrice = 0L;
-    int discount;
+//    Long totalSellingPrice = 0L;
+//    int totalItems = 0;
+//    Long totalMrpPrice = 0L;
+//    int discount;
     String couponCode;
 
     public Cart(User user) {

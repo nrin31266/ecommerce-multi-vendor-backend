@@ -1,5 +1,6 @@
 package com.vanrin05.app.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.vanrin05.app.domain.ACCOUNT_STATUS;
 import com.vanrin05.app.domain.USER_ROLE;
 import jakarta.persistence.*;
@@ -12,6 +13,7 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@EqualsAndHashCode(exclude = {"pickupAddress"})
 public class Seller {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,7 +33,8 @@ public class Seller {
     @Enumerated(EnumType.STRING)
     ACCOUNT_STATUS accountStatus;
     String taxCode;
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "seller")
     Address pickupAddress;
     String gstin;
     @PrePersist

@@ -4,6 +4,7 @@ import com.vanrin05.app.dto.CartDto;
 import com.vanrin05.app.dto.CartItemDto;
 import com.vanrin05.app.dto.request.AddCartRequest;
 import com.vanrin05.app.dto.request.UpdateCartItemRequest;
+import com.vanrin05.app.dto.response.ApiResponse;
 import com.vanrin05.app.model.cart.CartItem;
 import com.vanrin05.app.model.product.Product;
 import com.vanrin05.app.model.User;
@@ -47,18 +48,22 @@ public class CartController {
 
 
     @DeleteMapping("/item/{cartItemId}")
-    public ResponseEntity<Void> deleteCartItem(@RequestHeader("Authorization") String jwt,
-                                               @PathVariable Long cartItemId) {
+    public ResponseEntity<ApiResponse> deleteCartItem(@RequestHeader("Authorization") String jwt,
+                                                      @PathVariable Long cartItemId) {
         User user = userService.findUserByJwtToken(jwt);
         cartItemService.removeCartItem(user.getId(), cartItemId);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return ResponseEntity.ok(ApiResponse.builder()
+                        .message("Delete cart item successfully")
+                .build());
     }
 
-    @PutMapping("/item/{cartItemId}")
-    public ResponseEntity<CartItem> updateCartItem(@RequestBody UpdateCartItemRequest updateCartItemRequest,
-                                                   @RequestHeader("Authorization") String jwt,
-                                                   @PathVariable Long cartItemId) {
+    @PutMapping("/update/item/{cartItemId}")
+    public ResponseEntity<CartItemDto> updateCartItem(
+            @PathVariable Long cartItemId, @RequestBody UpdateCartItemRequest updateCartItemRequest,
+            @RequestHeader("Authorization") String jwt
+    ){
         User user = userService.findUserByJwtToken(jwt);
-        return ResponseEntity.ok(cartItemService.updateCartItem(user.getId(), cartItemId, updateCartItemRequest));
+        return ResponseEntity.ok(cartItemService.updateCartItem(updateCartItemRequest, cartItemId, user));
     }
+
 }

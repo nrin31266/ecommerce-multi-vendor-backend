@@ -2,9 +2,11 @@ package com.vanrin05.app.service.impl;
 
 import com.vanrin05.app.dto.CartDto;
 import com.vanrin05.app.dto.CartItemDto;
+import com.vanrin05.app.dto.response.ShopCartGroupResponse;
 import com.vanrin05.app.exception.AppException;
 import com.vanrin05.app.mapper.CartItemMapper;
 import com.vanrin05.app.mapper.CartMapper;
+import com.vanrin05.app.model.Seller;
 import com.vanrin05.app.model.cart.Cart;
 import com.vanrin05.app.model.cart.CartItem;
 import com.vanrin05.app.model.product.Product;
@@ -18,7 +20,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -32,6 +38,10 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public CartItemDto addCartItem(User user, Product product, int quantity, SubProduct subProduct) {
+        if(quantity <= 0){
+            throw new AppException("Quantity should be greater than 0");
+        }
+
         if(!product.getSubProducts().contains(subProduct)) {
             throw new AppException("Product does not have a sub product");
         }
@@ -39,7 +49,9 @@ public class CartServiceImpl implements CartService {
         Cart cart = cartRepository.findByUserId(user.getId());
         Optional<CartItem> cartItemOptional = cartItemRepository.findByCartAndProductAndSubProduct(cart, product, subProduct);
         if(cartItemOptional.isEmpty()){
-
+            if(quantity > subProduct.getQuantity()){
+                throw new AppException("Out of stock. Available quantity is " + subProduct.getQuantity());
+            }
 
             CartItem cartItem = new CartItem();
             cartItem.setProduct(product);
@@ -53,12 +65,14 @@ public class CartServiceImpl implements CartService {
 
             return cartItemMapper.toCartItemDto( cartItemRepository.save(cartItem));
         }else{
-            if(quantity <= 0){
-                throw new AppException("Quantity should be greater than 0");
+            CartItem cartItem = cartItemOptional.get();
+            if(quantity + cartItem.getQuantity()  > subProduct.getQuantity()){
+                throw new AppException("Out of stock. You already have " + cartItem.getQuantity() +
+                                       " in your cart. Only " + subProduct.getQuantity() + " available in stock.");
             }
 
-            CartItem cartItem = cartItemOptional.get();
-            cartItem.setQuantity(quantity);
+
+            cartItem.setQuantity(quantity + cartItem.getQuantity());
             cartItem.setCart(cart);
 
             return cartItemMapper.toCartItemDto( cartItemRepository.save(cartItem));
@@ -68,47 +82,33 @@ public class CartServiceImpl implements CartService {
     @Override
     public Cart findUserCart(User user) {
         Cart cart = cartRepository.findByUserId(user.getId());
-        calculateCartSummary(cart);
         return cart;
     }
 
     @Override
     public CartDto getUserCart(User user) {
         Cart cart = cartRepository.findByUserId(user.getId());
-        calculateCartSummary(cart);
-        return cartMapper.toCartDto(cart);
-    }
-    private void calculateCartSummary(Cart cart) {
-        long totalPrice = 0L;
-        long totalDiscountedPrice = 0L;
-        int totalItems = 0;
+        List<CartItem> cartItems = cart.getCartItems();
 
-        for (CartItem cartItem : cart.getCartItems()) {
-            int quantity = cartItem.getQuantity();
-            long mrp = cartItem.getSubProduct().getMrpPrice();
-            long selling = cartItem.getSubProduct().getSellingPrice();
+        Map<Seller, Set<CartItem>> groupedBySeller = cartItems.stream()
+                .collect(Collectors.groupingBy(
+                        cartItem -> cartItem.getProduct().getSeller(),
+                        Collectors.toSet()
+                ));
 
-            totalItems += quantity;
-            totalPrice += quantity * mrp;
-            totalDiscountedPrice += quantity * selling;
-        }
+        // Chuyển đổi sang List<ShopCartGroupResponse>
+        List<ShopCartGroupResponse> groups = groupedBySeller.entrySet().stream()
+                .map(entry -> new ShopCartGroupResponse(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toList());
 
-        cart.setTotalItems(totalItems);
-        cart.setTotalSellingPrice(totalDiscountedPrice);
-        cart.setTotalMrpPrice(totalPrice);
-        cart.setDiscount(discountPercentage(totalPrice, totalDiscountedPrice));
+        // Map sang DTO
+        CartDto cartDto = cartMapper.toCartDto(cart);
+        cartDto.setGroups(groups);
+
+        return cartDto;
     }
 
 
 
 
-    private int discountPercentage(double mrpPrice, double sellingPrice) {
-
-        if (mrpPrice < sellingPrice) {
-            throw new AppException("Mrp price is invalid. Mrp: " + mrpPrice + ", Selling price: " + sellingPrice);
-        }
-        double discount = (mrpPrice - sellingPrice);
-        double percentage = discount / mrpPrice * 100;
-        return (int) percentage;
-    }
 }
