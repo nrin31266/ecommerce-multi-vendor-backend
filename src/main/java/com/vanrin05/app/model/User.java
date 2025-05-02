@@ -37,6 +37,9 @@ public class User {
     @Enumerated(EnumType.STRING)
     USER_ROLE role;
 
+    
+
+    @JsonIgnore
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "user", orphanRemoval = true)
     List<Address> addresses = new ArrayList<>();
 

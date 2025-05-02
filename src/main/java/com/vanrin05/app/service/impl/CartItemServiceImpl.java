@@ -39,11 +39,17 @@ public class CartItemServiceImpl implements CartItemService {
         if (!user.getId().equals(cartItem.getUserId())) {
             cartItem.setUserId(user.getId());
         }
-        if (request.getQuantity() < 0 || request.getQuantity() > subProduct.getQuantity()) {
+        if (request.getQuantity() < 0) {
             throw new AppException("Quantity is invalid");
         }
 
-        cartItem.setQuantity(request.getQuantity());
+        if(subProduct.getQuantity()>0 && request.getQuantity() > subProduct.getQuantity()) {
+            cartItem.setQuantity(subProduct.getQuantity());
+        }else{
+            cartItem.setQuantity(request.getQuantity());
+        }
+
+
         return cartItemMapper.toCartItemDto(cartItemRepository.save(cartItem));
 
     }
