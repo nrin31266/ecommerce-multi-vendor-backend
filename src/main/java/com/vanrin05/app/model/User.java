@@ -2,6 +2,7 @@ package com.vanrin05.app.model;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.vanrin05.app.domain.USER_ROLE;
 import com.vanrin05.app.model.cart.Coupon;
@@ -37,8 +38,15 @@ public class User {
     @Enumerated(EnumType.STRING)
     USER_ROLE role;
 
-    
+//    @OneToOne
+//    @JoinColumn(name = "default_address_id")
+//    Address defaultAddress;
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "pickup_address_id")
+    Address pickupAddress;
 
+
+    @JsonManagedReference
     @JsonIgnore
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "user", orphanRemoval = true)
     List<Address> addresses = new ArrayList<>();

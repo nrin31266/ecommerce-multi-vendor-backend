@@ -37,13 +37,30 @@ public class UserAddressController {
         return ResponseEntity.ok(addressService.createUserAddress(request, user));
     }
 
+    @PostMapping("/default")
+    public ResponseEntity<Address> defaultAddress(@RequestHeader("Authorization") String token) {
+
+        User user = userService.findUserByJwtToken(token);
+
+
+        return ResponseEntity.ok(addressService.defaultUserAddress( user));
+    }
+    @GetMapping
+    public ResponseEntity<List<Address>> getAllUserAddresses(@RequestHeader("Authorization") String token) {
+
+        User user = userService.findUserByJwtToken(token);
+
+        return ResponseEntity.ok(addressService.getAllAddressesByUser(user));
+    }
+
     @PutMapping("/{addressId}")
     public ResponseEntity<Address> updateAddress(@PathVariable Long addressId, @RequestBody AddressRequest request) {
         return ResponseEntity.ok(addressService.updateAddress(request, addressId));
     }
 
     @DeleteMapping("/{addressId}")
-    public ResponseEntity<Void> deleteAddress(@PathVariable Long addressId) {
+    public ResponseEntity<Void> deleteAddress(@PathVariable Long addressId, @RequestHeader("Authorization") String token) {
+        User user = userService.findUserByJwtToken(token);
         addressService.deleteAddress(addressId);
         return ResponseEntity.noContent().build();
     }

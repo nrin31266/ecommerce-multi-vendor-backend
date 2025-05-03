@@ -32,11 +32,12 @@ public class Address {
     String postalCode;
 
     @JsonBackReference
-    @ManyToOne@JoinColumn(name = "user_id")
+    @ManyToOne
+    @JoinColumn(name = "user_id")
     User user;
 
-    @JsonBackReference
-    @OneToOne@JoinColumn(name = "seller_id")
-    Seller seller;
+    Boolean isDefault = false;
+
+
 }
 

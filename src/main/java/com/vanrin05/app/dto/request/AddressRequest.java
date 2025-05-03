@@ -28,6 +28,9 @@ public class AddressRequest {
     String province;
 
     String postalCode;
+
+
+    Boolean isDefault;
 }
 
 

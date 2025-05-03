@@ -11,6 +11,8 @@ import com.vanrin05.app.service.AddressService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 
@@ -46,11 +48,35 @@ public class AddressServiceImpl implements AddressService {
     @Override
     public Address createUserAddress(AddressRequest request, User user) {
         Address address = addressMapper.toAddress(request);
-        user.getAddresses().add(address);
         address.setUser(user);
+        List<Address> currentDefaults = addressRepository.findAllByUserAndIsDefaultTrue(user);
+        if (Boolean.TRUE.equals(address.getIsDefault())) {
+            currentDefaults.forEach(it -> it.setIsDefault(false));
+            addressRepository.saveAll(currentDefaults);
+        }else{
+            if(currentDefaults.isEmpty()){
+                address.setIsDefault(true);
+            }
+        }
+
         return addressRepository.save(address);
     }
 
+
+    @Override
+    public Address defaultUserAddress(User user) {
+        List<Address> addresses = addressRepository.findAllByUserAndIsDefaultTrue(user);
+        if(!addresses.isEmpty()){
+            return addresses.getFirst();
+        }
+        return null;
+    }
+
+    @Override
+    public List<Address> getAllAddressesByUser(User user) {
+
+        return addressRepository.findAllByUser(user);
+    }
 
 
 }

@@ -34,7 +34,8 @@ public class Seller {
     ACCOUNT_STATUS accountStatus;
     String taxCode;
 
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "seller")
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "pickup_address_id")
     Address pickupAddress;
     String gstin;
     @PrePersist

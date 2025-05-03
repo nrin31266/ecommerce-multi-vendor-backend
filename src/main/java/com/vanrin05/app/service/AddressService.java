@@ -14,4 +14,6 @@ public interface AddressService {
     void deleteAddress(Long id);
     Address createUserAddress(AddressRequest request, User user);
 
+    Address defaultUserAddress(User user);
+    List<Address> getAllAddressesByUser(User user);
 }
