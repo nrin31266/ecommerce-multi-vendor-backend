@@ -26,7 +26,7 @@ public class GlobalException {
         ApiResponse<Void> apiResponse = new ApiResponse<>();
         apiResponse.setMessage(appException.getMessage());
         apiResponse.setCode(appException.getErrorCode().getCode());
-        apiResponse.setTimestamp(LocalDateTime.now());
+//        apiResponse.setTimestamp(LocalDateTime.now());
 
         return new ResponseEntity<>(apiResponse, appException.getErrorCode().getStatusCode());
     }

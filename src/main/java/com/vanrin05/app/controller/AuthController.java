@@ -29,7 +29,6 @@ public class AuthController {
     @PostMapping("/signup")
     public ResponseEntity<AuthResponse> createUserHandler(@RequestBody @Valid SignupRequest req) {
         return ResponseEntity.ok(authService.signup(req));
-
     }
 
 

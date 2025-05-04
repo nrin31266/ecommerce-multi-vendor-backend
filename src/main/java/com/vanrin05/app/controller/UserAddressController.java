@@ -37,7 +37,7 @@ public class UserAddressController {
         return ResponseEntity.ok(addressService.createUserAddress(request, user));
     }
 
-    @PostMapping("/default")
+    @GetMapping("/default")
     public ResponseEntity<Address> defaultAddress(@RequestHeader("Authorization") String token) {
 
         User user = userService.findUserByJwtToken(token);

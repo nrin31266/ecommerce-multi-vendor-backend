@@ -1,6 +1,8 @@
 package com.vanrin05.app.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.vanrin05.app.dto.response.ApiResponse;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -19,6 +21,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.crypto.SecretKey;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -63,16 +66,23 @@ public class JwtTokenValidator extends OncePerRequestFilter {
 
 
             }catch (Exception e) {
-                log.error(e.toString());
+                log.error("Exception: ", e);
+
                 response.setStatus(HttpStatus.UNAUTHORIZED.value());
                 response.setContentType("application/json");
+
                 ObjectMapper objectMapper = new ObjectMapper();
-                String jsonResponse = objectMapper.writeValueAsString(ApiResponse.builder()
+                objectMapper.registerModule(new JavaTimeModule()); // Đăng ký xử lý LocalDateTime
+                objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS); // ISO format
+
+                ApiResponse<?> errorResponse = ApiResponse.builder()
                         .code(5000)
                         .message(e.getMessage())
-                        .build());
+                        .timestamp(LocalDateTime.now()) // nếu bạn có trường timestamp
+                        .build();
+
+                String jsonResponse = objectMapper.writeValueAsString(errorResponse);
                 response.getWriter().write(jsonResponse);
-                return;
             }
         }
         filterChain.doFilter(request, response);

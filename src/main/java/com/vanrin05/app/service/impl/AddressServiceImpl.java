@@ -42,6 +42,9 @@ public class AddressServiceImpl implements AddressService {
     @Override
     public void deleteAddress(Long id) {
         Address address = getAddressById(id);
+        if(address.getIsDefault()!= null && address.getIsDefault()){
+            throw new AppException("Address is Default, You can't delete this address");
+        }
         addressRepository.delete(address);
     }
 
