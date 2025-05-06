@@ -90,10 +90,10 @@ public class CartServiceImpl implements CartService {
         Cart cart = cartRepository.findByUserId(user.getId());
         List<CartItem> cartItems = cart.getCartItems();
 
-        Map<Seller, Set<CartItem>> groupedBySeller = cartItems.stream()
+        // Nhóm CartItem theo Seller
+        Map<Seller, List<CartItem>> groupedBySeller = cartItems.stream()
                 .collect(Collectors.groupingBy(
-                        cartItem -> cartItem.getProduct().getSeller(),
-                        Collectors.toSet()
+                        cartItem -> cartItem.getProduct().getSeller()
                 ));
 
         // Chuyển đổi sang List<ShopCartGroupResponse>
@@ -107,6 +107,7 @@ public class CartServiceImpl implements CartService {
 
         return cartDto;
     }
+
 
 
 

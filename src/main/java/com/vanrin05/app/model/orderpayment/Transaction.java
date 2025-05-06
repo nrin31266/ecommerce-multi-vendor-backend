@@ -21,12 +21,12 @@ public class Transaction {
 
     @ManyToOne
     User customer;
-
-    @OneToOne
-    Order order;
-
     @ManyToOne
     Seller seller;
+    @OneToOne
+    SellerOrder sellerOrder;
+
+
 
     LocalDateTime date;
 

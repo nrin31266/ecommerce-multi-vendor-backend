@@ -6,6 +6,7 @@ import com.vanrin05.app.model.Seller;
 import com.vanrin05.app.model.User;
 import com.vanrin05.app.model.orderpayment.Order;
 import com.vanrin05.app.model.orderpayment.OrderItem;
+import com.vanrin05.app.model.orderpayment.SellerOrder;
 import com.vanrin05.app.service.OrderService;
 import com.vanrin05.app.service.impl.SellerService;
 import com.vanrin05.app.service.impl.UserService;
@@ -24,15 +25,16 @@ public class UserOrderController {
     SellerService sellerService;
     UserService userService;
 
-    @PutMapping("/{orderId}/cancel/{orderItemId}")
-    public ResponseEntity<Order> cancelOrder(@PathVariable("orderId") Long orderId, @RequestHeader("Authorization") String jwt,
-                                             @PathVariable("orderItemId") Long orderItemId) {
+    @PutMapping("/seller-order/cancel/{sellerOrderId}")
+    public ResponseEntity<SellerOrder> cancelSellerOrder(@PathVariable("sellerOrderId") Long sellerOrderId, @RequestHeader("Authorization") String jwt) {
         User user = userService.findUserByJwtToken(jwt);
-        Order order = orderService.findOrderById(orderId);
-        OrderItem orderItem = orderService.findOrderItemById(orderItemId);
-        Seller seller = sellerService.getSellerById(orderItem.getSellerId());
+        return ResponseEntity.ok(orderService.userCancelSellerOrder(user, "User cancel", sellerOrderId));
+    }
 
-        return ResponseEntity.ok(orderService.cancelOrder(order, user, "User cancel"));
+    @PutMapping("/seller-order/confirm/{sellerOrderId}")
+    public ResponseEntity<SellerOrder> confirmSellerOrder(@PathVariable("sellerOrderId") Long sellerOrderId, @RequestHeader("Authorization") String jwt) {
+        User user = userService.findUserByJwtToken(jwt);
+        return ResponseEntity.ok(orderService.userConfirmSellerOrder(user, sellerOrderId));
     }
 
 }

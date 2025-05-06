@@ -26,31 +26,31 @@ public class Order {
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     User user;
-
     @JsonManagedReference
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    List<OrderItem> orderItems;
-
+    List<SellerOrder> sellerOrders;
     @ManyToOne
     @JoinColumn(name = "shipping_address_id")
     Address shippingAddress;
-
-    Long totalMrpPrice;
-    Long totalSellingPrice;
+    Long totalItemsPrice;
+    Long originalPrice;
+    Long finalPrice;
     int discountPercentage;
     int totalItem;
-    int totalQuantity;
-    @Enumerated(EnumType.STRING)
 
     @JsonBackReference
     @OneToOne
     @JoinColumn(name = "payment_order_id")
     Payment payment;
 
+    @Enumerated(EnumType.STRING)
     PAYMENT_METHOD paymentMethod;
 
     @CreatedDate
     LocalDateTime orderDate;
 
-
+    @PrePersist
+    public void prePersist() {
+        orderDate = LocalDateTime.now();
+    }
 }

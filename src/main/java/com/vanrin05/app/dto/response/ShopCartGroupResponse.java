@@ -18,5 +18,5 @@ import java.util.Set;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ShopCartGroupResponse {
     Seller seller;
-    Set<CartItem> cartItems;
+    List<CartItem> cartItems;
 }

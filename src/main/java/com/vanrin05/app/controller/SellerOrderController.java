@@ -1,14 +1,12 @@
 package com.vanrin05.app.controller;
 
-import com.vanrin05.app.domain.ORDER_ITEM_STATUS;
+import com.vanrin05.app.domain.SELLER_ORDER_STATUS;
+import com.vanrin05.app.dto.response.UserOrderHistoryResponse;
 import com.vanrin05.app.exception.AppException;
-import com.vanrin05.app.model.User;
-import com.vanrin05.app.model.orderpayment.Order;
 import com.vanrin05.app.model.Seller;
-import com.vanrin05.app.model.orderpayment.OrderItem;
+import com.vanrin05.app.model.orderpayment.SellerOrder;
 import com.vanrin05.app.service.OrderService;
 import com.vanrin05.app.service.impl.SellerService;
-import com.vanrin05.app.service.impl.UserService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -27,49 +25,43 @@ public class SellerOrderController {
 
 
 
-    @GetMapping("/{orderItemStatus}")
-    public ResponseEntity<List<OrderItem>> getAllOrders(@RequestHeader("Authorization") String jwt, @PathVariable("orderItemStatus") ORDER_ITEM_STATUS orderItemStatus) {
+    @GetMapping
+    public ResponseEntity<List<UserOrderHistoryResponse>> getAllSellerOrders(@RequestHeader("Authorization") String jwt,
+                                                                             @RequestParam("status") SELLER_ORDER_STATUS status) {
         Seller seller = sellerService.getSellerProfile(jwt);
-        return ResponseEntity.ok(orderService.sellerOrders(seller, orderItemStatus));
+        return ResponseEntity.ok(orderService.sellerOrders(seller, status));
     }
 
 
-    @PutMapping("/{orderId}/item/{orderItemId}/status/{status}")
-    public ResponseEntity<OrderItem> updateOrderStatus(@PathVariable("orderId") Long orderId,
-                                                       @PathVariable("orderItemId") Long orderItemId,
-                                                       @PathVariable("status")ORDER_ITEM_STATUS status,
+    @PutMapping("/seller-order/{sellerOrderId}/status/{status}")
+    public ResponseEntity<SellerOrder> updateOrderStatus(@PathVariable("sellerOrderId") Long sellerOrderId,
+                                                       @PathVariable("status")SELLER_ORDER_STATUS status,
                                                        @RequestHeader("Authorization") String jwt
     ){
 
-        if(status == ORDER_ITEM_STATUS.COMPLETED || status == ORDER_ITEM_STATUS.PENDING
-        || status == ORDER_ITEM_STATUS.CANCELLED){
-            throw new AppException("Order status invalid");
+        if(status == SELLER_ORDER_STATUS.COMPLETED || status == SELLER_ORDER_STATUS.PENDING
+        || status == SELLER_ORDER_STATUS.CANCELLED || status == SELLER_ORDER_STATUS.REFUNDED
+        || status == SELLER_ORDER_STATUS.PENDING_PAYMENT){
+            throw new AppException("Order status invalid, you can't update the status for this order");
         }
 
         Seller seller = sellerService.getSellerProfile(jwt);
-        return ResponseEntity.ok(orderService.updateOrderItemStatus(orderId, status, orderItemId, seller));
+        return ResponseEntity.ok(orderService.updateSellerOrderStatus(status, sellerOrderId, seller));
     }
 
 
-    @PutMapping("/{orderId}/cancel/{orderItemId}")
-    public ResponseEntity<OrderItem> cancelOrder(@PathVariable("orderId") Long orderId, @RequestHeader("Authorization") String jwt,
-                                             @PathVariable("orderItemId") Long orderItemId) {
+    @PutMapping("/seller-order/reject/{sellerOrderId}")
+    public ResponseEntity<SellerOrder> cancelOrder(@RequestHeader("Authorization") String jwt,
+                                             @PathVariable("sellerOrderId") Long sellerOrderId) {
 
-        Order order = orderService.findOrderById(orderId);
-        OrderItem orderItem = orderService.findOrderItemById(orderItemId);
-        Seller seller = sellerService.getSellerById(orderItem.getSellerId());
+        Seller seller = sellerService.getSellerProfile(jwt);
 
-        return ResponseEntity.ok(orderService.sellerCancelOrder(order, seller, "Seller cancel", orderItem));
+        return ResponseEntity.ok(orderService.sellerCancelOrder(seller, "Seller cancel", sellerOrderId));
     }
 
-    @PutMapping("/{orderId}/approve/{orderItemId}")
-    public ResponseEntity<OrderItem> approveOrder(@PathVariable("orderId") Long orderId, @RequestHeader("Authorization") String jwt,
-                                                 @PathVariable("orderItemId") Long orderItemId) {
-
-
-        OrderItem orderItem = orderService.findOrderItemById(orderItemId);
-        Seller seller = sellerService.getSellerById(orderItem.getSellerId());
-
-        return ResponseEntity.ok(orderService.approveOrderItem(orderId, orderItemId, seller));
+    @PutMapping("/seller-order/approve/{sellerOrderId}")
+    public ResponseEntity<SellerOrder> approveOrder(@PathVariable("sellerOrderId") Long sellerOrderId, @RequestHeader("Authorization") String jwt) {
+        Seller seller = sellerService.getSellerProfile(jwt);
+        return ResponseEntity.ok(orderService.approveSellerOrder(sellerOrderId, seller));
     }
 }

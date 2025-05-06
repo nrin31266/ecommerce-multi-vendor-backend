@@ -2,6 +2,7 @@ package com.vanrin05.app.service.impl;
 
 import com.vanrin05.app.model.orderpayment.Order;
 import com.vanrin05.app.model.Seller;
+import com.vanrin05.app.model.orderpayment.SellerOrder;
 import com.vanrin05.app.model.orderpayment.Transaction;
 import com.vanrin05.app.repository.SellerRepository;
 import com.vanrin05.app.repository.TransactionRepository;
@@ -23,15 +24,14 @@ public class TransactionServiceImpl implements TransactionService {
     SellerRepository sellerRepository;
 
     @Override
-    public Transaction createTransaction(Order order) {
-//        Seller seller = sellerRepository.findById(order.getSellerId()).get();
-//
-//        Transaction transaction = new Transaction();
-//        transaction.setSeller(seller);
-//        transaction.setCustomer(order.getUser());
-//        transaction.setOrder(order);
+    public Transaction createTransaction(SellerOrder sellerOrder) {
+        Transaction transaction = new Transaction();
+        transaction.setSellerOrder(sellerOrder);
+        transaction.setSeller(sellerOrder.getSeller());
+        transaction.setCustomer(sellerOrder.getOrder().getUser());
 
-        return null;
+
+        return transactionRepository.save(transaction);
     }
 
     @Override

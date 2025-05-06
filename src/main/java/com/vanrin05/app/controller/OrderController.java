@@ -3,6 +3,7 @@ package com.vanrin05.app.controller;
 
 import com.stripe.exception.StripeException;
 import com.vanrin05.app.domain.PAYMENT_METHOD;
+import com.vanrin05.app.domain.SELLER_ORDER_STATUS;
 import com.vanrin05.app.dto.request.CreateOrderRequest;
 import com.vanrin05.app.dto.response.PaymentResponse;
 import com.vanrin05.app.exception.AppException;
@@ -11,6 +12,7 @@ import com.vanrin05.app.model.cart.Cart;
 import com.vanrin05.app.model.orderpayment.Order;
 import com.vanrin05.app.model.orderpayment.OrderItem;
 import com.vanrin05.app.model.orderpayment.Payment;
+import com.vanrin05.app.model.orderpayment.SellerOrder;
 import com.vanrin05.app.service.*;
 import com.vanrin05.app.service.impl.SellerService;
 import com.vanrin05.app.service.impl.UserService;
@@ -53,7 +55,7 @@ public class OrderController {
         Order order = orderService.createOrder(user, addressService.getAddressById(request.getAddressId()), cart, request);
 
         if(request.getPaymentMethod().equals(PAYMENT_METHOD.CASH_ON_DELIVERY)){
-            return ResponseEntity.noContent().build();
+            return ResponseEntity.ok(new PaymentResponse());
         }
         Payment payment = paymentService.createPaymentOrder(user, order, request.getPaymentMethod());
         if(request.getPaymentMethod().equals(PAYMENT_METHOD.VNPAY)){
@@ -73,10 +75,24 @@ public class OrderController {
 
     }
 
+//    @GetMapping("/user")
+//    public ResponseEntity<List<Order>> getUserOrdersHistory(@RequestHeader("Authorization") String jwt) {
+//        User user = userService.findUserByJwtToken(jwt);
+//        return ResponseEntity.ok(orderService.userOrdersHistory(user.getId()));
+//    }
+
     @GetMapping("/user")
-    public ResponseEntity<List<Order>> getUserOrdersHistory(@RequestHeader("Authorization") String jwt) {
+    public ResponseEntity<List<SellerOrder>> getUserOrdersHistory(@RequestHeader("Authorization") String jwt,
+                                                            @RequestParam("status") SELLER_ORDER_STATUS status) {
         User user = userService.findUserByJwtToken(jwt);
-        return ResponseEntity.ok(orderService.userOrdersHistory(user.getId()));
+        return ResponseEntity.ok(orderService.userOrders(user, status));
+    }
+
+    @GetMapping("/user/{sellerOrderId}")
+    public ResponseEntity<SellerOrder> getSellerOrderDetails(@RequestHeader("Authorization") String jwt,
+                                                                   @PathVariable("sellerOrderId") Long sellerOrderId) {
+        User user = userService.findUserByJwtToken(jwt);
+        return ResponseEntity.ok(orderService.getSellerOrderById(sellerOrderId));
     }
 
     @GetMapping("/{orderId}")
@@ -91,16 +107,13 @@ public class OrderController {
         return ResponseEntity.ok(orderItem);
     }
 
-    @PutMapping("/{orderId}/cancel/{orderItemId}")
-    public ResponseEntity<Order> cancelOrder(@PathVariable("orderId") Long orderId, @RequestHeader("Authorization") String jwt,
-                                             @PathVariable("orderItemId") Long orderItemId) {
-        User user = userService.findUserByJwtToken(jwt);
-        Order order = orderService.findOrderById(orderId);
-        OrderItem orderItem = orderService.findOrderItemById(orderItemId);
-        Seller seller = sellerService.getSellerById(orderItem.getSellerId());
-
-        return ResponseEntity.ok(orderService.cancelOrder(order, user, "User cancel"));
+    @GetMapping("/seller-order/{sellerOrderId}")
+    public ResponseEntity<SellerOrder> getSellerOrderById(@PathVariable("sellerOrderId") Long sellerOrderId, @RequestHeader("Authorization") String jwt) {
+        SellerOrder sellerOrder = orderService.getSellerOrderById(sellerOrderId);
+        return ResponseEntity.ok(sellerOrder);
     }
+
+
 
 
 }

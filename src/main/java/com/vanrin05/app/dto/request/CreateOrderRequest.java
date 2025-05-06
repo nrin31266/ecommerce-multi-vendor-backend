@@ -12,4 +12,7 @@ import lombok.experimental.FieldDefaults;
 public class CreateOrderRequest {
     PAYMENT_METHOD paymentMethod;
     Long addressId;
+    String shippingCoupon;
+    String shopCoupon;
+    String platformCoupon;
 }

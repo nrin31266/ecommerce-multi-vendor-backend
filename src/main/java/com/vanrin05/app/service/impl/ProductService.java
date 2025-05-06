@@ -18,6 +18,7 @@ import com.vanrin05.app.model.Seller;
 import com.vanrin05.app.model.User;
 import com.vanrin05.app.model.orderpayment.Order;
 import com.vanrin05.app.model.orderpayment.OrderItem;
+import com.vanrin05.app.model.orderpayment.SellerOrder;
 import com.vanrin05.app.model.product.Product;
 import com.vanrin05.app.model.product.ProductOptionType;
 import com.vanrin05.app.model.product.SubProduct;
@@ -54,6 +55,18 @@ public class ProductService {
     CategoryRepository categoryRepository;
     SubProductMapper subProductMapper;
     PageableMapper pageableMapper;
+
+
+    public void deliveredOrder(SellerOrder sellerOrder){
+        List<OrderItem> orderItems = sellerOrder.getOrderItems();
+        List<Product> products = new ArrayList<>();
+        for( OrderItem orderItem : orderItems ){
+            Product product = orderItem.getProduct();
+            product.setTotalSold(product.getTotalSold() + orderItem.getQuantity());
+            products.add(product);
+        }
+        productRepository.saveAll(products);
+    }
 
     private List<Category> findAllCategoryInIds(List<String> ids) {
         return categoryRepository
@@ -273,15 +286,21 @@ public class ProductService {
     }
 
     public void restoreStock(Order order) {
-
-        List<SubProduct> subProducts = order.getOrderItems().stream().map((orderItem) -> {
-            SubProduct subProduct = orderItem.getSubProduct();
-            subProduct.setQuantity(orderItem.getQuantity() + subProduct.getQuantity());
-            return subProduct;
-        }).toList();
+        List<SubProduct> subProducts = order.getSellerOrders().stream()
+                .flatMap(sellerOrder ->
+                        sellerOrder.getOrderItems().stream()
+                                .map(orderItem -> {
+                                    SubProduct sp = orderItem.getSubProduct();
+                                    // Khôi phục tồn kho
+                                    sp.setQuantity(sp.getQuantity() + orderItem.getQuantity());
+                                    return sp;
+                                })
+                )
+                .toList();
 
         subProductRepository.saveAll(subProducts);
     }
+
 
     public void restoreStock(OrderItem orderItem) {
 

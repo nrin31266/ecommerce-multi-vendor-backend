@@ -1,33 +1,33 @@
 package com.vanrin05.app.service.impl;
 
-import com.vanrin05.app.domain.ORDER_ITEM_STATUS;
 import com.vanrin05.app.domain.PAYMENT_METHOD;
 import com.vanrin05.app.domain.PAYMENT_STATUS;
+import com.vanrin05.app.domain.SELLER_ORDER_STATUS;
 import com.vanrin05.app.dto.request.CreateOrderRequest;
+import com.vanrin05.app.dto.response.UserOrderHistoryResponse;
 import com.vanrin05.app.exception.AppException;
 import com.vanrin05.app.exception.ErrorCode;
 import com.vanrin05.app.mapper.OrderItemMapper;
+import com.vanrin05.app.mapper.SellerOrderMapper;
 import com.vanrin05.app.model.*;
 import com.vanrin05.app.model.cart.Cart;
 import com.vanrin05.app.model.cart.CartItem;
-import com.vanrin05.app.model.orderpayment.Order;
-import com.vanrin05.app.model.orderpayment.OrderItem;
-import com.vanrin05.app.model.orderpayment.Payment;
-import com.vanrin05.app.model.orderpayment.PaymentDetails;
-import com.vanrin05.app.model.product.Product;
+import com.vanrin05.app.model.orderpayment.*;
 import com.vanrin05.app.model.product.SubProduct;
 import com.vanrin05.app.repository.*;
 import com.vanrin05.app.service.OrderService;
-import jakarta.persistence.criteria.Predicate;
+import com.vanrin05.app.service.SellerReportService;
+import com.vanrin05.app.service.TransactionService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -36,91 +36,129 @@ import java.util.*;
 public class OrderServiceImpl implements OrderService {
 
     OrderRepository orderRepository;
-    AddressRepository addressRepository;
     OrderItemRepository orderItemRepository;
-    private final UserRepository userRepository;
-    ProductRepository productRepository;
     CartRepository cartRepository;
     SubProductRepository subProductRepository;
     ProductService productService;
-    OrderItemMapper orderItemMapper;
+    SellerReportService sellerReportService;
+    TransactionService transactionService;
 
 
     @Override
     public Order createOrder(User user, Address shippingAddress, Cart cart, CreateOrderRequest createOrderRequest) {
+        // 1. Tạo Order mới
+        Order order = new Order();
+        order.setUser(user);
+        order.setShippingAddress(shippingAddress);
+
+        // 2. Nhóm CartItem theo Seller
         List<CartItem> cartItems = cart.getCartItems();
+        Map<Seller, List<CartItem>> groupedBySeller = cartItems.stream()
+                .collect(Collectors.groupingBy(ci -> ci.getProduct().getSeller()));
 
-        List<OrderItem> orderItems = new ArrayList<>();
+        // 3. Dùng for loop để build SellerOrder
+        List<SellerOrder> sellerOrders = new ArrayList<>();
         List<SubProduct> stockProducts = new ArrayList<>();
-        long totalMrpPrice = 0L;
-        long totalSellingPrice = 0L;
-        int totalQuantity = 0;
-        int totalItem = 0;
-        for (CartItem cartItem : cartItems) {
-            // Handle stock
-            Product product = cartItem.getProduct();
-            SubProduct subProduct = cartItem.getSubProduct();
-            if(subProduct.getQuantity() < cartItem.getQuantity()){
-                throw new AppException("The product " + ((product.getTitle().length() < 20) ?
-                        product.getTitle() : product.getTitle().substring(20) + "...")  +" is currently out of stock");
-            }
-            subProduct.setQuantity(subProduct.getQuantity() - cartItem.getQuantity());
-            product.setTotalOrder(product.getTotalOrder() + subProduct.getQuantity());
-            subProduct.setProduct(product);
-            stockProducts.add(subProduct);
 
-            // Total
-            totalMrpPrice += cartItem.getQuantity() * subProduct.getMrpPrice();
-            totalSellingPrice += cartItem.getQuantity() * subProduct.getSellingPrice();
-            totalQuantity += cartItem.getQuantity();
-            totalItem += 1;
+        for (Map.Entry<Seller, List<CartItem>> entry : groupedBySeller.entrySet()) {
+            Seller seller = entry.getKey();
+            List<CartItem> cartItemList = entry.getValue();
 
-            // Create order item
-            OrderItem orderItem = new OrderItem();
-            orderItem.setProduct(product);
-            orderItem.setSubProduct(subProduct);
-            orderItem.setPaymentDetails(
+            SellerOrder sellerOrder = new SellerOrder();
+            sellerOrder.setOrder(order);           // gắn hai chiều ngay
+            sellerOrder.setSeller(seller);
+            sellerOrder.setUserId(user.getId());
+            sellerOrder.setIsApproved(false);
+            sellerOrder.setDeliveryDate(LocalDateTime.now().plusDays(7));
+            sellerOrder.setPaymentDetails(
                     PaymentDetails.builder()
                             .paymentStatus(PAYMENT_STATUS.PENDING)
                             .build()
             );
-            orderItem.setSellerId(cartItem.getProduct().getSeller().getId());
-            orderItem.setQuantity(cartItem.getQuantity());
-            orderItem.setMrpPrice( cartItem.getSubProduct().getMrpPrice() * cartItem.getQuantity());
-            orderItem.setSellingPrice(cartItem.getSubProduct().getSellingPrice() * cartItem.getQuantity());
-            orderItem.setDeliveryDate(LocalDateTime.now().plusDays(7));
-            orderItem.setStatus(createOrderRequest.getPaymentMethod()
-                    .equals(PAYMENT_METHOD.CASH_ON_DELIVERY)?
-                    ORDER_ITEM_STATUS.PENDING:ORDER_ITEM_STATUS.PENDING_PAYMENT);
-            orderItems.add(orderItem);
-        }
-        subProductRepository.saveAll(stockProducts);
+            sellerOrder.setStatus(
+                    createOrderRequest.getPaymentMethod() == PAYMENT_METHOD.CASH_ON_DELIVERY
+                            ? SELLER_ORDER_STATUS.PENDING
+                            : SELLER_ORDER_STATUS.PENDING_PAYMENT
+            );
 
-        // Clear cart
+            int totalItem = 0;
+            long totalPrice = 0L;
+            List<OrderItem> orderItems = new ArrayList<>();
+
+            for (CartItem cartItem : cartItemList) {
+                // 3.1 Kiểm tra và cập nhật stock
+                SubProduct sub = cartItem.getSubProduct();
+                if (sub.getQuantity() < cartItem.getQuantity()) {
+                    String name = sub.getProduct().getTitle();
+                    if (name.length() > 20) {
+                        name = name.substring(0, 30) + "...";
+                    }
+                    throw new AppException("Product out of stock: " + name);
+                }
+                sub.setQuantity(sub.getQuantity() - cartItem.getQuantity());
+                stockProducts.add(sub);
+
+                // 3.2 Tạo OrderItem
+                OrderItem oi = new OrderItem();
+                oi.setSellerOrder(sellerOrder);
+                oi.setProduct(cartItem.getProduct());
+                oi.setSubProduct(sub);
+                oi.setQuantity(cartItem.getQuantity());
+                oi.setMrpPrice(sub.getMrpPrice() * cartItem.getQuantity());
+                oi.setSellingPrice(sub.getSellingPrice() * cartItem.getQuantity());
+                oi.setUserId(user.getId());
+
+                orderItems.add(oi);
+
+                // 3.3 Cộng dồn
+                totalItem += cartItem.getQuantity();
+                totalPrice += oi.getSellingPrice();
+            }
+
+            // 4. Thiết lập tổng và discount
+            sellerOrder.setTotalItem(totalItem);
+            sellerOrder.setTotalPrice(totalPrice);
+            sellerOrder.setDiscountShop(0L);
+            sellerOrder.setDiscountPlatform(0L);
+            sellerOrder.setDiscountShipping(30000L);
+
+            long finalPrice = totalPrice
+                              + sellerOrder.getDiscountShop()
+                              + sellerOrder.getDiscountPlatform()
+                              + sellerOrder.getDiscountShipping();
+            sellerOrder.setFinalPrice(Math.max(finalPrice, 0L));
+
+            // 5. Gắn list OrderItem và collect SellerOrder
+            sellerOrder.setOrderItems(orderItems);
+            sellerOrders.add(sellerOrder);
+        }
+
+        // 6. Lưu stock, clear cart
+        subProductRepository.saveAll(stockProducts);
         cart.getCartItems().clear();
-        cart.setCouponCode(null);
         cartRepository.save(cart);
 
-        // Update seller report: Not update soon
-
-        // Create order
-        Order order = new Order();
-        order.setUser(user);
-        order.setShippingAddress(shippingAddress);
-        order.setOrderItems(orderItems);
-        order.setTotalMrpPrice(totalMrpPrice);
-        order.setTotalSellingPrice(totalSellingPrice);
-        order.setDiscountPercentage(discountPercentage(totalMrpPrice, totalSellingPrice));
-        order.setTotalItem(totalItem);
-        order.setTotalQuantity(totalQuantity);
+        // 7. Tính tổng lên Order cha
+        order.setSellerOrders(sellerOrders);
+        var totalItemsPrice = sellerOrders.stream().mapToLong(SellerOrder::getTotalPrice).sum();
+        order.setTotalItemsPrice(
+                totalItemsPrice
+        );
+        var originalPrice = sellerOrders.stream().mapToLong(SellerOrder::getFinalPrice).sum();
+        var finalPrice = originalPrice;
+        order.setOriginalPrice(originalPrice);
+        order.setFinalPrice(finalPrice);
+        order.setTotalItem(
+                sellerOrders.stream().mapToInt(SellerOrder::getTotalItem).sum()
+        );
+        order.setDiscountPercentage(
+                discountPercentage(originalPrice, finalPrice)
+        );
         order.setPaymentMethod(createOrderRequest.getPaymentMethod());
-        order = orderRepository.save(order);
 
-        return order;
-
+        // 8. Cuối cùng save cả cây
+        return orderRepository.save(order);
     }
-
-
 
 
     private int discountPercentage(double mrpPrice, double sellingPrice) {
@@ -135,113 +173,146 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Order findOrderById(Long orderId) {
-        return orderRepository.findById(orderId).orElseThrow(()->new AppException("Order not found"));
+        return orderRepository.findById(orderId).orElseThrow(() -> new AppException("Order not found"));
     }
 
     @Override
     public List<Order> userOrdersHistory(Long userId) {
 //        return orderRepository.customFindByUserId(userId, PAYMENT_STATUS.COMPLETED);
 //            return  orderRepository.findByUserIdAndPaymentDetails_PaymentStatus(userId, PAYMENT_STATUS.COMPLETED);
-    return null;
+        return null;
 
     }
 
-
-
+    SellerOrderRepository sellerOrderRepository;
+    SellerOrderMapper sellerOrderMapper;
     @Override
-    public List<OrderItem> sellerOrders(Seller seller, ORDER_ITEM_STATUS orderItemStatus) {
-
-        Specification<OrderItem> specification = (root, query, criteriaBuilder) -> {
-            List<Predicate> predicates = new ArrayList<>();
-
-            predicates.add(criteriaBuilder.equal(root.get("sellerId"), seller.getId()));
-            predicates.add(criteriaBuilder.equal(root.get("status"), orderItemStatus));
-
-            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
-        };
-
-        return orderItemRepository.findAll(specification);
+    public List<UserOrderHistoryResponse> sellerOrders(Seller seller, SELLER_ORDER_STATUS status) {
+        return sellerOrderRepository.findBySellerAndStatus(seller, status).stream().map(
+                sellerOrderMapper::toUserOrderHistoryResponse
+        ).toList();
     }
 
     @Override
-    public OrderItem updateOrderItemStatus(Long orderId, ORDER_ITEM_STATUS orderItemStatus, Long orderItemId,  Seller seller) {
-        OrderItem orderItem = findOrderItemById(orderItemId);
-        if(!seller.getId().equals(orderItem.getSellerId())) {
-            throw new AppException("Seller is not the seller");
+    public List<SellerOrder> userOrders(User user, SELLER_ORDER_STATUS status) {
+        return sellerOrderRepository.findByUserIdAndStatus(user.getId(), status);
+    }
+
+    @Override
+    public SellerOrder getSellerOrderById(Long sellerOrderId) {
+        return sellerOrderRepository.findById(sellerOrderId).orElseThrow(() -> new AppException("Seller order not found"));
+    }
+
+    @Override
+    public SellerOrder updateSellerOrderStatus(SELLER_ORDER_STATUS status, Long sellerOrderId, Seller seller) {
+        SellerOrder sellerOrder = getSellerOrderById(sellerOrderId);
+        if (!seller.getId().equals(sellerOrder.getSeller().getId())) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 
-        OrderItem orderStatus = findOrderItemById(orderItemId);
-        orderStatus.setStatus(orderItemStatus);
+        sellerOrder.setStatus(status);
 
-        return orderItemRepository.save(orderStatus);
+        return sellerOrderRepository.save(sellerOrder);
     }
-
 
 
     @Override
     public Order cancelOrder(Order order, User user, String cancelReason) {
-        if(!order.getUser().getId().equals(user.getId())){
+        if (!order.getUser().getId().equals(user.getId())) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
         //Product
         productService.restoreStock(order);
 
         // Handle order items
-        List<OrderItem> orderItems = order.getOrderItems();
-        for(OrderItem orderItem : orderItems){
-            orderItem.setCancelReason(cancelReason);
-            orderItem.setStatus(ORDER_ITEM_STATUS.CANCELLED);
+        List<SellerOrder> sellerOrders = order.getSellerOrders();
+        for (SellerOrder sellerOrder : sellerOrders) {
+            sellerOrder.setCancelReason(cancelReason);
+            sellerOrder.setStatus(SELLER_ORDER_STATUS.CANCELLED);
         }
-
-
         return orderRepository.save(order);
+    }
+
+    @Override
+    public SellerOrder sellerCancelOrder(Seller seller, String cancelReason, Long sellerOrderId) {
+        SellerOrder sellerOrder = getSellerOrderById(sellerOrderId);
+        if (!sellerOrder.getSeller().getId().equals(seller.getId())) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+        //Product
+        sellerOrder.getOrderItems().forEach(productService::restoreStock);
+
+        // Handle order items
+        sellerOrder.setCancelReason(cancelReason);
+        sellerOrder.setStatus(SELLER_ORDER_STATUS.CANCELLED);
+
+
+        return sellerOrderRepository.save(sellerOrder);
 
     }
 
     @Override
-    public OrderItem sellerCancelOrder(Order order, Seller seller, String cancelReason, OrderItem orderItem) {
-        if(!orderItem.getSellerId().equals(seller.getId())){
+    public SellerOrder userCancelSellerOrder(User user, String cancelReason, Long sellerOrderId) {
+        SellerOrder sellerOrder = getSellerOrderById(sellerOrderId);
+        if (!sellerOrder.getUserId().equals(user.getId())) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
+        if(sellerOrder.getStatus() != SELLER_ORDER_STATUS.PENDING){
+            throw new AppException("Can't cancel this order");
+        }
         //Product
-        productService.restoreStock(orderItem);
+        sellerOrder.getOrderItems().forEach(productService::restoreStock);
 
         // Handle order items
-        orderItem.setCancelReason(cancelReason);
-        orderItem.setStatus(ORDER_ITEM_STATUS.CANCELLED);
+        sellerOrder.setCancelReason(cancelReason);
+        sellerOrder.setStatus(SELLER_ORDER_STATUS.CANCELLED);
 
 
+        return sellerOrderRepository.save(sellerOrder);
+    }
 
-        return orderItemRepository.save(orderItem);
+    @Transactional
+    @Override
+    public SellerOrder userConfirmSellerOrder(User user, Long sellerOrderId) {
+        SellerOrder sellerOrder = getSellerOrderById(sellerOrderId);
+        if (!sellerOrder.getUserId().equals(user.getId())) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+        if(sellerOrder.getStatus() != SELLER_ORDER_STATUS.DELIVERED){
+            throw new AppException("Can't confirm this order");
+        }
+        sellerOrder.setStatus(SELLER_ORDER_STATUS.COMPLETED);
+        productService.deliveredOrder(sellerOrder);
+        sellerReportService.deliveredOrder(sellerOrder);
+        transactionService.createTransaction(sellerOrder);
 
+        return sellerOrderRepository.save(sellerOrder);
     }
 
     @Override
     public OrderItem findOrderItemById(Long orderItemId) {
-
-        return orderItemRepository.findById(orderItemId).orElseThrow(()->new AppException("Order item not found"));
+        return orderItemRepository.findById(orderItemId).orElseThrow(() -> new AppException("Order item not found"));
     }
 
     @Override
-    public Order proceedPayment(Order order, User user) {
-        for (OrderItem orderItem : order.getOrderItems()) {
-            orderItem.setStatus(ORDER_ITEM_STATUS.PENDING);
-            orderItem.getPaymentDetails().setPaymentStatus(PAYMENT_STATUS.COMPLETED);
-            orderItem.getPaymentDetails().setPaymentDate(LocalDateTime.now());
+    public void proceedPayment(Order order, User user) {
+        for (SellerOrder sellerOrder : order.getSellerOrders()) {
+            sellerOrder.setStatus(SELLER_ORDER_STATUS.PENDING);
+            sellerOrder.getPaymentDetails().setPaymentStatus(PAYMENT_STATUS.COMPLETED);
+            sellerOrder.getPaymentDetails().setPaymentDate(LocalDateTime.now());
         }
-
-        return orderRepository.save(order);
+        orderRepository.save(order);
     }
 
     @Override
-    public OrderItem approveOrderItem(Long orderId, Long orderItemId,  Seller seller) {
-        OrderItem orderItem = findOrderItemById(orderItemId);
-        if(orderItem.getIsApproved()){
+    public SellerOrder approveSellerOrder(Long sellerOrderId, Seller seller) {
+        SellerOrder sellerOrder = getSellerOrderById(sellerOrderId);
+        if (sellerOrder.getIsApproved()) {
             throw new AppException("Order item is already approved");
         }
-        orderItem.setIsApproved(true);
-        orderItem.setStatus(ORDER_ITEM_STATUS.CONFIRMED);
+        sellerOrder.setIsApproved(true);
+        sellerOrder.setStatus(SELLER_ORDER_STATUS.CONFIRMED);
 
-        return orderItemRepository.save(orderItem);
+        return sellerOrderRepository.save(sellerOrder);
     }
 }

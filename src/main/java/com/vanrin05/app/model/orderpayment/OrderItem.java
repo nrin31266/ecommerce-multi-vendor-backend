@@ -27,47 +27,19 @@ public class OrderItem {
     Long id;
     @JsonBackReference
     @ManyToOne
-    @JoinColumn(name = "order_id", nullable = false)
-    Order order;
+    @JoinColumn(name = "seller_order_id", nullable = false)
+    SellerOrder sellerOrder;
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "product_id")
     Product product;
-
-    @ManyToOne@JoinColumn(name = "sub_product_id")
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "sub_product_id")
     SubProduct subProduct;
-
+    @Column(nullable = false)
     int quantity;
     Long mrpPrice;
+    @Column(nullable = false)
     Long sellingPrice;
+    @Column(nullable = false)
     Long userId;
-
-
-    String cancelReason;
-    @Enumerated(EnumType.STRING)
-    ORDER_ITEM_STATUS status;
-
-    @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(name = "paymentStatus", column = @Column(name = "payment_status")),
-    })
-    PaymentDetails paymentDetails = new PaymentDetails();
-
-    @CreatedDate
-    LocalDateTime createdDate;
-
-    @LastModifiedDate
-    LocalDateTime updatedDate;
-
-    Long sellerId;
-
-    LocalDateTime deliveryDate;
-
-    Boolean isApproved = false;
-
-    @PrePersist
-    protected void onCreate() {
-        deliveryDate = LocalDateTime.now().plusDays(7);
-        isApproved = false;
-    }
-
 }
