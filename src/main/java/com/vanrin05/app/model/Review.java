@@ -1,7 +1,9 @@
 package com.vanrin05.app.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.vanrin05.app.model.product.Product;
+import com.vanrin05.app.model.product.SubProduct;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -26,11 +28,18 @@ public class Review {
     String reviewText;
 
     @ElementCollection
-    List<String> productImages;
+    List<String> reviewImages = new ArrayList<>();
+
+    Integer reviewRating;
 
     @JsonIgnore
+    @JsonBackReference
     @ManyToOne
+    @JoinColumn(name = "product_id")
     Product product;
+
+    @ManyToOne
+    SubProduct subProduct;
 
     @ManyToOne
     User user;
@@ -40,7 +49,6 @@ public class Review {
 
     @PrePersist
     protected void prePersist() {
-        this.productImages = new ArrayList<>();
         this.createdAt = LocalDateTime.now();
     }
 }

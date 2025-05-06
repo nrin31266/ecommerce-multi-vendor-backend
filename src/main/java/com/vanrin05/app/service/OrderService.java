@@ -32,4 +32,6 @@ public interface OrderService {
     SellerOrder getSellerOrderById(Long sellerOrderId);
     List<UserOrderHistoryResponse> sellerOrders(Seller seller, SELLER_ORDER_STATUS status);
     List<SellerOrder> userOrders(User user, SELLER_ORDER_STATUS status);
+
+    void saveOrderItem(OrderItem orderItem);
 }

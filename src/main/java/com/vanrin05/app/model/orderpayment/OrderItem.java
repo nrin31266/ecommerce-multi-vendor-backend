@@ -42,4 +42,6 @@ public class OrderItem {
     Long sellingPrice;
     @Column(nullable = false)
     Long userId;
+
+    Boolean isRated = false;
 }

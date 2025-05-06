@@ -199,6 +199,11 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public void saveOrderItem(OrderItem orderItem) {
+        orderItemRepository.save(orderItem);
+    }
+
+    @Override
     public SellerOrder getSellerOrderById(Long sellerOrderId) {
         return sellerOrderRepository.findById(sellerOrderId).orElseThrow(() -> new AppException("Seller order not found"));
     }

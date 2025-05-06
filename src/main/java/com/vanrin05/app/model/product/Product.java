@@ -42,16 +42,22 @@ public class Product {
     @CollectionTable(name = "product_images", joinColumns = @JoinColumn(name = "product_id"))
     @Column(name = "image_url")
     List<String> images;
-    int numberRating;
+    int numberRating = 0;
+    Double avgRating = 0.0;
+
+
+    @JsonManagedReference
+    @JsonIgnore
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "product")
+    Set<Review> ratings = new HashSet<>();
+
     @ManyToOne
     @JoinColumn(name = "category_id")
     Category category;
     @ManyToOne
     Seller seller;
     LocalDateTime createdAt;
-    @JsonIgnore
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    List<Review> reviews;
+
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     Set<ProductOptionType> optionsTypes = new HashSet<>();
     String optionKey;
@@ -61,7 +67,6 @@ public class Product {
     @PrePersist
     protected void prePersist() {
         this.createdAt = LocalDateTime.now();
-        this.reviews = new ArrayList<>();
     }
     @PreRemove
     private void preRemove() {

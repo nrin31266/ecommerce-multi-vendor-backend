@@ -12,6 +12,6 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CreateReviewRequest {
     String reviewText;
-    double reviewRating;
-    List<String> productImages;
+    Integer reviewRating;
+    List<String> reviewImages;
 }

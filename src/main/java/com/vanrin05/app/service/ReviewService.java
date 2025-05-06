@@ -9,12 +9,13 @@ import com.vanrin05.app.model.User;
 import java.util.List;
 
 public interface ReviewService {
-    Review createReview(CreateReviewRequest createReviewRequest, User user, Product product);
-    Review updateReview(UpdateReviewRequest updateReviewRequest, Long reviewId, User user);
+    Review createReview(CreateReviewRequest createReviewRequest, User user, Long orderItemId);
 
-    List<Review> getReviewsByProductId(Long productId);
+
+    List<Review> getReviewsByProduct(Product product);
+    Review getFirstReviewsByProduct(Product product);
 
     Review getReviewById(Long reviewId);
 
-    void deleteReview(Long reviewId, User user);
+
 }
