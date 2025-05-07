@@ -1,5 +1,6 @@
 package com.vanrin05.app.service.impl;
 
+import com.vanrin05.app.exception.AppException;
 import com.vanrin05.app.model.Category;
 import com.vanrin05.app.repository.CategoryRepository;
 import lombok.AccessLevel;
@@ -15,16 +16,7 @@ import java.util.Optional;
 public class CategoryService {
     CategoryRepository categoryRepository;
 
-    public Category findOrCreateCategory(String categoryId, Category parentCategory, int level) {
-        Optional<Category> existingCategory = categoryRepository.findByCategoryId(categoryId);
-        if (existingCategory.isPresent()) {
-            return existingCategory.get();
-        }
-
-        Category newCategory = new Category();
-        newCategory.setLevel(level);
-        newCategory.setCategoryId(categoryId);
-        newCategory.setParentCategory(parentCategory.getCategoryId());
-        return categoryRepository.save(newCategory);
+    public Category findByCategoryId(String categoryId) {
+        return categoryRepository.findByCategoryId(categoryId).orElseThrow(()-> new AppException("Category not found"));
     }
 }

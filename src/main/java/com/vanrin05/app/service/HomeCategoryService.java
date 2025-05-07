@@ -1,14 +1,17 @@
 package com.vanrin05.app.service;
 
 
+import com.vanrin05.app.domain.HOME_CATEGORY_SECTION;
+import com.vanrin05.app.dto.response.HomeCategoryResponse;
 import com.vanrin05.app.model.HomeCategory;
 
 import java.util.List;
 
 public interface HomeCategoryService {
     HomeCategory createHomeCategory(HomeCategory homeCategory);
-    List<HomeCategory> createCategories(List<HomeCategory> homeCategories);
     HomeCategory updateHomeCategory(HomeCategory homeCategory, Long homeCategoryId);
-    List<HomeCategory> getAllHomeCategories();
-
+    HomeCategoryResponse getAllHomeCategories();
+    List<HomeCategory> getHomeCategoriesByType(HOME_CATEGORY_SECTION type);
+    void deleteHomeCategory(Long homeCategoryId);
+    List<HomeCategory> getAll();
 }

@@ -13,7 +13,7 @@ public interface ReviewService {
 
 
     List<Review> getReviewsByProduct(Product product);
-    Review getFirstReviewsByProduct(Product product);
+    List<Review> getFirstReviewsByProduct(Product product);
 
     Review getReviewById(Long reviewId);
 

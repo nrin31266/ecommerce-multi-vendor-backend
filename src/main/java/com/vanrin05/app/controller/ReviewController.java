@@ -37,7 +37,7 @@ public class ReviewController {
     public ResponseEntity<List<Review>> firstReviewOfProduct(
             @PathVariable Long productId
     ){
-        return ResponseEntity.ok(reviewService.getReviewsByProduct(productService.findProductById(productId)));
+        return ResponseEntity.ok(reviewService.getFirstReviewsByProduct(productService.findProductById(productId)));
     }
 
 

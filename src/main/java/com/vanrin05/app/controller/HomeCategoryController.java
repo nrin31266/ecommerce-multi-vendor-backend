@@ -1,5 +1,7 @@
 package com.vanrin05.app.controller;
 
+import com.vanrin05.app.domain.HOME_CATEGORY_SECTION;
+import com.vanrin05.app.dto.response.ApiResponse;
 import com.vanrin05.app.model.Home;
 import com.vanrin05.app.model.HomeCategory;
 import com.vanrin05.app.service.HomeCategoryService;
@@ -14,26 +16,38 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/orders")
+@RequestMapping("/api/home/categories")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class HomeCategoryController {
     HomeCategoryService homeCategoryService;
-    HomeService homeService;
 
-    @PostMapping("/home/categories")
-    public ResponseEntity<Home> createHomeCategory(@RequestBody List<HomeCategory> homeCategories) {
-        List<HomeCategory> categories= homeCategoryService.createCategories(homeCategories);
-        Home home = homeService.createHomePageData(categories);
-        return ResponseEntity.ok(home);
+    @PostMapping
+    public ResponseEntity<HomeCategory> createHomeCategory(@RequestBody HomeCategory homeCategory) {
+        HomeCategory rs= homeCategoryService.createHomeCategory(homeCategory);
+        return ResponseEntity.ok(rs);
     }
 
-    @GetMapping("/admin/home-category")
-    public ResponseEntity<List<HomeCategory>> getHomeCategory() {
-        return ResponseEntity.ok(homeCategoryService.getAllHomeCategories());
-    }
 
-    @PutMapping("/admin/home-category/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<HomeCategory> updateHomeCategory(@PathVariable Long id, @RequestBody HomeCategory homeCategory) {
         return ResponseEntity.ok(homeCategoryService.updateHomeCategory(homeCategory, id));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse> deleteHomeCategory(@PathVariable Long id) {
+        homeCategoryService.deleteHomeCategory(id);
+        return ResponseEntity.ok(ApiResponse.builder()
+                        .message("Deleted")
+                .build());
+    }
+
+    @GetMapping
+    public ResponseEntity<List<HomeCategory>> getAllHomeCategories(
+            @RequestParam(required = false) HOME_CATEGORY_SECTION section
+    ) {
+        return ResponseEntity.ok(
+                section == null ? homeCategoryService.getAll() :
+                        homeCategoryService.getHomeCategoriesByType(section)
+        );
     }
 }
