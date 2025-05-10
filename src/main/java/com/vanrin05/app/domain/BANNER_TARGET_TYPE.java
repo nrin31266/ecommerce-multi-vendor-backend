@@ -4,4 +4,5 @@ public enum BANNER_TARGET_TYPE {
     SHOP,
     PRODUCT,
     CATEGORY,
+    LINK
 }

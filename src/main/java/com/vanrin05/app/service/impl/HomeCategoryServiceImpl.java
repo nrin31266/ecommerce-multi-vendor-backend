@@ -1,6 +1,7 @@
 package com.vanrin05.app.service.impl;
 
 import com.vanrin05.app.domain.HOME_CATEGORY_SECTION;
+import com.vanrin05.app.dto.request.AddUpdateHomeCategoryRequest;
 import com.vanrin05.app.dto.response.HomeCategoryResponse;
 import com.vanrin05.app.exception.AppException;
 import com.vanrin05.app.mapper.HomeCategoryMapper;
@@ -27,16 +28,21 @@ public class HomeCategoryServiceImpl implements HomeCategoryService {
     CategoryService categoryService;
     HomeCategoryMapper homeCategoryMapper;
     @Override
-    public HomeCategory createHomeCategory(HomeCategory homeCategory) {
-        Category category = categoryService.findByCategoryId(homeCategory.getCategoryId());
+    public HomeCategory createHomeCategory(AddUpdateHomeCategoryRequest rq) {
+        if(rq.getCategoryIds().isEmpty()){
+            throw new AppException("Category is required, limit 1 category");
+        }
+        HomeCategory homeCategory = homeCategoryMapper.toHomeCategory(rq);
+        homeCategory.setCategoryIds(String.join(",", rq.getCategoryIds()));
         return homeCategoryRepository.save(homeCategory);
     }
 
 
     @Override
-    public HomeCategory updateHomeCategory(HomeCategory rq, Long homeCategoryId) {
+    public HomeCategory updateHomeCategory(AddUpdateHomeCategoryRequest rq, Long homeCategoryId) {
         HomeCategory existingHomeCategory = homeCategoryRepository.findById(homeCategoryId).orElseThrow(()-> new AppException("Home category not found"));
         homeCategoryMapper.updateHomeCategory(existingHomeCategory, rq);
+        existingHomeCategory.setCategoryIds(String.join(",", rq.getCategoryIds()));
         return homeCategoryRepository.save(existingHomeCategory);
     }
 

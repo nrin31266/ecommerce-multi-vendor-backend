@@ -360,9 +360,13 @@ public class ProductService {
             predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("totalSubProduct"), 1));
 
             if (category != null && !category.isEmpty()) {
+                List<String> categoryIds = Arrays.stream(category.split(","))
+                        .map(String::trim)
+                        .toList();
                 Join<Product, Category> joinCategory = root.join("category");
-                predicates.add(criteriaBuilder.equal(joinCategory.get("categoryId"), category));
+                predicates.add(joinCategory.get("categoryId").in(categoryIds));
             }
+
             if (search != null && !search.isEmpty()) {
                 var loweredSearch = "%" + search.toLowerCase() + "%";
                 predicates.add(

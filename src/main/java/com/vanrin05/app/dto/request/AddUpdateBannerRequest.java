@@ -4,6 +4,8 @@ import com.vanrin05.app.domain.BANNER_TARGET_TYPE;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Data
@@ -18,7 +20,7 @@ public class AddUpdateBannerRequest {
     BANNER_TARGET_TYPE targetType;
     String target;
 
-    boolean active = true;
-    Date startDate;
-    Date endDate;
+    boolean active;
+    LocalDateTime  startDate;
+    LocalDateTime endDate;
 }

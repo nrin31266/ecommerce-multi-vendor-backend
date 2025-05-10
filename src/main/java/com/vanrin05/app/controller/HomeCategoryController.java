@@ -1,6 +1,7 @@
 package com.vanrin05.app.controller;
 
 import com.vanrin05.app.domain.HOME_CATEGORY_SECTION;
+import com.vanrin05.app.dto.request.AddUpdateHomeCategoryRequest;
 import com.vanrin05.app.dto.response.ApiResponse;
 import com.vanrin05.app.model.Home;
 import com.vanrin05.app.model.HomeCategory;
@@ -22,15 +23,15 @@ public class HomeCategoryController {
     HomeCategoryService homeCategoryService;
 
     @PostMapping
-    public ResponseEntity<HomeCategory> createHomeCategory(@RequestBody HomeCategory homeCategory) {
-        HomeCategory rs= homeCategoryService.createHomeCategory(homeCategory);
+    public ResponseEntity<HomeCategory> createHomeCategory(@RequestBody AddUpdateHomeCategoryRequest rq) {
+        HomeCategory rs= homeCategoryService.createHomeCategory(rq);
         return ResponseEntity.ok(rs);
     }
 
 
     @PutMapping("/{id}")
-    public ResponseEntity<HomeCategory> updateHomeCategory(@PathVariable Long id, @RequestBody HomeCategory homeCategory) {
-        return ResponseEntity.ok(homeCategoryService.updateHomeCategory(homeCategory, id));
+    public ResponseEntity<HomeCategory> updateHomeCategory(@PathVariable Long id, @RequestBody AddUpdateHomeCategoryRequest rq) {
+        return ResponseEntity.ok(homeCategoryService.updateHomeCategory(rq, id));
     }
 
     @DeleteMapping("/{id}")

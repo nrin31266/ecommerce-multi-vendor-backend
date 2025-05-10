@@ -13,6 +13,8 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,8 +34,13 @@ public class BannerServiceImpl implements BannerService {
     @Override
     public Banner updateBanner(Integer id, AddUpdateBannerRequest u) {
         Banner b = bannerRepository.findById(id).orElseThrow(()->new AppException("Banner not found"));
+
         bannerMapper.updateBanner(b, u);
-        return null;
+        return bannerRepository.save(b);
+    }
+    private ZonedDateTime convertToVietnamTime(ZonedDateTime utcTime) {
+        if (utcTime == null) return null;
+        return utcTime.withZoneSameInstant(ZoneId.of("Asia/Ho_Chi_Minh"));
     }
 
     @Override
