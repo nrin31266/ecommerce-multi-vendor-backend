@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.List;
 
 public interface BannerRepository extends JpaRepository<Banner, Integer> {
-    @Query("SELECT b FROM Banner b WHERE b.active = true AND CURRENT_DATE BETWEEN b.startDate AND b.endDate")
+    @Query("SELECT b FROM Banner b WHERE b.active = true AND NOW() BETWEEN b.startDate AND b.endDate")
     List<Banner> findActiveBanners();
 
     List<Banner> findByTargetType(BANNER_TARGET_TYPE targetType);

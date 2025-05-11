@@ -1,5 +1,8 @@
 package com.vanrin05.app.controller;
 
+import com.vanrin05.app.domain.PRICE_FILTER;
+import com.vanrin05.app.domain.RATING_FILTER;
+import com.vanrin05.app.domain.SORT_PRODUCTS;
 import com.vanrin05.app.dto.PageableDto;
 import com.vanrin05.app.dto.ProductDto;
 import com.vanrin05.app.dto.SubProductDto;
@@ -46,20 +49,17 @@ public class ProductController {
     @GetMapping
     public ResponseEntity<PageableDto<ProductDto>> getAllProducts(
             @RequestParam(required = false) String category,
-            @RequestParam(required = false) String brand,
-            @RequestParam(required = false) String colors,
-            @RequestParam(required = false) String sizes,
-            @RequestParam(required = false) Integer minimumPrice,
-            @RequestParam(required = false) Integer maximumPrice,
             @RequestParam(required = false) Integer minimumDiscount,
-            @RequestParam(required = false) String sort,
-            @RequestParam(required = false) String stock,
+            @RequestParam(required = false) SORT_PRODUCTS sort,
             @RequestParam(defaultValue = "1", required = false) Integer pageNumber,
             @RequestParam(required = false) String search,
-            @RequestParam(required = false, defaultValue = "10") Integer pageSize
-    ) {
+            @RequestParam(required = false, defaultValue = "10") Integer pageSize,
+            @RequestParam(required = false)PRICE_FILTER priceFilter,
+            @RequestParam(required = false)RATING_FILTER ratingFilter
+            ) {
 
-        return ResponseEntity.ok(productService.getAllProduct(category, brand, colors, sizes, minimumPrice, maximumPrice, minimumDiscount, sort, stock, pageNumber, search, pageSize));
+        return ResponseEntity.ok(productService.getAllProduct(category,  minimumDiscount, sort, pageNumber, search, pageSize,
+                priceFilter, ratingFilter));
     }
 
 

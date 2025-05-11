@@ -39,7 +39,8 @@ public class ProductDto {
     Long totalSold;
     Boolean isSubProduct = false;
     List<String> images;
-    int numberRating;
+    int numberRating = 0;
+    Double avgRating = 0.0;
     Category category;
     Seller seller;
     LocalDateTime createdAt;

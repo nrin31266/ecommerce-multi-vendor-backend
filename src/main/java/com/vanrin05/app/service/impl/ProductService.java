@@ -1,5 +1,8 @@
 package com.vanrin05.app.service.impl;
 
+import com.vanrin05.app.domain.PRICE_FILTER;
+import com.vanrin05.app.domain.RATING_FILTER;
+import com.vanrin05.app.domain.SORT_PRODUCTS;
 import com.vanrin05.app.dto.PageableDto;
 import com.vanrin05.app.dto.ProductDto;
 
@@ -26,6 +29,7 @@ import com.vanrin05.app.model.product.SubProductOption;
 import com.vanrin05.app.repository.CategoryRepository;
 import com.vanrin05.app.repository.ProductRepository;
 import com.vanrin05.app.repository.SubProductRepository;
+import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
@@ -345,15 +349,14 @@ public class ProductService {
     }
 
     public PageableDto<ProductDto> getAllProduct(
-            String category, String brand,
-            String colors, String sizes,
-            Integer minimumPrice, Integer maximumPrice,
+            String category,
             Integer minimumDiscount,
-            String sort,
-            String stock,
+            SORT_PRODUCTS sort,
             Integer pageNumber,
             String search,
-            Integer pageSize
+            Integer pageSize,
+            PRICE_FILTER priceFilter,
+            RATING_FILTER ratingFilter
     ) {
         Specification<Product> specification = (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -363,8 +366,10 @@ public class ProductService {
                 List<String> categoryIds = Arrays.stream(category.split(","))
                         .map(String::trim)
                         .toList();
+                log.info(categoryIds.toString());
                 Join<Product, Category> joinCategory = root.join("category");
-                predicates.add(joinCategory.get("categoryId").in(categoryIds));
+                Expression<String> categoryIdPath = joinCategory.get("categoryId").as(String.class);
+                predicates.add(categoryIdPath.in(categoryIds));
             }
 
             if (search != null && !search.isEmpty()) {
@@ -375,21 +380,87 @@ public class ProductService {
 //                                ,criteriaBuilder.like(criteriaBuilder.lower(root.get("description")), loweredSearch)
                         )
                 );
-
             }
+            if (priceFilter != null) {
+                switch (priceFilter) {
+                    case LESS_THAN_50K:
+                        predicates.add(
+                                criteriaBuilder.lessThan(root.get("minSellingPrice"), 50000)
+                        );
+                        break;
+                    case FROM_50K_TO_100K:
+                        predicates.add(
+                                criteriaBuilder.between(root.get("minSellingPrice"), 50000, 100000)
+                        );
+                        break;
+                    case FROM_100K_TO_200K:
+                        predicates.add(
+                                criteriaBuilder.between(root.get("minSellingPrice"), 100000, 200000)
+                        );
+                        break;
+                    case FROM_200K_TO_500K:
+                        predicates.add(
+                                criteriaBuilder.between(root.get("minSellingPrice"), 200000, 500000)
+                        );
+                        break;
+                    case FROM_500K_TO_1000K:
+                        predicates.add(
+                                criteriaBuilder.between(root.get("minSellingPrice"), 500000, 1000000)
+                        );
+                        break;
+                    case GREATER_THAN_1000K:
+                        predicates.add(
+                                criteriaBuilder.greaterThan(root.get("minSellingPrice"), 1000000)
+                        );
+                        break;
+                }
+            }
+
+            if (ratingFilter != null) {
+                switch (ratingFilter) {
+                    case FROM_ONE_STAR:
+                        predicates.add(
+                                criteriaBuilder.greaterThanOrEqualTo(root.get("avgRating"), 1.0)
+                        );
+                        break;
+                    case FROM_TWO_STARS:
+                        predicates.add(
+                                criteriaBuilder.greaterThanOrEqualTo(root.get("avgRating"), 2.0)
+                        );
+                        break;
+                    case FROM_THREE_STARS:
+                        predicates.add(
+                                criteriaBuilder.greaterThanOrEqualTo(root.get("avgRating"), 3.0)
+                        );
+                        break;
+                    case FROM_FOUR_STARS:
+                        predicates.add(
+                                criteriaBuilder.greaterThanOrEqualTo(root.get("avgRating"), 4.0)
+                        );
+                        break;
+                    case FIVE_STARS:
+                        predicates.add(
+                                criteriaBuilder.equal(root.get("avgRating"), 5.0)
+                        );
+                        break;
+                }
+            }
+
+
 
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
 
         Pageable pageable;
-        Map<String, Sort> sortMap = Map.of(
-                "price_low", Sort.by("sellingPrice").ascending(),
-                "price_high", Sort.by("sellingPrice").descending(),
-                "discount_high", Sort.by("discountPercentage").descending()
+        Map<SORT_PRODUCTS, Sort> sortMap = Map.of(
+                SORT_PRODUCTS.NEW, Sort.by("createdAt").descending(),
+                SORT_PRODUCTS.BESTSELLER, Sort.by("totalSold").descending(),
+                SORT_PRODUCTS.PRICE_LOW, Sort.by("minSellingPrice").ascending(),
+                SORT_PRODUCTS.PRICE_HIGH, Sort.by("minSellingPrice").descending()
         );
-        sort = null;
-        Sort sortOption = Sort.unsorted();
+        Sort sortOption = (sort != null && sortMap.containsKey(sort)) ? sortMap.get(sort) : Sort.unsorted();
+
         pageable = PageRequest.of(pageNumber != null ? (pageNumber - 1) : 0, pageSize, sortOption);
 
         Page<Product> pageData = productRepository.findAll(specification, pageable);
