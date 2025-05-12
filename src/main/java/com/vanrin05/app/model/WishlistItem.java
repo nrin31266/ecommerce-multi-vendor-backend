@@ -1,10 +1,12 @@
 package com.vanrin05.app.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.vanrin05.app.model.product.Product;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -14,19 +16,23 @@ import java.util.Set;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Wishlist {
+public class WishlistItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @OneToOne
+
+    @JoinColumn(nullable = false, name = "user_id")
+    @ManyToOne
     User user;
 
-    @ManyToMany
-    Set<Product> products;
+    @ManyToOne
+    Product product;
+
+    LocalDateTime addedAt;
 
     @PrePersist
     protected void onCreate() {
-        this.products = new HashSet<>();
+        addedAt = LocalDateTime.now();
     }
 }

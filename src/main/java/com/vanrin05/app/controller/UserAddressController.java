@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/users/address")
@@ -29,7 +30,7 @@ public class UserAddressController {
 
         User user = userService.findUserByJwtToken(token);
 
-        List<Address> addresses = user.getAddresses();
+        Set<Address> addresses = user.getAddresses();
         if (addresses.size() > 5) {
             throw new AppException("You can have at most 5 addresses");
         }

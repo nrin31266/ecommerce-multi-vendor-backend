@@ -1,8 +1,10 @@
 package com.vanrin05.app.controller;
 
+import com.vanrin05.app.dto.WishlistItemDto;
+import com.vanrin05.app.dto.response.UserWishlistProductResponse;
 import com.vanrin05.app.model.product.Product;
 import com.vanrin05.app.model.User;
-import com.vanrin05.app.model.Wishlist;
+import com.vanrin05.app.model.WishlistItem;
 import com.vanrin05.app.service.WishListService;
 import com.vanrin05.app.service.impl.ProductService;
 import com.vanrin05.app.service.impl.UserService;
@@ -12,6 +14,8 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -23,18 +27,24 @@ public class WishlistController {
     UserService userService;
     ProductService productService;
 
-    @GetMapping
-    public ResponseEntity<Wishlist> getWishlist(@RequestHeader("Authorization") String jwtToken) {
+    @GetMapping("/user")
+    public ResponseEntity<List<WishlistItemDto>> getWishlist(@RequestHeader("Authorization") String jwtToken) {
         User user = userService.findUserByJwtToken(jwtToken);
-        Wishlist wishlist = wishListService.getWishListByUser(user);
-        return ResponseEntity.ok(wishlist);
+        List<WishlistItemDto> wishlists = wishListService.getWishListByUser(user);
+        return ResponseEntity.ok(wishlists);
     }
 
-    @PostMapping("add-product/{productId}")
-    public ResponseEntity<Wishlist> addProduct(@RequestHeader("Authorization") String jwtToken, @PathVariable("productId") Long productId) {
+    @PostMapping("/user/{productId}")
+    public ResponseEntity<UserWishlistProductResponse> addProduct(@RequestHeader("Authorization") String jwtToken, @PathVariable("productId") Long productId) {
         Product product = productService.findProductById(productId);
         User user = userService.findUserByJwtToken(jwtToken);
         return ResponseEntity.ok(wishListService.addProductToWishlist(user, product));
+    }
 
+    @PostMapping("/user/check/{productId}")
+    public ResponseEntity<UserWishlistProductResponse> isUserWishList(@RequestHeader("Authorization") String jwtToken, @PathVariable("productId") Long productId) {
+        Product product = productService.findProductById(productId);
+        User user = userService.findUserByJwtToken(jwtToken);
+        return ResponseEntity.ok(wishListService.isUserWishList(user, product));
     }
 }

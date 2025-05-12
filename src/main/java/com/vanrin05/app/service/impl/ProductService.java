@@ -366,7 +366,7 @@ public class ProductService {
                 List<String> categoryIds = Arrays.stream(category.split(","))
                         .map(String::trim)
                         .toList();
-                log.info(categoryIds.toString());
+
                 Join<Product, Category> joinCategory = root.join("category");
                 Expression<String> categoryIdPath = joinCategory.get("categoryId").as(String.class);
                 predicates.add(categoryIdPath.in(categoryIds));

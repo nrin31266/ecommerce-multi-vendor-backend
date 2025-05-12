@@ -38,18 +38,17 @@ public class User {
     @Enumerated(EnumType.STRING)
     USER_ROLE role;
 
-//    @OneToOne
-//    @JoinColumn(name = "default_address_id")
-//    Address defaultAddress;
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "pickup_address_id")
     Address pickupAddress;
 
 
+
+
     @JsonManagedReference
     @JsonIgnore
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "user", orphanRemoval = true)
-    List<Address> addresses = new ArrayList<>();
+    @OneToMany
+    Set<Address> addresses = new HashSet<>();
 
 
     @ManyToMany(fetch = FetchType.LAZY)

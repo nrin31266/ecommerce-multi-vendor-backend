@@ -1,8 +1,11 @@
 package com.vanrin05.app.service.impl;
 
+import com.vanrin05.app.dto.WishlistItemDto;
+import com.vanrin05.app.dto.response.UserWishlistProductResponse;
+import com.vanrin05.app.mapper.WishlistMapper;
 import com.vanrin05.app.model.product.Product;
 import com.vanrin05.app.model.User;
-import com.vanrin05.app.model.Wishlist;
+import com.vanrin05.app.model.WishlistItem;
 import com.vanrin05.app.repository.WishlistRepository;
 import com.vanrin05.app.service.WishListService;
 import lombok.AccessLevel;
@@ -11,40 +14,45 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Optional;
+
 @Slf4j
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Service
 public class WishlistServiceImpl implements WishListService {
     WishlistRepository wishlistRepository;
+    WishlistMapper wishlistMapper;
 
     @Override
-    public Wishlist getWishListByUser(User user) {
-        Wishlist wishlist = wishlistRepository.findByUserId(user.getId());
-        if (wishlist == null) {
-            wishlist = createWishList(user);
-        }
-        return wishlist;
+    public List<WishlistItemDto> getWishListByUser(User user) {
+        return wishlistRepository.findByUser(user).stream().map(wishlistMapper::toWishlistItemDto).toList();
     }
 
-    @Override
-    public Wishlist createWishList(User user) {
-        Wishlist wishlist = new Wishlist();
-        wishlist.setUser(user);
 
-        return wishlistRepository.save(wishlist);
-    }
+
 
     @Override
-    public Wishlist addProductToWishlist(User user, Product product) {
-        Wishlist wishlist = getWishListByUser(user);
-
-        if(wishlist.getProducts().contains(product)) {
-            wishlist.getProducts().remove(product);
+    public UserWishlistProductResponse addProductToWishlist(User user, Product product) {
+        boolean isUserWishlist;
+        Optional<WishlistItem> optionalWishlistItem = wishlistRepository.findByUserAndProduct(user, product);
+        if (optionalWishlistItem.isPresent()) {
+            wishlistRepository.delete(optionalWishlistItem.get());
+            isUserWishlist = false;
         }else{
-            wishlist.getProducts().add(product);
+            WishlistItem wishlistItem = new WishlistItem();
+            wishlistItem.setProduct(product);
+            wishlistItem.setUser(user);
+            wishlistRepository.save(wishlistItem);
+            isUserWishlist = true;
         }
+        return new UserWishlistProductResponse(isUserWishlist);
+    }
 
-        return wishlistRepository.save(wishlist);
+    @Override
+    public UserWishlistProductResponse isUserWishList(User user, Product product) {
+        return wishlistRepository.findByUserAndProduct(user, product).isPresent() ? new UserWishlistProductResponse(true)
+                : new UserWishlistProductResponse(false);
     }
 }
