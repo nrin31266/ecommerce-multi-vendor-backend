@@ -14,12 +14,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.util.Date;
 import java.util.Map;
+import java.util.Objects;
 
 @Slf4j
 @RestController
@@ -35,7 +37,6 @@ public class VNPayController {
     TransactionService transactionService;
 
 
-
     @GetMapping("/pay")
     public String pay(@RequestParam("amount") long amount,
                       @RequestParam("orderInfo") String orderInfo,
@@ -45,18 +46,65 @@ public class VNPayController {
     }
 
     @GetMapping("/return")
-    public ResponseEntity<Void> returnPayment(@RequestParam Map<String, String> params) {
+    public ResponseEntity<String> returnPayment(@RequestParam Map<String, String> params) {
         String paymentId = params.get("vnp_TxnRef");
-        String redirectUrl = "http://localhost:5173/payment-success/" +paymentId ;
-        
-        if (!"00".equals(params.get("vnp_ResponseCode"))) {
-            redirectUrl = "http://localhost:5173/payment-cancel/" +paymentId ;
-        }
+        String responseCode = params.get("vnp_ResponseCode");
+
+        boolean success = "00".equals(responseCode);
+        String message = success ? "Payment successfully" : "Payment failed";
+        String buttonColor = success ? "#4CAF50" : "#dc3545"; // xanh hoặc đỏ
+
+        String appRedirectUrl = String.format(
+                "yourapp://payment-result?method=vnpay&status=%s&paymentId=%s",
+                success, paymentId
+        );
+
+        String html = """
+            <html>
+                <head>
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+                    <style>
+                        body {
+                            font-family: sans-serif;
+                            text-align: center;
+                            padding-top: 50px;
+                            background-color: #f9f9f9;
+                        }
+                        h2 {
+                            color: %s;
+                        }
+                        button {
+                            padding: 12px 24px;
+                            font-size: 16px;
+                            background-color: %s;
+                            color: white;
+                            border: none;
+                            border-radius: 8px;
+                            margin-top: 30px;
+                            cursor: pointer;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h2>%s</h2>
+                    <p>Payment ID: %s</p>
+                    <button onclick="window.location.href='%s'">Return to App</button>
+                </body>
+            </html>
+        """.formatted(
+                buttonColor, // màu tiêu đề
+                buttonColor, // màu nút
+                message,
+                paymentId,
+                appRedirectUrl
+        );
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setLocation(URI.create(redirectUrl));
-        return new ResponseEntity<>(headers, HttpStatus.FOUND); // 302 Redirect
+        headers.setContentType(MediaType.TEXT_HTML);
+        return new ResponseEntity<>(html, headers, HttpStatus.OK);
     }
+
+
 
 
     @GetMapping("/ipn")

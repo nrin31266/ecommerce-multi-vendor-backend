@@ -1,5 +1,6 @@
 package com.vanrin05.app.service.impl;
 
+import com.vanrin05.app.dto.response.PaymentResponse;
 import com.vanrin05.app.exception.ErrorCode;
 import com.vanrin05.app.model.orderpayment.Order;
 import com.vanrin05.app.model.orderpayment.Payment;
@@ -39,15 +40,8 @@ import java.util.stream.Collectors;
 @Service
 public class PaymentServiceImpl implements PaymentService {
     PaymentOrderRepository paymentOrderRepository;
-    OrderRepository orderRepository;
     VNPayService vnPayService;
     private String stripeSecretKey = "sk_test_51R52WvPvjKDrWoaF1R2WPy4ivyRAlWcAYsPLO0t0A7ma3bTIPN8HQFbwpPyRwhR848Sem8oggdCyojGfLWgQSiMV00X4eCr53r";
-    KafkaTemplate<String, Object> kafkaTemplate;
-    ProductRepository productRepository;
-    private final SellerRepository sellerRepository;
-    SellerReportRepository sellerReportRepository;
-    TransactionService transactionService;
-    SellerReportService sellerReportService;
     OrderService orderService;
 
 
@@ -58,6 +52,7 @@ public class PaymentServiceImpl implements PaymentService {
         payment.setPaymentOrderStatus(PAYMENT_ORDER_STATUS.PENDING);
         payment.setExpiryDate(LocalDateTime.now().plusHours(12));
         payment.setOrder(orders);
+        payment.setAmount(orders.getFinalPrice());
         payment.setUser(user);
         return paymentOrderRepository.save(payment);
 
@@ -85,6 +80,25 @@ public class PaymentServiceImpl implements PaymentService {
 
     }
 
+    @Override
+    public PaymentResponse rePayOrder(User user, Long paymentId) {
+        Payment payment = findById(paymentId);
+        if(!payment.getUser().getId().equals(user.getId())) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+        String linkPayment;
+        if(payment.getPaymentMethod() == PAYMENT_METHOD.VNPAY){
+            Map<String, String> params = new HashMap<>();
+            params.put("orderInfo", "Payment order with id: " + payment.getId());
+            params.put("orderType", "other");
+//            params.put("bankCode", null);
+            linkPayment = createVNPaymentLink(user, payment.getAmount(), payment.getId(), params);
+        }else{
+            throw new AppException("Payment method not supported");
+        }
+        return PaymentResponse.builder().payment_link_url(linkPayment).build();
+    }
+
 
     @Scheduled(fixedRate = 180_000)
     @Transactional
@@ -95,20 +109,17 @@ public class PaymentServiceImpl implements PaymentService {
 
         for (Payment expiredPayment : expiredPayments) {
             cancelPaymentOrder(expiredPayment, expiredPayment.getUser(), "Late payment deadline");
-
-            expiredPayment.setPaymentOrderStatus(PAYMENT_ORDER_STATUS.CANCELLED);
-
         }
-
-        paymentOrderRepository.saveAll(expiredPayments);
-
     }
+
 
 
     @Transactional
     @Override
     public void proceedPayment(Long paymentId) {
         Payment payment = findById(paymentId);
+        payment.setPaymentOrderStatus(PAYMENT_ORDER_STATUS.SUCCESS);
+        paymentOrderRepository.save(payment);
 
         orderService.proceedPayment(payment.getOrder(), payment.getUser());
 

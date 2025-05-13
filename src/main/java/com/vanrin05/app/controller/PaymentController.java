@@ -1,12 +1,9 @@
 package com.vanrin05.app.controller;
 
+import com.vanrin05.app.dto.response.PaymentResponse;
 import com.vanrin05.app.model.*;
-import com.vanrin05.app.model.orderpayment.Order;
 import com.vanrin05.app.model.orderpayment.Payment;
 import com.vanrin05.app.service.PaymentService;
-import com.vanrin05.app.service.SellerReportService;
-import com.vanrin05.app.service.TransactionService;
-import com.vanrin05.app.service.impl.SellerService;
 import com.vanrin05.app.service.impl.UserService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -42,5 +39,12 @@ public class PaymentController {
         User user = userService.findUserByJwtToken(jwt);
         Payment payment = paymentService.findById(paymentId);
         return ResponseEntity.ok(paymentService.cancelPaymentOrder(payment, user, "Cancel payment"));
+    }
+
+    @PostMapping("/re-pay/{paymentId}")
+    public ResponseEntity<PaymentResponse> rePayPayment(@PathVariable("paymentId") Long paymentId, @RequestHeader("Authorization") String jwt) {
+        User user = userService.findUserByJwtToken(jwt);
+        return ResponseEntity.ok(paymentService.rePayOrder(user, paymentId));
+
     }
 }

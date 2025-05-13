@@ -38,7 +38,7 @@ public class Payment {
 
 
     @JsonManagedReference
-    @OneToOne(mappedBy = "payment", orphanRemoval = true, cascade = CascadeType.ALL)
+    @OneToOne
     Order order;
 
 

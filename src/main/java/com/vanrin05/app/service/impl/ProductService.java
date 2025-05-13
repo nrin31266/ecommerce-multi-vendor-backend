@@ -18,7 +18,6 @@ import com.vanrin05.app.mapper.ProductMapper;
 import com.vanrin05.app.mapper.SubProductMapper;
 import com.vanrin05.app.model.Category;
 import com.vanrin05.app.model.Seller;
-import com.vanrin05.app.model.User;
 import com.vanrin05.app.model.orderpayment.Order;
 import com.vanrin05.app.model.orderpayment.OrderItem;
 import com.vanrin05.app.model.orderpayment.SellerOrder;
@@ -474,6 +473,14 @@ public class ProductService {
 
     public List<Product> getProductsBySellerId(Long sellerId) {
         return productRepository.findBySellerId(sellerId);
+    }
+
+    public List<ProductDto> relatedProducts(Long productId){
+        Product product = findProductById(productId);
+        Category category = product.getCategory();
+        Seller seller = product.getSeller();
+        Pageable limit = PageRequest.of(0, 4); // Lấy 10 phần tử đầu tiên
+        return productRepository.findByCategoryExcludingProduct(category, productId, limit).stream().map(productMapper::toProductDto).toList();
     }
 
 }

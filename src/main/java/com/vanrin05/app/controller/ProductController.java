@@ -62,5 +62,12 @@ public class ProductController {
                 priceFilter, ratingFilter));
     }
 
+    @GetMapping("/related/{productId}")
+    public ResponseEntity<List<ProductDto>> getRelatedProducts(
+            @PathVariable Long productId
+    ){
+        return ResponseEntity.ok(productService.relatedProducts(productId));
+    }
+
 
 }

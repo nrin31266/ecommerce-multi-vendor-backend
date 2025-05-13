@@ -1,5 +1,6 @@
 package com.vanrin05.app.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.vanrin05.app.domain.ACCOUNT_STATUS;
 import com.vanrin05.app.domain.USER_ROLE;
@@ -22,6 +23,7 @@ public class Seller {
     String mobile;
     @Column(unique = true, nullable = false)
     String email;
+    @JsonIgnore
     String password;
     @Embedded
     BusinessDetails businessDetails = new BusinessDetails();

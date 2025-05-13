@@ -2,6 +2,7 @@ package com.vanrin05.app.service;
 
 import com.stripe.exception.StripeException;
 import com.vanrin05.app.domain.PAYMENT_METHOD;
+import com.vanrin05.app.dto.response.PaymentResponse;
 import com.vanrin05.app.model.orderpayment.Order;
 import com.vanrin05.app.model.orderpayment.Payment;
 
@@ -21,4 +22,6 @@ public interface PaymentService {
     List<Payment> findUserPaymentOrdersPaymentNotYet(User user);
 
     Payment cancelPaymentOrder(Payment payment, User user, String cancelReason);
+
+    PaymentResponse rePayOrder(User user, Long paymentId);
 }

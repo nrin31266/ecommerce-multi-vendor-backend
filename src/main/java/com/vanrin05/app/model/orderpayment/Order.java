@@ -38,10 +38,10 @@ public class Order {
     int discountPercentage;
     int totalItem;
 
-    @JsonBackReference
-    @OneToOne
-    @JoinColumn(name = "payment_order_id")
-    Payment payment;
+//    @JsonBackReference
+//    @OneToOne
+//    @JoinColumn(name = "payment_order_id")
+//    Payment payment;
 
     @Enumerated(EnumType.STRING)
     PAYMENT_METHOD paymentMethod;
