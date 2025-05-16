@@ -49,7 +49,6 @@ public class AuthService {
     JwtProvider jwtProvider;
     VerificationCodeRepository verificationCodeRepository;
     OtpUtil otpUtil;
-    EmailService emailService;
     CustomUserServiceImpl customUserService;
     SellerRepository sellerRepository;
     KafkaTemplate<String, Object> kafkaTemplate;

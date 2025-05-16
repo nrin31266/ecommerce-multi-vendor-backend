@@ -84,6 +84,7 @@ public class ProductService {
         }
         Product product = productMapper.toProduct(req);
         product.setCategory(categories.get(2));
+        product.setAvgRating(0.00);
 
         product.setSeller(sellerService.getSellerProfile(jwt));
 //        product= productRepository.save(product);
@@ -338,8 +339,16 @@ public class ProductService {
             throw new AppException(ErrorCode.CATEGORY_NOT_FOUND);
         }
         Product product = this.findProductById(productId);
-        product.setCategory(categories.get(2));
+        Category category = categories.stream().filter(item -> item.getLevel() == 3).findFirst().get();
+        product.setCategory(category);
+        log.info(categories.toString());
         productMapper.updateProduct(product, req);
+        if(product.getIsSubProduct() != null && product.getIsSubProduct()) {
+            SubProduct subProduct = product.getSubProducts().getFirst();
+            subProduct.setQuantity(req.getQuantity());
+            subProduct.setSellingPrice(req.getSellingPrice());
+            subProduct.setMrpPrice(req.getMrpPrice());
+        }
         return productRepository.save(product);
     }
 

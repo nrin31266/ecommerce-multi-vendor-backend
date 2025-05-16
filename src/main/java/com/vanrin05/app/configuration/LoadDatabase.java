@@ -112,7 +112,7 @@ public class LoadDatabase {
                     .role(USER_ROLE.ROLE_SELLER)
                     .mobile("0912345678")
                     .password("123")
-                    .isEmailVerified(true)
+                    .acceptTerms(true)
                     .bankDetails(
                             BankDetails.builder()
                                     .accountHolderName("James Moe")
@@ -147,7 +147,7 @@ public class LoadDatabase {
                     .taxCode("TAX456")
                     .role(USER_ROLE.ROLE_SELLER)
                     .mobile("0923456789")
-                    .isEmailVerified(true)
+                    .acceptTerms(true)
                     .bankDetails(
                             BankDetails.builder()
                                     .accountHolderName("Alice Smith")
@@ -182,7 +182,7 @@ public class LoadDatabase {
                     .taxCode("TAX789")
                     .role(USER_ROLE.ROLE_SELLER).password("123")
                     .mobile("0934567890")
-                    .isEmailVerified(true)
+                    .acceptTerms(true)
                     .bankDetails(
                             BankDetails.builder()
                                     .accountHolderName("Bob Johnson")
@@ -218,7 +218,7 @@ public class LoadDatabase {
                     .taxCode("TAX234")
                     .role(USER_ROLE.ROLE_SELLER)
                     .mobile("0945678901")
-                    .isEmailVerified(true)
+                    .acceptTerms(true)
                     .bankDetails(
                             BankDetails.builder()
                                     .accountHolderName("Charlie Brown")
@@ -253,7 +253,7 @@ public class LoadDatabase {
                     .taxCode("TAX567").password("123")
                     .role(USER_ROLE.ROLE_SELLER)
                     .mobile("0956789012")
-                    .isEmailVerified(true)
+                    .acceptTerms(true)
                     .bankDetails(
                             BankDetails.builder()
                                     .accountHolderName("David Williams")

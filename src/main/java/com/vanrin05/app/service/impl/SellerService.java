@@ -8,22 +8,22 @@ import com.vanrin05.app.exception.AppException;
 import com.vanrin05.app.exception.ErrorCode;
 import com.vanrin05.app.mapper.SellerMapper;
 import com.vanrin05.app.model.Seller;
+import com.vanrin05.app.model.SellerReport;
 import com.vanrin05.app.model.VerificationCode;
-import com.vanrin05.app.repository.AddressRepository;
+import com.vanrin05.app.repository.SellerReportRepository;
 import com.vanrin05.app.repository.SellerRepository;
 import com.vanrin05.app.repository.VerificationCodeRepository;
 import com.vanrin05.app.utils.OtpUtil;
-import jakarta.mail.MessagingException;
+import com.vanrin05.event.SentLoginSignupEvent;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -33,37 +33,49 @@ public class SellerService {
     SellerRepository sellerRepository;
     JwtProvider jwtProvider;
     PasswordEncoder passwordEncoder;
-    AddressRepository addressRepository;
     SellerMapper sellerMapper;
-    EmailService emailService;
     OtpUtil otpUtil;
     VerificationCodeRepository verificationCodeRepository;
+    KafkaTemplate<String, Object> kafkaTemplate;
+    SellerReportRepository sellerReportRepository;
 
-    public List<Seller> getSellersByIds(Set<Long> ids) {
-        return sellerRepository.findAllByIdIn(ids);
-    }
+
     public Seller getSellerProfile(String jwt){
         String email = jwtProvider.getEmailFromJwtToken(jwt);
         return this.getSellerByEmail(email);
     }
 
-    public Seller createSeller(CreateSellerRequest request) throws MessagingException {
+    public Seller createSeller(CreateSellerRequest request)  {
 
         if(sellerRepository.findByEmail(request.getEmail()).isPresent()){
-            throw new RuntimeException("Seller already exists with email: " + request.getEmail());
+            throw new AppException("Seller already exists with email: " + request.getEmail());
         }
         Seller seller = sellerMapper.toSeller(request);
-        log.info(seller.toString());
+        seller.setAccountStatus(ACCOUNT_STATUS.PENDING_VERIFICATION);
+        String otpCode = otpUtil.generateOtp(6);
+        seller.setPassword(passwordEncoder.encode(otpCode));
         seller = sellerRepository.save(seller);
-//        VerificationCode verificationCode = new VerificationCode();
-//        verificationCode.setEmail(request.getEmail());
-//        String otpCode = otpUtil.generateOtp(6);
-//        verificationCode.setOtp(otpCode);
-//        verificationCodeRepository.save(verificationCode);
-        String subject = "Ecommerce Multi Vendor - Email Verification Code Of Seller";
-        String body = "Well come to EcommerceMV, verify account using link " +
-                      "http://localhost:3000/verify-seller/";
-        emailService.sendVerificationOtpEmail(seller.getEmail(), subject, body);
+
+        SellerReport sellerReport = new SellerReport();
+        sellerReport.setSeller(seller);
+        sellerReportRepository.save(
+                sellerReport
+        );
+
+        VerificationCode verificationCode = new VerificationCode();
+        verificationCode.setEmail(request.getEmail());
+        verificationCode.setOtp(otpCode);
+        verificationCodeRepository.save(verificationCode);
+
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("title", "Welcome seller to NRin, this OTP to access our System: ");
+        variables.put("otp", otpCode);
+
+        kafkaTemplate.send("sent_otp_to_login_signup", SentLoginSignupEvent.builder()
+                        .subject("Seller create account")
+                        .email(seller.getEmail())
+                        .variables(variables)
+                .build());
         return seller;
     }
 
@@ -85,19 +97,15 @@ public class SellerService {
     public Seller updateSeller(String jwt, UpdateSellerRequest request){
         Seller seller = this.getSellerProfile(jwt);
         sellerMapper.updateSeller(seller, request);
-
         return sellerRepository.save(seller);
     }
 
-    public Seller verifyEmail(String jwt, String otp){
-        Seller seller = this.getSellerProfile(jwt);
-        Optional<VerificationCode> verificationCodeOptional = verificationCodeRepository.findByEmail(seller.getEmail());
-
-        if(verificationCodeOptional.isEmpty() || !verificationCodeOptional.get().getOtp().equals(otp)){
-            throw new RuntimeException("Wrong otp");
+    public Seller accessTerms(String jwt){
+        if(jwt == null){
+            throw new AppException("You need login in system to accept terms");
         }
-
-        seller.setEmailVerified(true);
+        Seller seller = this.getSellerProfile(jwt);
+        seller.setAcceptTerms(true);
         return sellerRepository.save(seller);
     }
 

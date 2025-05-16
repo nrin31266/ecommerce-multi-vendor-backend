@@ -36,8 +36,10 @@ public class SellerOrder {
     Long totalPrice = 0L;
     Long discountShipping = 0L;
     Long discountShop = 0L;
-    Long discountPlatform = 0L;
+
     Long finalPrice = 0L;
+
+    Long shippingCost = 0L;
 
     @JsonManagedReference
     @OneToMany(mappedBy = "sellerOrder", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -64,6 +66,8 @@ public class SellerOrder {
     Seller seller;
 
     LocalDateTime deliveryDate;
+
+    LocalDateTime deliveredDate;
 
     Boolean isApproved = false;
 

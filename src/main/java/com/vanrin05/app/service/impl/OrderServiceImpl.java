@@ -1,6 +1,7 @@
 package com.vanrin05.app.service.impl;
 
 import com.vanrin05.app.domain.PAYMENT_METHOD;
+import com.vanrin05.app.domain.PAYMENT_ORDER_STATUS;
 import com.vanrin05.app.domain.PAYMENT_STATUS;
 import com.vanrin05.app.domain.SELLER_ORDER_STATUS;
 import com.vanrin05.app.dto.request.CreateOrderRequest;
@@ -22,6 +23,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -119,13 +121,14 @@ public class OrderServiceImpl implements OrderService {
             sellerOrder.setTotalItem(totalItem);
             sellerOrder.setTotalPrice(totalPrice);
             sellerOrder.setDiscountShop(0L);
-            sellerOrder.setDiscountPlatform(0L);
-            sellerOrder.setDiscountShipping(30000L);
+            sellerOrder.setDiscountShipping(0L);
+            sellerOrder.setShippingCost(30000L);
 
             long finalPrice = totalPrice
                               + sellerOrder.getDiscountShop()
-                              + sellerOrder.getDiscountPlatform()
-                              + sellerOrder.getDiscountShipping();
+                              + sellerOrder.getDiscountShipping()
+                              + sellerOrder.getShippingCost();
+            ;
             sellerOrder.setFinalPrice(Math.max(finalPrice, 0L));
 
             // 5. Gắn list OrderItem và collect SellerOrder
@@ -160,6 +163,22 @@ public class OrderServiceImpl implements OrderService {
         return orderRepository.save(order);
     }
 
+    @Scheduled(fixedRate = 180_000)
+    @Transactional
+    public void confirmExpiredDeliveredSellerOrder() {
+        List<SellerOrder> sellerOrders = sellerOrderRepository.findDeliveredOrdersOlderThan(
+                SELLER_ORDER_STATUS.DELIVERED,
+                LocalDateTime.now().minusDays(7)
+        );
+        log.info("Found {} delivered orders older than 7 days to complete", sellerOrders.size());
+
+        for (SellerOrder sellerOrder : sellerOrders) {
+            sellerOrder.setStatus(SELLER_ORDER_STATUS.COMPLETED);
+//            sellerOrder.setCompletedDate(LocalDateTime.now()); // nếu có trường này
+        }
+        sellerOrderRepository.saveAll(sellerOrders);
+    }
+
 
     private int discountPercentage(double mrpPrice, double sellingPrice) {
         log.info("Mrp: {}; Selling: {}", mrpPrice, sellingPrice);
@@ -186,6 +205,7 @@ public class OrderServiceImpl implements OrderService {
 
     SellerOrderRepository sellerOrderRepository;
     SellerOrderMapper sellerOrderMapper;
+
     @Override
     public List<UserOrderHistoryResponse> sellerOrders(Seller seller, SELLER_ORDER_STATUS status) {
         return sellerOrderRepository.findBySellerAndStatus(seller, status).stream().map(
@@ -216,6 +236,9 @@ public class OrderServiceImpl implements OrderService {
         }
 
         sellerOrder.setStatus(status);
+        if(status == SELLER_ORDER_STATUS.DELIVERED){
+            sellerOrder.setDeliveredDate(LocalDateTime.now());
+        }
 
         return sellerOrderRepository.save(sellerOrder);
     }
@@ -262,7 +285,7 @@ public class OrderServiceImpl implements OrderService {
         if (!sellerOrder.getUserId().equals(user.getId())) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
-        if(sellerOrder.getStatus() != SELLER_ORDER_STATUS.PENDING){
+        if (sellerOrder.getStatus() != SELLER_ORDER_STATUS.PENDING) {
             throw new AppException("Can't cancel this order");
         }
         //Product
@@ -283,7 +306,7 @@ public class OrderServiceImpl implements OrderService {
         if (!sellerOrder.getUserId().equals(user.getId())) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
-        if(sellerOrder.getStatus() != SELLER_ORDER_STATUS.DELIVERED){
+        if (sellerOrder.getStatus() != SELLER_ORDER_STATUS.DELIVERED) {
             throw new AppException("Can't confirm this order");
         }
         sellerOrder.setStatus(SELLER_ORDER_STATUS.COMPLETED);

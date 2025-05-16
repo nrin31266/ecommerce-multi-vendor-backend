@@ -31,7 +31,7 @@ public class Seller {
     BankDetails bankDetails = new BankDetails();
     @Enumerated(EnumType.STRING)
     USER_ROLE role;
-    boolean isEmailVerified;
+    Boolean acceptTerms;
     @Enumerated(EnumType.STRING)
     ACCOUNT_STATUS accountStatus;
     String taxCode;

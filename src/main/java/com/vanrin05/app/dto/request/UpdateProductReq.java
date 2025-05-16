@@ -13,8 +13,8 @@ import java.util.List;
 public class UpdateProductReq {
     String title;
     String description;
-    int mrpPrice;
-    int sellingPrice;
+    Long mrpPrice;
+    Long sellingPrice;
     int quantity;
     List<String> images;
     String category1;

@@ -10,7 +10,6 @@ import com.vanrin05.app.model.SellerReport;
 import com.vanrin05.app.service.SellerReportService;
 import com.vanrin05.app.service.impl.AuthService;
 import com.vanrin05.app.service.impl.SellerService;
-import jakarta.mail.MessagingException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -42,7 +41,7 @@ public class SellerController {
     }
 
     @PostMapping
-    public ResponseEntity<Seller> registerHandler(@RequestBody CreateSellerRequest requestBody) throws MessagingException {
+    public ResponseEntity<Seller> registerHandler(@RequestBody CreateSellerRequest requestBody)  {
         return ResponseEntity.ok(sellerService.createSeller(requestBody));
     }
 
@@ -61,14 +60,14 @@ public class SellerController {
         return ResponseEntity.ok(sellerService.getAllSellers(status));
     }
 
-    @PutMapping
+    @PutMapping("/profile")
     public ResponseEntity<Seller> updateSellerHandler(@RequestHeader("Authorization") String jwt, @RequestBody UpdateSellerRequest req) {
         return ResponseEntity.ok(sellerService.updateSeller(jwt, req));
     }
 
-    @PutMapping("/verify/{otp}")
-    public ResponseEntity<Seller> verifySellerEmail(@PathVariable String otp, @RequestHeader("Authorization") String jwt ) {
-        return ResponseEntity.ok(sellerService.verifyEmail(jwt, otp));
+    @PutMapping("/accept-terms")
+    public ResponseEntity<Seller> verifySellerEmail(@RequestHeader("Authorization") String jwt ) {
+        return ResponseEntity.ok(sellerService.accessTerms(jwt));
     }
 
 
@@ -78,8 +77,10 @@ public class SellerController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @GetMapping("/report")
-    public ResponseEntity<SellerReport> getSellerReportHandler(@RequestHeader("Authorization") String jwt) {
-        return ResponseEntity.ok(sellerReportService.getSellerReport(sellerService.getSellerProfile(jwt)));
+    @GetMapping("/report/{sellerId}")
+    public ResponseEntity<SellerReport> getSellerReportHandler(
+            @PathVariable Long sellerId
+    ) {
+        return ResponseEntity.ok(sellerReportService.getSellerReport(sellerService.getSellerById(sellerId)));
     }
 }

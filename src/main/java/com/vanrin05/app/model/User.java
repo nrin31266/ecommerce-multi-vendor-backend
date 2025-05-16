@@ -5,14 +5,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.vanrin05.app.domain.USER_ROLE;
-import com.vanrin05.app.model.cart.Coupon;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Entity(name = "users")
@@ -47,18 +44,11 @@ public class User {
 
     @JsonManagedReference
     @JsonIgnore
-    @OneToMany
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     Set<Address> addresses = new HashSet<>();
 
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JsonIgnore
-    @JoinTable(
-            name = "user_coupons",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "coupon_id")
-    )
-    Set<Coupon> usedCoupons = new HashSet<>();
+
 
     public User(String email,String fullName, String mobile, String password) {
         this.email = email;

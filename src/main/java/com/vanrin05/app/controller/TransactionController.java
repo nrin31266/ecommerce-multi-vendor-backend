@@ -23,7 +23,7 @@ public class TransactionController {
     TransactionService transactionService;
     SellerService sellerService;
 
-    @GetMapping("/my")
+    @GetMapping("/sellers/my")
     public ResponseEntity<List<Transaction>> getAllTransactionsBySeller(
             @RequestHeader("Authorization") String jwtToken
     ) {

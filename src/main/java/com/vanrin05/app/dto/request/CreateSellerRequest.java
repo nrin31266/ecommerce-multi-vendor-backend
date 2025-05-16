@@ -15,9 +15,8 @@ public class CreateSellerRequest {
     String sellerName;
     String mobile;
     String email;
-    String password;
     BusinessDetails businessDetails;
     BankDetails bankDetails;
     Address pickupAddress;
-    String GSTIN;
+    String taxCode;
 }
