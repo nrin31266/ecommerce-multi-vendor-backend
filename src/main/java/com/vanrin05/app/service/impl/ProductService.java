@@ -484,6 +484,10 @@ public class ProductService {
         return productRepository.findBySellerId(sellerId);
     }
 
+    public List<ProductDto> getShopProducts(Long sellerId) {
+        return productRepository.findBySellerId(sellerId).stream().map(productMapper::toProductDto).toList();
+    }
+
     public List<ProductDto> relatedProducts(Long productId){
         Product product = findProductById(productId);
         Category category = product.getCategory();

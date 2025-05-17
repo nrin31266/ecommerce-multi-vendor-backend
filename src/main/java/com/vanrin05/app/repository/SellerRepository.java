@@ -11,5 +11,5 @@ import java.util.Set;
 public interface SellerRepository extends JpaRepository<Seller, Long> {
     Optional<Seller> findByEmail(String email);
     List<Seller> findByAccountStatus(ACCOUNT_STATUS accountStatus);
-    List<Seller> findAllByIdIn(Set<Long> ids);
+    List<Seller> findAllByAcceptTermsIsTrue();
 }

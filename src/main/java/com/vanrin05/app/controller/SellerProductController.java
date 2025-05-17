@@ -31,6 +31,8 @@ public class SellerProductController {
         return ResponseEntity.ok(productService.getProductsBySellerId(sellerService.getSellerProfile(jwt).getId()));
     }
 
+
+
     @PostMapping
     public ResponseEntity<Product> createProduct(@RequestHeader("Authorization") String jwt, @RequestBody CreateProductReq req) {
         return ResponseEntity.ok(productService.createProduct(req, jwt));

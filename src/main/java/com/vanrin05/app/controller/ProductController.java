@@ -10,6 +10,7 @@ import com.vanrin05.app.dto.request.CreateSubProductReq;
 import com.vanrin05.app.model.product.Product;
 import com.vanrin05.app.model.product.SubProduct;
 import com.vanrin05.app.service.impl.ProductService;
+import com.vanrin05.app.service.impl.SellerService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -28,6 +29,7 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class ProductController {
     ProductService productService;
+    SellerService sellerService;
 
     @GetMapping("/{productId}")
     public ResponseEntity<Product> getProductById(@PathVariable Long productId) {
@@ -67,6 +69,13 @@ public class ProductController {
             @PathVariable Long productId
     ){
         return ResponseEntity.ok(productService.relatedProducts(productId));
+    }
+
+    @GetMapping("/shop/{sellerId}")
+    public ResponseEntity<List<ProductDto>> getProductsBySellerId(
+            @PathVariable Long sellerId
+    ) {
+        return ResponseEntity.ok(productService.getShopProducts(sellerId));
     }
 
 

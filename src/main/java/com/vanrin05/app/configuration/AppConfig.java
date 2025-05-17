@@ -21,6 +21,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+
 public class AppConfig {
     @Value("${security.jwt.secretKey}")
     private String SECRET_KEY;

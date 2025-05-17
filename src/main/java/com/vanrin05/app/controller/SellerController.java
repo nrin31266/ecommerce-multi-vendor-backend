@@ -55,10 +55,6 @@ public class SellerController {
         return ResponseEntity.ok(sellerService.getSellerProfile(jwt));
     }
 
-    @GetMapping
-    public ResponseEntity<List<Seller>> getAllSellerHandler(@RequestParam ACCOUNT_STATUS status) {
-        return ResponseEntity.ok(sellerService.getAllSellers(status));
-    }
 
     @PutMapping("/profile")
     public ResponseEntity<Seller> updateSellerHandler(@RequestHeader("Authorization") String jwt, @RequestBody UpdateSellerRequest req) {

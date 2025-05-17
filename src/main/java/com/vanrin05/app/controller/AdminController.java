@@ -17,15 +17,5 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AdminController {
-    SellerService sellerService;
 
-    @PutMapping("/seller/{id}/status/{status}")
-    public ResponseEntity<Seller> updateSellerStatus(
-            @PathVariable Long id,
-            @PathVariable ACCOUNT_STATUS status
-            ){
-        Seller updateSeller = sellerService.updateSellerAccountStatus(id, status);
-
-        return ResponseEntity.ok(updateSeller);
-    }
 }

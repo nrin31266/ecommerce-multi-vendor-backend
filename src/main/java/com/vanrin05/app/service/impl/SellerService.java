@@ -54,6 +54,7 @@ public class SellerService {
         seller.setAccountStatus(ACCOUNT_STATUS.PENDING_VERIFICATION);
         String otpCode = otpUtil.generateOtp(6);
         seller.setPassword(passwordEncoder.encode(otpCode));
+        seller.setAcceptTerms(false);
         seller = sellerRepository.save(seller);
 
         SellerReport sellerReport = new SellerReport();
@@ -89,8 +90,8 @@ public class SellerService {
                 new AppException(ErrorCode.SELLER_NOT_FOUND, ErrorCode.SELLER_NOT_FOUND.getFormattedMessage("email " + email)));
     }
 
-    public List<Seller> getAllSellers(ACCOUNT_STATUS accountStatus){
-        return sellerRepository.findByAccountStatus(accountStatus);
+    public List<Seller> getAllSellers(){
+        return sellerRepository.findAllByAcceptTermsIsTrue();
     }
 
 
