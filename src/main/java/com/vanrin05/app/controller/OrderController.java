@@ -4,9 +4,11 @@ package com.vanrin05.app.controller;
 import com.stripe.exception.StripeException;
 import com.vanrin05.app.domain.PAYMENT_METHOD;
 import com.vanrin05.app.domain.SELLER_ORDER_STATUS;
+import com.vanrin05.app.dto.OrderDto;
 import com.vanrin05.app.dto.request.CreateOrderRequest;
 import com.vanrin05.app.dto.response.PaymentResponse;
 import com.vanrin05.app.exception.AppException;
+import com.vanrin05.app.mapper.OrderMapper;
 import com.vanrin05.app.model.*;
 import com.vanrin05.app.model.cart.Cart;
 import com.vanrin05.app.model.orderpayment.Order;
@@ -16,11 +18,13 @@ import com.vanrin05.app.model.orderpayment.SellerOrder;
 import com.vanrin05.app.service.*;
 import com.vanrin05.app.service.impl.SellerService;
 import com.vanrin05.app.service.impl.UserService;
+import com.vanrin05.event.SentEmailEvent;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,6 +45,8 @@ public class OrderController {
     SellerReportService sellerReportService;
     PaymentService paymentService;
     AddressService addressService;
+    KafkaTemplate<String, Object> kafkaTemplate;
+    OrderMapper orderMapper;
 
 
     @Transactional(rollbackFor = Exception.class)
@@ -54,11 +60,11 @@ public class OrderController {
         // Create orders
         Order order = orderService.createOrder(user, addressService.getAddressById(request.getAddressId()), cart, request);
 
-        if(request.getPaymentMethod().equals(PAYMENT_METHOD.CASH_ON_DELIVERY)){
+        if (request.getPaymentMethod().equals(PAYMENT_METHOD.CASH_ON_DELIVERY)) {
             return ResponseEntity.ok(new PaymentResponse());
         }
         Payment payment = paymentService.createPaymentOrder(user, order, request.getPaymentMethod());
-        if(request.getPaymentMethod().equals(PAYMENT_METHOD.VNPAY)){
+        if (request.getPaymentMethod().equals(PAYMENT_METHOD.VNPAY)) {
             Map<String, String> params = new HashMap<>();
             params.put("orderInfo", "Payment order with id: " + payment.getId());
             params.put("orderType", "other");
@@ -66,10 +72,10 @@ public class OrderController {
             String linkUrl = paymentService.createVNPaymentLink(user, payment.getAmount(), payment.getId(), params);
 
             return ResponseEntity.ok(new PaymentResponse(linkUrl));
-        }else if(request.getPaymentMethod().equals(PAYMENT_METHOD.STRIPE)){
-            String linkUrl = paymentService.createStripePaymentLink(user, payment.getAmount() ,payment.getId());
+        } else if (request.getPaymentMethod().equals(PAYMENT_METHOD.STRIPE)) {
+            String linkUrl = paymentService.createStripePaymentLink(user, payment.getAmount(), payment.getId());
             return ResponseEntity.ok(new PaymentResponse(linkUrl));
-        }else{
+        } else {
             throw new AppException("Payment method not supported");
         }
 
@@ -83,17 +89,18 @@ public class OrderController {
 
     @GetMapping("/user")
     public ResponseEntity<List<SellerOrder>> getUserOrdersHistory(@RequestHeader("Authorization") String jwt,
-                                                            @RequestParam("status") SELLER_ORDER_STATUS status) {
+                                                                  @RequestParam("status") SELLER_ORDER_STATUS status) {
         User user = userService.findUserByJwtToken(jwt);
         return ResponseEntity.ok(orderService.userOrders(user, status));
     }
 
     @GetMapping("/user/{sellerOrderId}")
     public ResponseEntity<SellerOrder> getSellerOrderDetails(@RequestHeader("Authorization") String jwt,
-                                                                   @PathVariable("sellerOrderId") Long sellerOrderId) {
+                                                             @PathVariable("sellerOrderId") Long sellerOrderId) {
         User user = userService.findUserByJwtToken(jwt);
         return ResponseEntity.ok(orderService.getSellerOrderById(sellerOrderId));
     }
+
 
     @GetMapping("/{orderId}")
     public ResponseEntity<Order> getOrder(@PathVariable("orderId") Long orderId) {
@@ -113,7 +120,22 @@ public class OrderController {
         return ResponseEntity.ok(sellerOrder);
     }
 
+    @GetMapping("/user/test/{sellerOrderId}")
+    public ResponseEntity<Void> getSellerOrderDetails(
+            @PathVariable("sellerOrderId") Long sellerOrderId) {
+        SellerOrder sellerOrder = orderService.getSellerOrderById(sellerOrderId);
+        OrderDto order = orderMapper.toDto(sellerOrder.getOrder());
 
+        kafkaTemplate.send("sent_confirm_seller_order", SentEmailEvent.builder()
+                .email(order.getUser().getEmail())
+                .subject("Order Confirmation")
+                .variables(Map.of(
+                        "order", order,
+                        "sellerOrder", sellerOrder
+                ))
+                .build());
+        return ResponseEntity.ok().build();
+    }
 
 
 }

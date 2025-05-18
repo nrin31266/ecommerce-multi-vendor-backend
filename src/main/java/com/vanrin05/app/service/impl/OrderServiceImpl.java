@@ -4,11 +4,13 @@ import com.vanrin05.app.domain.PAYMENT_METHOD;
 import com.vanrin05.app.domain.PAYMENT_ORDER_STATUS;
 import com.vanrin05.app.domain.PAYMENT_STATUS;
 import com.vanrin05.app.domain.SELLER_ORDER_STATUS;
+import com.vanrin05.app.dto.OrderDto;
 import com.vanrin05.app.dto.request.CreateOrderRequest;
 import com.vanrin05.app.dto.response.UserOrderHistoryResponse;
 import com.vanrin05.app.exception.AppException;
 import com.vanrin05.app.exception.ErrorCode;
 import com.vanrin05.app.mapper.OrderItemMapper;
+import com.vanrin05.app.mapper.OrderMapper;
 import com.vanrin05.app.mapper.SellerOrderMapper;
 import com.vanrin05.app.model.*;
 import com.vanrin05.app.model.cart.Cart;
@@ -19,10 +21,12 @@ import com.vanrin05.app.repository.*;
 import com.vanrin05.app.service.OrderService;
 import com.vanrin05.app.service.SellerReportService;
 import com.vanrin05.app.service.TransactionService;
+import com.vanrin05.event.SentEmailEvent;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,6 +48,8 @@ public class OrderServiceImpl implements OrderService {
     ProductService productService;
     SellerReportService sellerReportService;
     TransactionService transactionService;
+    KafkaTemplate<String, Object> kafkaTemplate;
+    OrderMapper orderMapper;
 
 
     @Override
@@ -238,6 +244,17 @@ public class OrderServiceImpl implements OrderService {
         sellerOrder.setStatus(status);
         if(status == SELLER_ORDER_STATUS.DELIVERED){
             sellerOrder.setDeliveredDate(LocalDateTime.now());
+
+            OrderDto order = orderMapper.toDto(sellerOrder.getOrder());
+
+            kafkaTemplate.send("sent_confirm_seller_order", SentEmailEvent.builder()
+                            .email(order.getUser().getEmail())
+                            .subject("Order Confirmation")
+                            .variables(Map.of(
+                                    "order", order,
+                                    "sellerOrder", sellerOrder
+                            ))
+                    .build());
         }
 
         return sellerOrderRepository.save(sellerOrder);

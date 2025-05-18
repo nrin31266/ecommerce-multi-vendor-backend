@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Xác nhận đơn hàng đã giao</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            background: #f4f6fb;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 540px;
+            background: #fff;
+            margin: 32px auto;
+            padding: 32px 28px 22px 28px;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(40, 60, 120, 0.10);
+        }
+
+        h2 {
+            color: #3056d3;
+            font-size: 1.35rem;
+            margin: 0 0 18px 0;
+            font-weight: 600;
+        }
+
+        .order-summary {
+            margin-bottom: 16px;
+            font-size: 1.08rem;
+        }
+
+        .order-info, .item-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .order-info td {
+            padding: 3px 0 3px 0;
+            color: #333;
+        }
+
+        .item-table th, .item-table td {
+            border-bottom: 1px solid #eee;
+            padding: 8px 6px;
+            text-align: left;
+            font-size: 0.98rem;
+        }
+
+        .item-table th {
+            background: #f7f8fa;
+            color: #555;
+            font-weight: 600;
+        }
+
+        .product-img {
+            width: 54px;
+            height: 54px;
+            object-fit: cover;
+            border-radius: 6px;
+            margin-right: 10px;
+            vertical-align: middle;
+            border: 1px solid #eee;
+        }
+
+        .product-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .product-title {
+            display: inline-block;
+            max-width: 170px;
+            vertical-align: middle;
+            word-break: break-word;
+        }
+
+        .actions {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .btn {
+            display: inline-block;
+            margin: 4px 6px;
+            padding: 10px 26px;
+            background: linear-gradient(90deg, #4f8cff 20%, #8a69d6 100%);
+            color: #fff;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .btn-outline {
+            background: #fff;
+            color: #4f8cff;
+            border: 1.5px solid #4f8cff;
+        }
+
+        .note {
+            color: #888;
+            font-size: 0.93rem;
+            margin-top: 18px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 12px 4px;
+                min-width: 0;
+            }
+            .product-title {
+                max-width: 90px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Đơn hàng của bạn đã được giao!</h2>
+    <div class="order-summary">
+        Xin chào <span th:text="${order.user.fullName}">Người dùng</span>,
+        <br>
+        Bạn vừa nhận được đơn hàng <b>#<span th:text="${sellerOrder.id}"></span></b>
+        (mã hệ thống: <span th:text="${order.id}"></span>)
+        từ nhà bán hàng
+        <b th:text="${sellerOrder.seller.sellerName}"></b>.
+        <!-- Bỏ qua thời gian giao -->
+    </div>
+    <table class="order-info">
+        <tr>
+            <td><b>Địa chỉ nhận hàng:</b></td>
+            <td th:text="${order.shippingAddress.name + ' - ' + order.shippingAddress.phoneNumber + ' - ' + order.shippingAddress.street + ', ' + order.shippingAddress.ward + ', ' + order.shippingAddress.district + ', ' + order.shippingAddress.province}">
+                123 Đường ABC, Q.1, TP.HCM
+            </td>
+        </tr>
+        <tr>
+            <td><b>Tổng số lượng sản phẩm:</b></td>
+            <td th:text="${sellerOrder.totalItem}">3</td>
+        </tr>
+        <tr>
+            <td><b>Thành tiền:</b></td>
+            <td>
+                <span th:text="${#numbers.formatDecimal(sellerOrder.finalPrice, 0, 'COMMA', 0, 'POINT') + ' ₫'}">700.000₫</span>
+            </td>
+        </tr>
+    </table>
+
+    <h3 style="margin:18px 0 8px 0;font-size:1.06rem;">Danh sách sản phẩm đã đặt:</h3>
+    <table class="item-table">
+        <thead>
+        <tr>
+            <th>Ảnh</th>
+            <th>Tên sản phẩm</th>
+            <th>Phân loại</th>
+            <th>Số lượng</th>
+            <th>Giá</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="item : ${sellerOrder.orderItems}">
+            <td>
+                <img th:src="${item.subProduct != null && item.subProduct.images != null && #lists.size(item.subProduct.images) > 0
+                        ? item.subProduct.images[0]
+                        : (item.product.images != null && #lists.size(item.product.images) > 0 ? item.product.images[0] : '/static/images/no-image.png')}"
+                     alt="Ảnh sản phẩm" class="product-img"/>
+            </td>
+            <td>
+                <span class="product-title"
+                      th:text="${item.product.title.length() > 40 ? item.product.title.substring(0, 40) + '...' : item.product.title}">
+                </span>
+            </td>
+            <td th:text="${item.subProduct != null && item.subProduct.options != null && #lists.size(item.subProduct.options) > 0
+                ? #strings.listJoin(item.subProduct.options
+                    .![optionType.value + ': ' + optionValue], ', ')
+                : '-'}"></td>
+            <td th:text="${item.quantity}">1</td>
+            <td>
+                <span th:text="${#numbers.formatDecimal(item.sellingPrice, 0, 'COMMA', 0, 'POINT') + ' ₫'}">200.000₫</span>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div class="actions">
+        <a href="#" class="btn">Xác nhận đã nhận hàng</a>
+        <a th:href="'mailto:' + ${sellerOrder.seller.email}" class="btn btn-outline">Liên hệ nhà bán hàng</a>
+        <a href="mailto:abc0905440632@gmail.com" class="btn btn-outline">Liên hệ hệ thống</a>
+    </div>
+    <div class="note">
+        Nếu bạn chưa nhận được hàng hoặc có vấn đề phát sinh, vui lòng liên hệ ngay để được hỗ trợ!
+    </div>
+</div>
+</body>
+</html>

@@ -1,15 +1,121 @@
 <!DOCTYPE html>
-
-
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title th:text="${title}">Xác nhận OTP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f8fafc 0%, #e8eaf6 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+        }
+        .box {
+            background: #fff;
+            padding: 32px 28px 24px 28px;
+            border-radius: 18px;
+            box-shadow: 0 2px 18px 0 rgba(50, 50, 93, 0.13);
+            min-width: 340px;
+            max-width: 95vw;
+            margin: 0 auto;
+            text-align: center;
+            position: relative;
+        }
+        h1 {
+            margin: 0 0 16px 0;
+            font-size: 2.1rem;
+            font-weight: 700;
+            color: #263159;
+            letter-spacing: 0.02em;
+        }
+        .otp-label {
+            color: #888;
+            font-size: 1.09rem;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        .otp-value {
+            display: inline-block;
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: #fff;
+            background: linear-gradient(90deg, #4f8cff 20%, #8a69d6 100%);
+            padding: 8px 28px;
+            border-radius: 10px;
+            letter-spacing: 0.18em;
+            box-shadow: 0 1px 8px 0 rgba(76, 110, 245, 0.13);
+            vertical-align: middle;
+            margin-left: 6px;
+        }
+        .desc-fake {
+            margin: 22px 0 11px 0;
+            color: #b2bac8;
+            font-size: 1.08rem;
+            font-style: italic;
+            line-height: 1.6;
+        }
+        .trust-fake {
+            color: #b2bac8;
+            font-size: 0.99rem;
+            margin-bottom: 18px;
+            margin-top: 0;
+            letter-spacing: 0.01em;
+        }
+        .footer-fake {
+            margin-top: 14px;
+            color: #9ea8c7;
+            font-size: 0.92rem;
+            font-family: 'Inter', Arial, sans-serif;
+        }
+        .footer-fake a {
+            color: #b2bac8;
+            text-decoration: underline;
+            margin: 0 8px;
+            font-size: 0.93rem;
+        }
+        .footer-fake a:hover {
+            color: #7f8cb7;
+        }
+        @media (max-width: 480px) {
+            .box { padding: 18px 4px 12px 4px; min-width: 0; }
+            h1 { font-size: 1.25rem; }
+            .otp-value { font-size: 1.12rem; padding: 5px 12px; }
+            .desc-fake { font-size: 0.96rem; }
+            .footer-fake { font-size: 0.85rem; }
+        }
+    </style>
 </head>
 <body>
-  <h1 th:text="${title}"></h1>
-  <div>
-    <span>Your OTP: </span> <span th:text="${otp}"></span>
-  </div>
+<div class="box">
+    <h1 th:text="${title}">Xác nhận OTP</h1>
+    <div>
+        <span class="otp-label">Mã xác nhận của bạn:</span>
+        <span class="otp-value" th:text="${otp}">123456</span>
+    </div>
+    <div class="desc-fake">
+        Hãy nhập mã OTP này để tiếp tục.<br>
+        <span class="trust-fake">
+            <b>Vanrin bảo vệ an toàn tuyệt đối cho mọi giao dịch.</b><br>
+            Dữ liệu của bạn được mã hóa và xử lý bởi hệ thống đạt chuẩn quốc tế.<br>
+            Chúng tôi không bao giờ tiết lộ thông tin của bạn cho bên thứ ba.<br>
+            <i>Được hàng triệu khách hàng tin tưởng mỗi ngày.</i>
+        </span>
+    </div>
+    <div class="footer-fake">
+        <a href="#">Điều khoản sử dụng</a> |
+        <a href="#">Chính sách bảo mật</a> |
+        <a href="#">Về chúng tôi</a> |
+        <a href="#">Trợ giúp khách hàng</a>
+        <br>
+        &copy; 2025 Vanrin. Đơn vị tiên phong trong lĩnh vực bảo mật và trải nghiệm khách hàng.
+    </div>
+</div>
 </body>
 </html>

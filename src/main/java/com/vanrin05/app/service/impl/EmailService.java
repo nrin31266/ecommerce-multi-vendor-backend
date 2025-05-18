@@ -26,7 +26,7 @@ public class EmailService {
     @Value("${spring.mail.username}")
     private String fromEmail;
 
-    public void sendVerificationOtpEmail(String userEmail, String subject, String htmlContent) throws MessagingException {
+    public void sendEmail(String userEmail, String subject, String htmlContent) throws MessagingException {
         try{
             MimeMessage mimeMessage = mailSender.createMimeMessage();
             MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage, "utf-8");

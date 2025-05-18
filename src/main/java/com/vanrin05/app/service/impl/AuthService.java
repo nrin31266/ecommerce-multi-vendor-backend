@@ -17,7 +17,7 @@ import com.vanrin05.app.repository.SellerRepository;
 import com.vanrin05.app.repository.UserRepository;
 import com.vanrin05.app.repository.VerificationCodeRepository;
 import com.vanrin05.app.utils.OtpUtil;
-import com.vanrin05.event.SentLoginSignupEvent;
+import com.vanrin05.event.SentEmailEvent;
 import io.jsonwebtoken.Claims;
 import jakarta.mail.MessagingException;
 import lombok.AccessLevel;
@@ -54,7 +54,7 @@ public class AuthService {
     KafkaTemplate<String, Object> kafkaTemplate;
 
     public void sendLoginOtp (String email, USER_ROLE role) throws MessagingException {
-        SentLoginSignupEvent sentLoginSignupEvent = new SentLoginSignupEvent();
+        SentEmailEvent sentLoginSignupEvent = new SentEmailEvent();
         Map<String, Object> variables = new HashMap<>();
 
         String SINGING_PREFIX = "signing_";

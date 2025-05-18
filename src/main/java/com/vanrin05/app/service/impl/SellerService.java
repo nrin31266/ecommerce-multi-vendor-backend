@@ -14,7 +14,7 @@ import com.vanrin05.app.repository.SellerReportRepository;
 import com.vanrin05.app.repository.SellerRepository;
 import com.vanrin05.app.repository.VerificationCodeRepository;
 import com.vanrin05.app.utils.OtpUtil;
-import com.vanrin05.event.SentLoginSignupEvent;
+import com.vanrin05.event.SentEmailEvent;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -72,7 +72,7 @@ public class SellerService {
         variables.put("title", "Welcome seller to NRin, this OTP to access our System: ");
         variables.put("otp", otpCode);
 
-        kafkaTemplate.send("sent_otp_to_login_signup", SentLoginSignupEvent.builder()
+        kafkaTemplate.send("sent_otp_to_login_signup", SentEmailEvent.builder()
                         .subject("Seller create account")
                         .email(seller.getEmail())
                         .variables(variables)

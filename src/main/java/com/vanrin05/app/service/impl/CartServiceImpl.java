@@ -88,7 +88,7 @@ public class CartServiceImpl implements CartService {
     @Override
     public CartDto getUserCart(User user) {
         Cart cart = cartRepository.findByUserId(user.getId());
-        List<CartItem> cartItems = cart.getCartItems();
+        List<CartItem> cartItems = cart.getCartItems() == null ? List.of() : cart.getCartItems();
 
         // Nhóm CartItem theo Seller
         Map<Seller, List<CartItem>> groupedBySeller = cartItems.stream()

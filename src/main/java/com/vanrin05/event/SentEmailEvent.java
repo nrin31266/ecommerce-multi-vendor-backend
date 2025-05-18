@@ -10,7 +10,7 @@ import java.util.Map;
 @Builder
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class SentLoginSignupEvent {
+public class SentEmailEvent {
     String subject;
     String email;
     Map<String, Object> variables;

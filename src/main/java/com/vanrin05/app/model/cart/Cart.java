@@ -28,7 +28,7 @@ public class Cart {
 //    int totalItems = 0;
 //    Long totalMrpPrice = 0L;
 //    int discount;
-    String couponCode;
+
 
     public Cart(User user) {
         this.user = user;
