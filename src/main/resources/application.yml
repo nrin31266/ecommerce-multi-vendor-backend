@@ -59,7 +59,7 @@ vnpay:
   tmn-code: PBR8SGZ0
   hash-secret: ${VNP_HASH_SECRET}
   url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
-  return-url: https://c343-113-161-7-220.ngrok-free.app/vnpay/return
+  return-url: https://d7b7-117-3-0-140.ngrok-free.app/vnpay/return
 
 payment:
   return_payment_success_url: http://localhost:5173/payment-success

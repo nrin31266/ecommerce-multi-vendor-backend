@@ -127,7 +127,7 @@
         Bạn vừa nhận được đơn hàng <b>#<span th:text="${sellerOrder.id}"></span></b>
         (mã hệ thống: <span th:text="${order.id}"></span>)
         từ nhà bán hàng
-        <b th:text="${sellerOrder.seller.sellerName}"></b>.
+        <b th:text="${sellerOrder.seller.businessDetails.businessName}"></b>.
         <!-- Bỏ qua thời gian giao -->
     </div>
     <table class="order-info">
